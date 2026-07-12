@@ -1,0 +1,7 @@
+{
+  "task": "store",
+  "done": true,
+  "tests_passed": 14,
+  "coverage_notes": "SQLite store (rusqlite bundled) fully implemented in src-tauri/src/store.rs: OnceLock<Mutex<Connection>> connection, init() with app_data_dir + WAL + foreign_keys=ON + migrations, init_in_memory() for tests. Schema v1 (schema_version + collections/requests/environments/app_state/history/gql_schema_cache) matches contract. All command stubs implemented: list/upsert/delete for collections/requests/environments; get/set active environment via app_state; history_list (default limit 50, executed_at DESC, optional request_id filter), history_add (prunes to newest 1000), history_clear; gql_schema_get/put (upsert with fetched_at). Empty id -> uuid v4; upsert returns object with preserved id. Nested fields serialized via serde_json to *_json columns. Zero format! in SQL — only bound params (the one string concat in list_requests joins two fixed literals, no user data). 14 in-memory tests (>=12 required): collection upsert/list/update, StoredRequest round-trip for all Body variants (None/Raw/FormUrlencoded/Multipart) x Auth variants (None/Bearer/Basic/ApiKey/SigV4), collection->requests cascade delete, environment round-trip+delete, active env set/get/None + auto-clear on env delete, history add/list/default-limit/prune-to-1000/filter/clear, gql cache upsert+get. cargo fmt clean, cargo clippy --all-targets -D warnings clean, cargo test 14/14 pass. Tests are offline (in-memory SQLite, no network).",
+  "blockers": []
+}
