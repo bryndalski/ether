@@ -23,6 +23,26 @@ export function cancelRequest(requestId: string): Promise<boolean> {
   return invoke("cancel_request", { requestId });
 }
 
+// ---- resolve (interpolate → send / redacted preview) ----
+
+/** Resolve env + secrets in Rust, then send. The FE passes the templated
+ *  StoredRequest verbatim; interpolation/SigV4 never happen on the frontend. */
+export function resolveAndSend(
+  request: StoredRequest,
+  environmentId: string | null,
+): Promise<ResponseData> {
+  return invoke("resolve_and_send", { request, environmentId });
+}
+
+/** Build a REDACTED cURL preview in Rust (secrets replaced with "•••"). The FE
+ *  must never call `to_curl` for previews — redaction is Rust's responsibility. */
+export function resolvePreviewCurl(
+  request: StoredRequest,
+  environmentId: string | null,
+): Promise<string> {
+  return invoke("resolve_preview_curl", { request, environmentId });
+}
+
 // ---- interpolation ----
 
 export function previewTemplate(

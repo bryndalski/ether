@@ -5,6 +5,7 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/tailwind.css";
 import "./components/palette/palette.css";
+import "./components/workbench/workbench.css";
 
 import App from "./App";
 

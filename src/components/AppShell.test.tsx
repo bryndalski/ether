@@ -39,12 +39,14 @@ describe("AppShell", () => {
     resetStores();
     render(<AppShell />);
 
-    // Sidebar + editor empty states from the "not implemented" backend.
+    // Sidebar + workbench empty states from the "not implemented" backend.
+    // With no active request the workbench (Zone 2+3) shows its own empty state;
+    // the response dock nests inside it and only mounts once a request is open.
     await waitFor(() =>
       expect(screen.getByText("Rozgrzej pierwszą lokówkę")).toBeInTheDocument(),
     );
     expect(
-      screen.getByText("Naciśnij Send i zobacz waterfall"),
+      screen.getByText("Wklej curl albo zacznij od GET"),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Otwórz paletę poleceń")).toBeInTheDocument();
   });

@@ -1,12 +1,11 @@
 import { useShellBootstrap } from "../hooks/useShellBootstrap";
 import { usePaletteHotkey } from "../hooks/usePaletteHotkey";
-import { useUiStore } from "../state/useUiStore";
 import { TitleBar } from "./topbar/TitleBar";
 import { Sidebar } from "./sidebar/Sidebar";
-import { RequestEditor } from "./editor/RequestEditor";
-import { ResponseDock } from "./response/ResponseDock";
+import { RequestWorkbench } from "./workbench/RequestWorkbench";
 import { StatusBar } from "./statusbar/StatusBar";
 import { CommandPalette } from "./palette/CommandPalette";
+import { IconSprite } from "./common/IconSprite";
 
 /** The three-zone app shell (titlebar · sidebar · editor+response · statusbar).
  *  Fixed 100dvh, no window scroll — panels scroll internally. Response dock is
@@ -14,20 +13,15 @@ import { CommandPalette } from "./palette/CommandPalette";
 export function AppShell() {
   useShellBootstrap();
   usePaletteHotkey();
-  const placement = useUiStore((state) => state.responsePlacement);
 
   return (
     <>
+      <IconSprite />
       <TitleBar />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
-        <main
-          className={`flex min-h-0 min-w-0 flex-1 overflow-hidden ${
-            placement === "bottom" ? "flex-col" : "flex-row"
-          }`}
-        >
-          <RequestEditor />
-          <ResponseDock />
+        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+          <RequestWorkbench />
         </main>
       </div>
       <StatusBar />

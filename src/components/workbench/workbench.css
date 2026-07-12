@@ -1,0 +1,465 @@
+/* Workbench (Zone 2 + 3) visual layer — ported 1:1 from
+   design-system/preview/mock-request.html's inline <style>. Every value is a
+   --lok-* token; no hardcoded colors. Shared style.css already owns .method,
+   .tab, .btn-send, .wf-*; this file adds the request/response-specific rows the
+   mock defines inline. */
+
+/* Editor column */
+.editor {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--lok-bg-surface);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  height: var(--lok-toolbar-h);
+  padding: 0 var(--lok-space-4);
+  border-bottom: 1px solid var(--lok-border-subtle);
+}
+.method-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-raised);
+  border: 1px solid var(--lok-border-default);
+  cursor: pointer;
+  position: relative;
+}
+.method-select .method {
+  font-size: var(--lok-fs-xs);
+}
+.method-select svg {
+  width: 13px;
+  height: 13px;
+  color: var(--lok-text-tertiary);
+  pointer-events: none;
+}
+/* native <select> overlaid transparently for a11y + keyboard */
+.method-select select {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: var(--lok-fs-xs);
+}
+.url-field {
+  flex: 1;
+  height: 32px;
+  padding: 0 var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-input);
+  border: 1px solid var(--lok-border-default);
+  color: var(--lok-text-primary);
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-md);
+}
+.url-field:focus {
+  outline: none;
+  border-color: var(--lok-border-focus);
+  box-shadow: 0 0 0 3px var(--lok-focus-ring);
+}
+
+.req-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-1);
+  height: var(--lok-tabbar-h);
+  padding: 0 var(--lok-space-4);
+  border-bottom: 1px solid var(--lok-border-subtle);
+}
+.pane {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+.pane-inner {
+  padding: var(--lok-space-4);
+}
+
+/* KV editor rows */
+.kv {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr 28px;
+  gap: var(--lok-space-2);
+  align-items: center;
+  padding: 2px 0;
+}
+.kv input[type="text"] {
+  height: 28px;
+  padding: 0 var(--lok-space-2);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-input);
+  border: 1px solid var(--lok-border-subtle);
+  color: var(--lok-text-primary);
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+  min-width: 0;
+}
+.kv input[type="text"]:focus {
+  outline: none;
+  border-color: var(--lok-border-focus);
+  box-shadow: 0 0 0 2px var(--lok-focus-ring);
+}
+.kv input.k {
+  color: var(--lok-syn-key);
+}
+.kv .rm {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--lok-radius-sm);
+  color: var(--lok-text-tertiary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+.kv .rm:hover {
+  color: var(--lok-status-danger);
+  background: var(--lok-status-danger-bg);
+}
+.kv-head {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr 28px;
+  gap: var(--lok-space-2);
+  font-size: var(--lok-fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--lok-tracking-wide);
+  color: var(--lok-text-tertiary);
+  padding-bottom: var(--lok-space-2);
+  margin-bottom: var(--lok-space-1);
+  border-bottom: 1px solid var(--lok-border-subtle);
+}
+
+/* Response dock */
+.response {
+  background: var(--lok-bg-code);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  animation: dock-rise var(--lok-dur-slow) var(--lok-ease-decelerate) both;
+}
+@keyframes dock-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.resp-head {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-3);
+  padding: var(--lok-space-2) var(--lok-space-4);
+  border-bottom: 1px solid var(--lok-border-subtle);
+  background: var(--lok-bg-surface);
+}
+.resp-status {
+  display: flex;
+  align-items: baseline;
+  gap: var(--lok-space-2);
+}
+.resp-status .code {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-lg);
+  font-weight: var(--lok-fw-bold);
+  font-variant-numeric: tabular-nums;
+  animation: pop var(--lok-dur-slow) var(--lok-ease-spring) both;
+}
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.resp-status .txt {
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-secondary);
+}
+.resp-meta {
+  display: flex;
+  gap: var(--lok-space-4);
+  margin-left: auto;
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--lok-text-secondary);
+}
+.resp-meta b {
+  color: var(--lok-text-primary);
+  font-weight: var(--lok-fw-semibold);
+}
+.resp-tabs {
+  display: flex;
+  gap: var(--lok-space-1);
+  padding: 0 var(--lok-space-4);
+  border-bottom: 1px solid var(--lok-border-subtle);
+  background: var(--lok-bg-surface);
+}
+.resp-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  padding: var(--lok-space-4);
+}
+.resp-body pre {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-sm);
+  line-height: var(--lok-lh-code);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* curl -v / preview log */
+.curl-log {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--lok-text-secondary);
+}
+.curl-log .gt {
+  color: var(--lok-status-info);
+}
+.curl-log .lt {
+  color: var(--lok-heat-400);
+}
+.curl-log .star {
+  color: var(--lok-text-tertiary);
+}
+.curl-log .redact {
+  color: var(--lok-text-disabled);
+}
+
+/* Send button in-flight (cancel) variant reuses .btn-send from style.css */
+.btn-send:disabled {
+  background: var(--lok-bg-raised);
+  color: var(--lok-text-tertiary);
+  box-shadow: none;
+  text-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn-send .kbd {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  opacity: 0.85;
+}
+
+/* section label reused from the mock's .sg-label */
+.wb-label {
+  font-size: var(--lok-fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--lok-tracking-wide);
+  color: var(--lok-text-tertiary);
+}
+
+/* ----------------------------------------------------------------------
+   Ported from design-system/preview/style.css — the shared preview sheet is
+   NOT imported into the app, so the mock chrome classes the workbench uses
+   (.method, .tab, .btn-send, .wf-*) are re-declared here 1:1 on --lok-* tokens.
+   ---------------------------------------------------------------------- */
+
+/* method chip */
+.method {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  font-weight: var(--lok-fw-bold);
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: var(--lok-radius-xs);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.method.get {
+  color: var(--lok-method-get);
+  background: color-mix(in srgb, var(--lok-method-get) 14%, transparent);
+}
+.method.post {
+  color: var(--lok-method-post);
+  background: color-mix(in srgb, var(--lok-method-post) 14%, transparent);
+}
+.method.put {
+  color: var(--lok-method-put);
+  background: color-mix(in srgb, var(--lok-method-put) 14%, transparent);
+}
+.method.patch {
+  color: var(--lok-method-patch);
+  background: color-mix(in srgb, var(--lok-method-patch) 14%, transparent);
+}
+.method.delete {
+  color: var(--lok-method-delete);
+  background: color-mix(in srgb, var(--lok-method-delete) 14%, transparent);
+}
+.method.head {
+  color: var(--lok-method-head);
+  background: color-mix(in srgb, var(--lok-method-head) 14%, transparent);
+}
+.method.options {
+  color: var(--lok-method-options);
+  background: color-mix(in srgb, var(--lok-method-options) 14%, transparent);
+}
+
+/* tabs */
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--lok-space-3);
+  height: 100%;
+  font-size: var(--lok-fs-xs);
+  font-weight: var(--lok-fw-medium);
+  color: var(--lok-text-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.tab:hover {
+  color: var(--lok-text-secondary);
+}
+.tab.active {
+  color: var(--lok-text-primary);
+}
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: var(--lok-space-2);
+  right: var(--lok-space-2);
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--lok-gradient-heat-x);
+}
+.tab .count {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+  background: var(--lok-bg-active);
+  padding: 1px 5px;
+  border-radius: var(--lok-radius-full);
+}
+
+/* Send button */
+.btn-send {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  font-weight: var(--lok-fw-semibold);
+  font-size: var(--lok-fs-sm);
+  padding: 0 var(--lok-space-5);
+  height: 32px;
+  border: none;
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-gradient-heat);
+  color: var(--lok-text-on-heat);
+  cursor: pointer;
+  box-shadow: var(--lok-shadow-heat);
+  position: relative;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(120, 10, 40, 0.45);
+  transition:
+    transform var(--lok-dur-fast) var(--lok-ease-spring),
+    box-shadow var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.btn-send:hover:not(:disabled) {
+  box-shadow: 0 8px 30px rgba(255, 45, 122, 0.45);
+}
+.btn-send:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn-send svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* waterfall */
+.wf {
+  display: grid;
+  gap: var(--lok-space-2);
+}
+.wf-row {
+  display: grid;
+  grid-template-columns: 88px 1fr 64px;
+  align-items: center;
+  gap: var(--lok-space-3);
+}
+.wf-row .lbl {
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--lok-tracking-wide);
+}
+.wf-track {
+  height: 12px;
+  background: var(--lok-bg-active);
+  border-radius: var(--lok-radius-full);
+  position: relative;
+  overflow: hidden;
+}
+.wf-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--lok-radius-full);
+}
+.wf-row .ms {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  text-align: right;
+  color: var(--lok-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.wf-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lok-space-3);
+  margin-top: var(--lok-space-3);
+}
+.wf-legend .lg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+}
+.wf-legend .sw2 {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* read-only response headers list reuse the kv grid without inputs */
+.kv-ro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lok-space-2);
+  padding: 3px 0;
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+}
+.kv-ro .k {
+  color: var(--lok-syn-key);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kv-ro .v {
+  color: var(--lok-text-secondary);
+  overflow-wrap: anywhere;
+}
