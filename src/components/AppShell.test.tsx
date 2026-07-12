@@ -1,0 +1,82 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { AppShell } from "./AppShell";
+import { useUiStore } from "../state/useUiStore";
+import { useCollectionsStore } from "../state/useCollectionsStore";
+import { useEnvStore } from "../state/useEnvStore";
+
+// Every backend command rejects like the current Rust stubs ("not implemented"),
+// so the shell must render its empty states rather than crash.
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: vi.fn(() => Promise.reject("not implemented")),
+}));
+
+function resetStores() {
+  useUiStore.setState({ theme: "dark", paletteOpen: false });
+  useCollectionsStore.setState({
+    collections: [],
+    requests: [],
+    activeRequestId: null,
+    loading: false,
+    loadError: null,
+    loadFailed: false,
+  });
+  useEnvStore.setState({
+    environments: [],
+    activeEnvironmentId: null,
+    loading: false,
+    loadFailed: false,
+  });
+}
+
+afterEach(() => {
+  cleanup();
+  resetStores();
+});
+
+describe("AppShell", () => {
+  it("renders without crashing when the backend is not implemented", async () => {
+    resetStores();
+    render(<AppShell />);
+
+    // Sidebar + editor empty states from the "not implemented" backend.
+    await waitFor(() =>
+      expect(screen.getByText("Rozgrzej pierwszą lokówkę")).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText("Naciśnij Send i zobacz waterfall"),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Otwórz paletę poleceń")).toBeInTheDocument();
+  });
+
+  it("opens the command palette on ⌘K", async () => {
+    resetStores();
+    render(<AppShell />);
+
+    expect(useUiStore.getState().paletteOpen).toBe(false);
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    expect(useUiStore.getState().paletteOpen).toBe(true);
+
+    await waitFor(() =>
+      expect(
+        screen.getByPlaceholderText("Szukaj requestów, akcji, env…"),
+      ).toBeInTheDocument(),
+    );
+    // "Toggle theme" is unique to the palette, proving its action list rendered.
+    expect(screen.getByText("Przełącz motyw")).toBeInTheDocument();
+  });
+
+  it("runs a palette action and closes the palette", async () => {
+    resetStores();
+    render(<AppShell />);
+
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    const toggle = await screen.findByText("Przełącz motyw");
+
+    expect(useUiStore.getState().theme).toBe("dark");
+    fireEvent.click(toggle);
+
+    expect(useUiStore.getState().theme).toBe("light");
+    expect(useUiStore.getState().paletteOpen).toBe(false);
+  });
+});

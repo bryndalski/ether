@@ -1,0 +1,101 @@
+/* ⌘K command palette — glass surface centered above everything. cmdk renders
+   the overlay + content; we style via the class hooks passed to Command.Dialog.
+   Tokens only, both themes covered by the semantic variables. */
+
+.lok-palette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--lok-z-palette);
+  background-color: var(--lok-scrim);
+  animation: lok-palette-fade var(--lok-dur-fast) var(--lok-ease-standard);
+}
+
+.lok-palette-content {
+  position: fixed;
+  left: 50%;
+  top: 18%;
+  transform: translateX(-50%);
+  z-index: var(--lok-z-palette);
+  width: min(560px, 92vw);
+  padding: var(--lok-space-2);
+  animation: lok-palette-in var(--lok-dur-base) var(--lok-ease-decelerate);
+}
+
+/* .lok-palette carries the glass look via the shared utility. */
+.lok-palette {
+  background-color: var(--lok-glass-bg);
+  border: 1px solid var(--lok-glass-border);
+  -webkit-backdrop-filter: blur(var(--lok-glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--lok-glass-blur)) saturate(140%);
+  box-shadow: var(--lok-shadow-lg);
+  border-radius: var(--lok-radius-lg);
+}
+
+.lok-palette-input {
+  width: 100%;
+  padding: var(--lok-space-3);
+  font-size: var(--lok-fs-md);
+  color: var(--lok-text-primary);
+  background: transparent;
+  border-bottom: 1px solid var(--lok-border-subtle);
+}
+.lok-palette-input::placeholder {
+  color: var(--lok-text-tertiary);
+}
+
+.lok-palette-list {
+  max-height: 320px;
+  overflow: auto;
+  padding: var(--lok-space-1);
+  overscroll-behavior: contain;
+}
+
+.lok-palette-group [cmdk-group-heading] {
+  padding: var(--lok-space-2) var(--lok-space-2) var(--lok-space-1);
+  color: var(--lok-text-tertiary);
+  font-size: var(--lok-fs-2xs);
+  letter-spacing: var(--lok-tracking-caps);
+  text-transform: uppercase;
+}
+
+.lok-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lok-space-4);
+  padding: var(--lok-space-2);
+  border-radius: var(--lok-radius-sm);
+  color: var(--lok-text-secondary);
+  font-size: var(--lok-fs-sm);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.lok-palette-item[data-selected="true"] {
+  background-color: var(--lok-bg-selected);
+  border-left-color: var(--lok-brand);
+  color: var(--lok-text-primary);
+}
+
+.lok-palette-kbd {
+  color: var(--lok-text-tertiary);
+  font-size: var(--lok-fs-2xs);
+}
+
+.lok-palette-empty {
+  padding: var(--lok-space-4);
+  text-align: center;
+  color: var(--lok-text-tertiary);
+  font-size: var(--lok-fs-sm);
+}
+
+@keyframes lok-palette-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes lok-palette-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.96);
+  }
+}

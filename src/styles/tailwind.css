@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* Dark-first: the design system is driven entirely by --lok-* tokens, so we
+   opt out of Tailwind's own preflight colors and let base.css own the reset. */

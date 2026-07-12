@@ -1,0 +1,7 @@
+{
+  "task": "shell",
+  "done": true,
+  "tests_passed": 12,
+  "coverage_notes": "Tailwind 4 wired via @tailwindcss/vite; main.tsx imports tokens.css -> base.css -> tailwind. src/lib/ipc.ts typed 1:1 with lib.rs (all commands), src/lib/types.ts mirrors models.rs (serde snake_case tags for Body/Auth type, MultipartPart kind). Three zustand stores (collections, env, ui). Full app-shell per design doc: drag titlebar (data-tauri-drag-region), collections sidebar with heat empty-state on backend Err, request editor placeholder (method+URL+heat Send, Params/Headers/Body/Auth/Tests tabs), response dock (Body/Headers/Timeline) bottom default + right switch, env pill (accent color + dropdown + quick-look masking secrets), status bar. cmdk ⌘K palette (New request, Switch env, Toggle theme) with global keydown + glass CSS. Tests: 3 ui-store, 3 env-store (switch/kind/inference), 2 collections-store (select + Err->empty), 3 shell render (empty states, palette opens on ⌘K, palette action runs+closes). npm run typecheck + test:unit + build all pass. jsdom ResizeObserver/scrollIntoView polyfilled in test setup for cmdk.",
+  "blockers": []
+}
