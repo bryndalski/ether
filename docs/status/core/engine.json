@@ -1,0 +1,11 @@
+{
+  "task": "engine",
+  "done": true,
+  "tests_passed": 25,
+  "coverage_notes": "15 unit tests (redaction incl. verbose-prefix handling, redirect method/body decision 301/302/303/307/308, cross-host detection, relative Location resolution, query percent-encoding, base64/truncation body encoding) + 10 offline integration tests over a std::net TcpListener on 127.0.0.1: GET 200 with headers+timings, POST JSON echo, same-host redirect keeps Authorization, cross-host redirect strips Authorization (auth_stripped=true, no leak), 303 downgrades POST->GET, cookie jar persisted to disk, cookie replayed on same host:port across two requests, in-flight cancellation via progress callback, verbose_log secret redaction end-to-end, oversized body truncated at 10MB with full size_download_bytes. Manual redirects (follow_location(false) + loop to max_redirects) build redirect_chain. Auth: Bearer/Basic/ApiKey(header|query). Multipart via curl Form with streamed File. Options: timeout, insecure, ca_bundle, compressed, cookie jar under ~/Library/Application Support/com.bryndalski.lokowka/cookies/<k>.txt. Timings mapped from libcurl getinfo (tls = appconnect-connect, ttfb = starttransfer). history_add called best-effort after success.",
+  "blockers": [
+    "curl 0.4.50 crate exposes no HTTP-version getinfo and no certinfo readback: http_version is parsed from the response status line; TlsInfo returns protocol/cipher/cert_chain empty (verify_ok best-effort) for https, None for http. Not blocking.",
+    "SigV4 path calls sigv4::load_profile + sigv4::sign; when those stubs return Err the engine surfaces 'SigV4 not wired yet' per contract (owned by the sigv4 work stream).",
+    "Keychain not touched by the engine; no #[ignore] tests needed. All tests are fully offline."
+  ]
+}
