@@ -1,0 +1,7 @@
+{
+  "task": "interp",
+  "done": true,
+  "tests_passed": 38,
+  "coverage_notes": "interp.rs: closed {{...}} engine — env./secret./$ namespaces; dynamic $uuid/$timestamp/$timestamp_ms/$datetime.iso/$random.int(a,b)/$random.hex(n)/$base64(text); per-target escaping (Url percent-encode, Header CR/LF reject, JsonBody string-escape incl. <0x20 controls, RawText verbatim); recursive expansion with active-stack cycle detection (A->B->A) and depth cap 8; is_flag_like for -/@ curl args; preview_template masks every secret as bullets and never calls the store when environment_id=None. sigv4.rs: hand-rolled canonical request / string-to-sign / signing key on hmac+sha2+hex; verified against independently-recomputed AWS get-vanilla / post-vanilla / get-vanilla-empty-query-key / query-order vectors + the AWS signing-key derivation vector; session token adds+signs x-amz-security-token; x-amz-content-sha256 attached but unsigned so vanilla vectors match; INI parser for ~/.aws/credentials + region from ~/.aws/config. secrets.rs: thin keyring::Entry wrapper (set/get/exists/delete), NoEntry -> exists=false and delete is idempotent; real-Keychain round-trip tests are #[ignore]. cargo fmt clean, cargo clippy --all-targets -D warnings clean, 38 passed / 2 ignored.",
+  "blockers": []
+}
