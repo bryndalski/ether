@@ -76,6 +76,22 @@
   color: var(--lok-text-primary);
 }
 
+.lok-palette-item[data-disabled="true"] {
+  opacity: 0.45;
+  cursor: default;
+}
+.lok-palette-item[aria-current="true"] {
+  color: var(--lok-text-primary);
+}
+.lok-palette-check {
+  display: inline-flex;
+  color: var(--lok-brand);
+  margin-right: calc(var(--lok-space-2) * -1);
+}
+.lok-palette-item > span:first-of-type {
+  margin-right: auto;
+}
+
 .lok-palette-kbd {
   color: var(--lok-text-tertiary);
   font-size: var(--lok-fs-2xs);

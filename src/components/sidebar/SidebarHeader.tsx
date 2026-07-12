@@ -37,27 +37,17 @@ export function SidebarHeader({ query, onQueryChange }: SidebarHeaderProps) {
       className="flex shrink-0 items-center gap-1 p-2"
       style={{ borderBottom: "1px solid var(--lok-border-subtle)" }}
     >
-      <div className="relative flex-1">
-        <span
-          aria-hidden
-          className="absolute left-2 top-1/2 -translate-y-1/2"
-          style={{ color: "var(--lok-text-tertiary)" }}
-        >
+      <div className="sidebar-search relative flex-1">
+        <span aria-hidden className="sidebar-search-icon">
           <Icon name="i-search" size={14} />
         </span>
         <input
           type="search"
+          className="sidebar-search-input"
           placeholder="Szukaj requestów…"
           aria-label="Szukaj requestów"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          className="w-full rounded-[var(--lok-radius-sm)] py-1.5 pl-7 pr-2"
-          style={{
-            backgroundColor: "var(--lok-bg-input)",
-            color: "var(--lok-text-primary)",
-            fontSize: "var(--lok-fs-sm)",
-            border: "1px solid var(--lok-border-default)",
-          }}
         />
       </div>
       <button

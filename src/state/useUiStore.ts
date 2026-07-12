@@ -10,6 +10,7 @@ interface UiState {
   responseSize: number;
   paletteOpen: boolean;
   envManagerOpen: boolean;
+  importOpen: boolean;
   devToolsOpen: boolean;
 
   setTheme: (theme: Theme) => void;
@@ -22,6 +23,8 @@ interface UiState {
   togglePalette: () => void;
   openEnvManager: () => void;
   closeEnvManager: () => void;
+  openImport: () => void;
+  closeImport: () => void;
   openDevTools: () => void;
   closeDevTools: () => void;
   toggleDevTools: () => void;
@@ -41,6 +44,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   responseSize: 42,
   paletteOpen: false,
   envManagerOpen: false,
+  importOpen: false,
   devToolsOpen: false,
 
   setTheme: (theme) => set({ theme }),
@@ -53,6 +57,8 @@ export const useUiStore = create<UiState>((set, get) => ({
   togglePalette: () => set({ paletteOpen: !get().paletteOpen }),
   openEnvManager: () => set({ envManagerOpen: true }),
   closeEnvManager: () => set({ envManagerOpen: false }),
+  openImport: () => set({ importOpen: true }),
+  closeImport: () => set({ importOpen: false }),
   openDevTools: () => set({ devToolsOpen: true }),
   closeDevTools: () => set({ devToolsOpen: false }),
   toggleDevTools: () => set({ devToolsOpen: !get().devToolsOpen }),

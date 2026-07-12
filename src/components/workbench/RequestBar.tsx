@@ -16,6 +16,7 @@ interface RequestBarProps {
   onCancel: () => void;
   onSave: () => void;
   onBenchmark: () => void;
+  onCopyCurl: () => void;
   dirty: boolean;
   requestTypeToggle?: ReactNode;
 }
@@ -31,6 +32,7 @@ export function RequestBar({
   onCancel,
   onSave,
   onBenchmark,
+  onCopyCurl,
   dirty,
   requestTypeToggle,
 }: RequestBarProps) {
@@ -53,6 +55,16 @@ export function RequestBar({
         onClick={onSave}
       >
         <Icon name="i-save" size={15} />
+      </button>
+      <button
+        type="button"
+        className="btn-save"
+        aria-label="Kopiuj jako cURL"
+        title="Kopiuj jako cURL (⌘⇧C)"
+        disabled={draft.url.trim() === ""}
+        onClick={onCopyCurl}
+      >
+        <Icon name="i-copy" size={15} />
       </button>
       <BenchmarkButton
         disabled={draft.url.trim() === "" || inFlight}

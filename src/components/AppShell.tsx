@@ -6,6 +6,8 @@ import { RequestWorkbench } from "./workbench/RequestWorkbench";
 import { StatusBar } from "./statusbar/StatusBar";
 import { CommandPalette } from "./palette/CommandPalette";
 import { EnvironmentManager } from "./env/EnvironmentManager";
+import { ImportModal } from "./import/ImportModal";
+import { Toast } from "./common/Toast";
 import { IconSprite } from "./common/IconSprite";
 
 /** The three-zone app shell (titlebar · sidebar · editor+response · statusbar).
@@ -28,6 +30,8 @@ export function AppShell() {
       <StatusBar />
       <CommandPalette />
       <EnvironmentManager />
+      <ImportModal />
+      <Toast />
     </>
   );
 }

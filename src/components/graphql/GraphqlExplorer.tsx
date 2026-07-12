@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { ReactNode } from "react";
 import type { RequestDraft, DraftAction } from "../../hooks/useRequestDraft";
 import type { SendState } from "../../hooks/useSendRequest";
 import { useGraphqlSchema } from "../../hooks/useGraphqlSchema";
@@ -24,6 +25,12 @@ interface GraphqlExplorerProps {
   sendState: SendState;
   onRun: () => void;
   onCancel: () => void;
+  // Shared workbench controls, so the single explorer toolbar carries them and
+  // no duplicate RequestBar is rendered in GraphQL mode.
+  requestTypeToggle?: ReactNode;
+  onSave?: () => void;
+  onCopyCurl?: () => void;
+  dirty?: boolean;
 }
 
 /** Container: owns the schema + builder hooks and lays out the mock grid
@@ -35,6 +42,10 @@ export function GraphqlExplorer({
   sendState,
   onRun,
   onCancel,
+  requestTypeToggle,
+  onSave,
+  onCopyCurl,
+  dirty,
 }: GraphqlExplorerProps) {
   const schemaApi = useGraphqlSchema(draft);
   const builder = useGraphqlBuilder(draft, schemaApi.schema, dispatch);
@@ -66,6 +77,10 @@ export function GraphqlExplorer({
         runDisabled={runDisabled}
         onRun={onRun}
         onCancel={onCancel}
+        requestTypeToggle={requestTypeToggle}
+        onSave={onSave}
+        onCopyCurl={onCopyCurl}
+        dirty={dirty}
       />
 
       <div className="gql-cols">

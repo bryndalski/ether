@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useUiStore } from "../../state/useUiStore";
 import { useEnvManager } from "../../hooks/useEnvManager";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { Icon } from "../common/Icon";
 import { EnvList } from "./EnvList";
 import { EnvEditor } from "./EnvEditor";
@@ -17,9 +18,7 @@ export function EnvironmentManager() {
   const cardRef = useRef<HTMLDivElement>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) cardRef.current?.focus();
-  }, [open]);
+  useFocusTrap(cardRef, { active: open, onClose: close });
 
   if (!open) return null;
 
@@ -39,7 +38,6 @@ export function EnvironmentManager() {
         aria-modal="true"
         aria-label="Zarządzanie środowiskami"
         tabIndex={-1}
-        onKeyDown={(event) => event.key === "Escape" && close()}
       >
         <div className="env-modal-head">
           <span className="env-modal-title">Środowiska</span>

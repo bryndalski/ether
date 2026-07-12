@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useCollectionsStore } from "../../state/useCollectionsStore";
 import { useEnvStore } from "../../state/useEnvStore";
 import { useHistoryStore } from "../../state/useHistoryStore";
+import { useWorkbenchActions } from "../../state/useWorkbenchActions";
+import { useCopyAsCurl } from "../../hooks/useCopyAsCurl";
 import { useNewRequest } from "../../hooks/useNewRequest";
 import { useRequestDraft } from "../../hooks/useRequestDraft";
 import { useSendRequest } from "../../hooks/useSendRequest";
@@ -128,6 +130,37 @@ export function RequestWorkbench() {
     void saveRequest(draft);
   }, [draft, saveRequest]);
 
+  const copyAsCurl = useCopyAsCurl(draft, activeEnvironmentId);
+  const onCopyCurl = useCallback(() => void copyAsCurl(), [copyAsCurl]);
+
+  // Register the live draft's actions on the imperative bus so the shell-level
+  // ⌘K palette and the global ⌘⇧C hotkey drive the exact same closures.
+  const canSend = draft.url.trim() !== "" && !sendBlocked;
+  const registerBus = useWorkbenchActions((state) => state.register);
+  const resetBus = useWorkbenchActions((state) => state.reset);
+  useEffect(() => {
+    registerBus({
+      save: onSave,
+      send: onSend,
+      benchmark: onBenchmark,
+      copyCurl: onCopyCurl,
+      importSpec: (spec) => dispatch({ kind: "importSpec", spec }),
+      canSave: dirty,
+      canSend,
+    });
+    return () => resetBus();
+  }, [
+    onSave,
+    onSend,
+    onBenchmark,
+    onCopyCurl,
+    dispatch,
+    dirty,
+    canSend,
+    registerBus,
+    resetBus,
+  ]);
+
   const onRequestType = useCallback(
     (graphql: boolean) => {
       if (graphql) dispatch({ kind: "setGraphql", graphql: {} });
@@ -169,23 +202,6 @@ export function RequestWorkbench() {
         }
       }}
     >
-      <RequestBar
-        draft={draft}
-        onMethodChange={(method) => dispatch({ kind: "setMethod", method })}
-        onUrlChange={(url) => dispatch({ kind: "setUrl", url })}
-        sendState={sendState}
-        onSend={onSend}
-        onCancel={cancel}
-        onSave={onSave}
-        onBenchmark={onBenchmark}
-        dirty={dirty}
-        requestTypeToggle={
-          <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
-        }
-      />
-      {sendBlocked && holes.length > 0 && (
-        <ReplayReconcileBanner holes={holes} onDismiss={dismiss} />
-      )}
       {isGraphql ? (
         <GraphqlExplorer
           draft={draft}
@@ -193,9 +209,33 @@ export function RequestWorkbench() {
           sendState={sendState}
           onRun={onSend}
           onCancel={cancel}
+          requestTypeToggle={
+            <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
+          }
+          onSave={onSave}
+          onCopyCurl={onCopyCurl}
+          dirty={dirty}
         />
       ) : (
         <>
+          <RequestBar
+            draft={draft}
+            onMethodChange={(method) => dispatch({ kind: "setMethod", method })}
+            onUrlChange={(url) => dispatch({ kind: "setUrl", url })}
+            sendState={sendState}
+            onSend={onSend}
+            onCancel={cancel}
+            onSave={onSave}
+            onBenchmark={onBenchmark}
+            onCopyCurl={onCopyCurl}
+            dirty={dirty}
+            requestTypeToggle={
+              <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
+            }
+          />
+          {sendBlocked && holes.length > 0 && (
+            <ReplayReconcileBanner holes={holes} onDismiss={dismiss} />
+          )}
           <RequestTabs active={tab} onSelect={setTab} counts={counts} />
           {tab === "Params" && (
             <ParamsPanel

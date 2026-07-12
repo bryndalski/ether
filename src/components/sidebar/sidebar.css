@@ -121,3 +121,35 @@
 .tree-empty-row:hover {
   color: var(--lok-text-secondary);
 }
+
+/* Search field: the icon offset and input left padding are defined together so
+   the placeholder/caret always clear the icon (≥4px gap). WebKit's search
+   decoration/clear affordance is neutralized so it never eats that space. */
+.sidebar-search-icon {
+  position: absolute;
+  left: var(--lok-space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  pointer-events: none;
+  color: var(--lok-text-tertiary);
+}
+.sidebar-search-input {
+  width: 100%;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  padding-left: var(--lok-space-8);
+  padding-right: var(--lok-space-2);
+  border-radius: var(--lok-radius-sm);
+  background-color: var(--lok-bg-input);
+  color: var(--lok-text-primary);
+  font-size: var(--lok-fs-sm);
+  border: 1px solid var(--lok-border-default);
+}
+.sidebar-search-input::-webkit-search-decoration,
+.sidebar-search-input::-webkit-search-cancel-button,
+.sidebar-search-input::-webkit-search-results-button,
+.sidebar-search-input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
