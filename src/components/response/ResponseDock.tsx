@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useUiStore } from "../../state/useUiStore";
 import type { SendState } from "../../hooks/useSendRequest";
+import type { ResponseData } from "../../lib/types";
+import { relativeTimeLabel } from "../../lib/relativeTime";
 import { EmptyState } from "../common/EmptyState";
 import { StatusBadge } from "./StatusBadge";
 import { ResponseMeta } from "./ResponseMeta";
@@ -10,8 +12,17 @@ import { TimelineWaterfall } from "./TimelineWaterfall";
 import { VerboseLog } from "./VerboseLog";
 import { ResponseTabs, type ResponseTabKey } from "./ResponseTabs";
 
+/** A stored response opened read-only from History. When present, the dock
+ *  renders these bytes instead of the live send lifecycle — no re-fetch. */
+export interface ResponseSnapshot {
+  response: ResponseData;
+  source: "history";
+  executedAt: string;
+}
+
 interface ResponseDockProps {
   sendState: SendState;
+  snapshot?: ResponseSnapshot | null;
 }
 
 function contentType(headers: { name: string; value: string }[]): string | undefined {
@@ -20,7 +31,7 @@ function contentType(headers: { name: string; value: string }[]): string | undef
 
 /** Response dock (Zone 3). Empty until the first Send; then status + meta + tabs
  *  + the active tab body. Errors/cancels show a banner instead of a response. */
-export function ResponseDock({ sendState }: ResponseDockProps) {
+export function ResponseDock({ sendState, snapshot }: ResponseDockProps) {
   const placement = useUiStore((state) => state.responsePlacement);
   const responseSize = useUiStore((state) => state.responseSize);
   const [tab, setTab] = useState<ResponseTabKey>("Body");
@@ -33,6 +44,18 @@ export function ResponseDock({ sendState }: ResponseDockProps) {
     placement === "bottom"
       ? { borderTop: "1px solid var(--lok-border-default)" }
       : { borderLeft: "1px solid var(--lok-border-default)" };
+
+  // Snapshot mode: render stored bytes read-only, ignoring the live sendState.
+  if (snapshot) {
+    return renderResponse(
+      snapshot.response,
+      tab,
+      setTab,
+      sizeStyle,
+      borderStyle,
+      snapshot.executedAt,
+    );
+  }
 
   const { phase, response, error } = sendState;
 
@@ -93,10 +116,23 @@ export function ResponseDock({ sendState }: ResponseDockProps) {
 
   // success
   if (!response) return null;
-  const headerContentType = contentType(response.headers);
+  return renderResponse(response, tab, setTab, sizeStyle, borderStyle, null);
+}
 
+/** Shared response view — used both live (on send success) and read-only from a
+ *  History snapshot. When `executedAt` is set a "History · {when}" ribbon marks
+ *  the response as a stored snapshot, not a live one. */
+function renderResponse(
+  response: ResponseData,
+  tab: ResponseTabKey,
+  setTab: (tab: ResponseTabKey) => void,
+  sizeStyle: React.CSSProperties,
+  borderStyle: React.CSSProperties,
+  executedAt: string | null,
+) {
+  const headerContentType = contentType(response.headers);
   function copyBody() {
-    void navigator.clipboard?.writeText(response?.body ?? "");
+    void navigator.clipboard?.writeText(response.body ?? "");
   }
 
   return (
@@ -112,6 +148,22 @@ export function ResponseDock({ sendState }: ResponseDockProps) {
           sizeBytes={response.size_download_bytes}
           tls={response.tls}
         />
+        {executedAt && (
+          <span
+            className="lok-tnums"
+            style={{
+              marginLeft: "auto",
+              padding: "2px var(--lok-space-2)",
+              borderRadius: "var(--lok-radius-full)",
+              background: "var(--lok-bg-active)",
+              color: "var(--lok-text-tertiary)",
+              fontSize: "var(--lok-fs-2xs)",
+            }}
+            title={executedAt}
+          >
+            History · {relativeTimeLabel(executedAt)}
+          </span>
+        )}
       </div>
       <ResponseTabs
         active={tab}

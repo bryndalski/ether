@@ -25,7 +25,10 @@ export type IconName =
   | "i-play"
   | "i-book"
   | "i-braces"
-  | "i-graph";
+  | "i-graph"
+  | "i-history"
+  | "i-replay"
+  | "i-diff";
 
 interface IconProps {
   name: IconName;

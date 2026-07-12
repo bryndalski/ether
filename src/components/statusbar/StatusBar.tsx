@@ -1,5 +1,6 @@
 import { useEnvStore } from "../../state/useEnvStore";
 import { HealthDot } from "../common/HealthDot";
+import { HistoryTrigger } from "./HistoryTrigger";
 
 /** Bottom status strip (26px): active env, connection meta, version. */
 export function StatusBar() {
@@ -22,6 +23,7 @@ export function StatusBar() {
       </span>
       <span className="lok-mono">HTTP/2</span>
       <span className="lok-mono">— ms</span>
+      <HistoryTrigger />
       <span className="lok-mono ml-auto">v0.1.0</span>
     </footer>
   );

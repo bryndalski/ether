@@ -1,14 +1,20 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useCollectionsStore } from "../../state/useCollectionsStore";
 import { useEnvStore } from "../../state/useEnvStore";
+import { useHistoryStore } from "../../state/useHistoryStore";
 import { useNewRequest } from "../../hooks/useNewRequest";
 import { useRequestDraft } from "../../hooks/useRequestDraft";
 import { useSendRequest } from "../../hooks/useSendRequest";
+import { useHistoryReplay } from "../../hooks/useHistoryReplay";
 import { isRequestDirty } from "../../lib/dirty";
 import { buildOperationRequest } from "../../lib/graphqlBody";
+import { hasRedactedSecrets } from "../../lib/replay";
+import type { StoredRequest } from "../../lib/types";
 import { RequestTypeToggle } from "../graphql/RequestTypeToggle";
 import { EmptyState } from "../common/EmptyState";
 import { ResponseDock } from "../response/ResponseDock";
+import { HistoryDrawer } from "../history/HistoryDrawer";
+import { ReplayReconcileBanner } from "../history/ReplayReconcileBanner";
 import { GraphqlExplorer } from "../graphql/GraphqlExplorer";
 import { RequestBar } from "./RequestBar";
 import { RequestTabs, type RequestTabKey } from "./RequestTabs";
@@ -23,6 +29,7 @@ import { CurlTab } from "./CurlTab";
  *  (mirroring the mock, where .response lives inside .editor). */
 export function RequestWorkbench() {
   const activeRequest = useCollectionsStore((state) => state.activeRequest());
+  const activeRequestId = useCollectionsStore((state) => state.activeRequestId);
   const activeEnvironmentId = useEnvStore((state) => state.activeEnvironmentId);
   const saveRequest = useCollectionsStore((state) => state.saveRequest);
   const newRequest = useNewRequest();
@@ -31,16 +38,55 @@ export function RequestWorkbench() {
   const { sendState, send, cancel } = useSendRequest();
   const [tab, setTab] = useState<RequestTabKey>("Params");
 
+  const refreshHistory = useHistoryStore((state) => state.refresh);
+  const openedId = useHistoryStore((state) => state.openedId);
+  const snapshotEntry = useHistoryStore((state) =>
+    openedId ? state.entryById(openedId) : null,
+  );
+
   const dirty = isRequestDirty(draft, activeRequest);
   const isGraphql = draft.graphql != null;
 
+  // A ••• redacted secret must never leave as a real credential.
+  const sendBlocked = hasRedactedSecrets(draft);
+
   const onSend = useCallback(() => {
     if (draft.url.trim() === "") return;
+    if (hasRedactedSecrets(draft)) return; // hard secret-leak gate
     // For GraphQL, build the {query,variables} POST body (leaving {{env.x}}
     // tokens intact) and send through the exact same resolve_and_send path.
     const outgoing = buildOperationRequest(draft);
     void send(outgoing, activeEnvironmentId);
   }, [draft, activeEnvironmentId, send]);
+
+  // Refresh the history feed once a send settles, so a new row appears.
+  useEffect(() => {
+    if (sendState.phase === "success" || sendState.phase === "error") {
+      void refreshHistory(activeRequestId);
+    }
+  }, [sendState.phase, activeRequestId, refreshHistory]);
+
+  const sendDraft = useCallback(
+    (outgoing: StoredRequest) => {
+      if (hasRedactedSecrets(outgoing)) return;
+      void send(buildOperationRequest(outgoing), activeEnvironmentId);
+    },
+    [send, activeEnvironmentId],
+  );
+
+  const { holes, replay, dismiss } = useHistoryReplay({
+    dispatch,
+    sendDraft,
+    draft,
+  });
+
+  const onReplay = useCallback(
+    (id: string) => {
+      const entry = useHistoryStore.getState().entryById(id);
+      if (entry) replay(entry);
+    },
+    [replay],
+  );
 
   const onSave = useCallback(() => {
     void saveRequest(draft);
@@ -65,6 +111,7 @@ export function RequestWorkbench() {
           onAction={newRequest}
           icon="~"
         />
+        <HistoryDrawer activeRequestId={activeRequestId} onReplay={onReplay} />
       </section>
     );
   }
@@ -99,6 +146,9 @@ export function RequestWorkbench() {
           <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
         }
       />
+      {sendBlocked && holes.length > 0 && (
+        <ReplayReconcileBanner holes={holes} onDismiss={dismiss} />
+      )}
       {isGraphql ? (
         <GraphqlExplorer
           draft={draft}
@@ -143,7 +193,19 @@ export function RequestWorkbench() {
           )}
         </>
       )}
-      <ResponseDock sendState={sendState} />
+      <ResponseDock
+        sendState={sendState}
+        snapshot={
+          snapshotEntry
+            ? {
+                response: snapshotEntry.response,
+                source: "history",
+                executedAt: snapshotEntry.executed_at,
+              }
+            : null
+        }
+      />
+      <HistoryDrawer activeRequestId={activeRequestId} onReplay={onReplay} />
     </section>
   );
 }

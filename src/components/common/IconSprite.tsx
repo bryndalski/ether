@@ -100,6 +100,20 @@ export function IconSprite() {
           <circle cx="19" cy="18" r="2" />
           <path d="M12 7v3M10.5 12 7 16M13.5 12 17 16" />
         </symbol>
+        <symbol id="i-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3v5h5" />
+          <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+          <path d="M12 7v5l4 2" />
+        </symbol>
+        <symbol id="i-replay" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.7L3 8" />
+          <path d="M3 3v5h5" />
+        </symbol>
+        <symbol id="i-diff" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 3v18" />
+          <path d="M3 7h6M6 4v6" />
+          <path d="M15 17h6M15 14h6" />
+        </symbol>
       </defs>
     </svg>
   );
