@@ -5,6 +5,7 @@ import { useHistoryStore } from "../../state/useHistoryStore";
 import { useNewRequest } from "../../hooks/useNewRequest";
 import { useRequestDraft } from "../../hooks/useRequestDraft";
 import { useSendRequest } from "../../hooks/useSendRequest";
+import { useBenchmark, type BenchConfig } from "../../hooks/useBenchmark";
 import { useHistoryReplay } from "../../hooks/useHistoryReplay";
 import { isRequestDirty } from "../../lib/dirty";
 import { buildOperationRequest } from "../../lib/graphqlBody";
@@ -13,6 +14,7 @@ import type { StoredRequest } from "../../lib/types";
 import { RequestTypeToggle } from "../graphql/RequestTypeToggle";
 import { EmptyState } from "../common/EmptyState";
 import { ResponseDock } from "../response/ResponseDock";
+import { DevToolsDrawer } from "../devtools/DevToolsDrawer";
 import { HistoryDrawer } from "../history/HistoryDrawer";
 import { ReplayReconcileBanner } from "../history/ReplayReconcileBanner";
 import { GraphqlExplorer } from "../graphql/GraphqlExplorer";
@@ -31,11 +33,19 @@ export function RequestWorkbench() {
   const activeRequest = useCollectionsStore((state) => state.activeRequest());
   const activeRequestId = useCollectionsStore((state) => state.activeRequestId);
   const activeEnvironmentId = useEnvStore((state) => state.activeEnvironmentId);
+  const activeKind = useEnvStore((state) => state.activeKind);
   const saveRequest = useCollectionsStore((state) => state.saveRequest);
   const newRequest = useNewRequest();
 
   const { draft, dispatch, counts } = useRequestDraft(activeRequest);
   const { sendState, send, cancel } = useSendRequest();
+  const {
+    benchState,
+    run: runBenchmark,
+    cancel: cancelBenchmark,
+    selectSample,
+    reset: resetBenchmark,
+  } = useBenchmark();
   const [tab, setTab] = useState<RequestTabKey>("Params");
 
   const refreshHistory = useHistoryStore((state) => state.refresh);
@@ -58,6 +68,32 @@ export function RequestWorkbench() {
     const outgoing = buildOperationRequest(draft);
     void send(outgoing, activeEnvironmentId);
   }, [draft, activeEnvironmentId, send]);
+
+  // The Benchmark button never auto-runs the loop: it fires one normal send so
+  // the ResponseDock (and its warned Bench-tab launcher) appears, and resets any
+  // prior benchmark state. The explicit "Uruchom benchmark" starts the loop.
+  const onBenchmark = useCallback(() => {
+    if (draft.url.trim() === "") return;
+    if (hasRedactedSecrets(draft)) return;
+    resetBenchmark();
+    onSend();
+  }, [draft, resetBenchmark, onSend]);
+
+  const onRunBenchmark = useCallback(
+    (config: BenchConfig) => {
+      const outgoing = buildOperationRequest(draft);
+      void runBenchmark(outgoing, activeEnvironmentId, config);
+    },
+    [draft, activeEnvironmentId, runBenchmark],
+  );
+
+  const requestHost = (() => {
+    try {
+      return new URL(draft.url).host;
+    } catch {
+      return draft.url;
+    }
+  })();
 
   // Refresh the history feed once a send settles, so a new row appears.
   useEffect(() => {
@@ -141,6 +177,7 @@ export function RequestWorkbench() {
         onSend={onSend}
         onCancel={cancel}
         onSave={onSave}
+        onBenchmark={onBenchmark}
         dirty={dirty}
         requestTypeToggle={
           <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
@@ -204,8 +241,19 @@ export function RequestWorkbench() {
               }
             : null
         }
+        devTools={{
+          benchState,
+          host: requestHost,
+          isProd: activeKind() === "prod",
+          hasRedactedSecrets: sendBlocked,
+          insecure: draft.options.insecure,
+          onRunBenchmark,
+          onCancelBenchmark: cancelBenchmark,
+          onSelectSample: selectSample,
+        }}
       />
       <HistoryDrawer activeRequestId={activeRequestId} onReplay={onReplay} />
+      <DevToolsDrawer />
     </section>
   );
 }

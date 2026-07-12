@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useUiStore } from "../../state/useUiStore";
 import type { SendState } from "../../hooks/useSendRequest";
+import type { BenchConfig, BenchState } from "../../hooks/useBenchmark";
 import type { ResponseData } from "../../lib/types";
 import { relativeTimeLabel } from "../../lib/relativeTime";
+import { detectJwtCandidates } from "../../lib/jwt";
 import { EmptyState } from "../common/EmptyState";
 import { StatusBadge } from "./StatusBadge";
 import { ResponseMeta } from "./ResponseMeta";
@@ -11,6 +13,9 @@ import { ResponseHeaders } from "./ResponseHeaders";
 import { TimelineWaterfall } from "./TimelineWaterfall";
 import { VerboseLog } from "./VerboseLog";
 import { ResponseTabs, type ResponseTabKey } from "./ResponseTabs";
+import { BenchmarkPanel } from "../devtools/BenchmarkPanel";
+import { CertPanel } from "../devtools/CertPanel";
+import { JwtPanel } from "../devtools/JwtPanel";
 
 /** A stored response opened read-only from History. When present, the dock
  *  renders these bytes instead of the live send lifecycle — no re-fetch. */
@@ -20,9 +25,21 @@ export interface ResponseSnapshot {
   executedAt: string;
 }
 
+export interface DevToolsProps {
+  benchState: BenchState;
+  host: string;
+  isProd: boolean;
+  hasRedactedSecrets: boolean;
+  insecure: boolean;
+  onRunBenchmark: (config: BenchConfig) => void;
+  onCancelBenchmark: () => void;
+  onSelectSample: (index: number) => void;
+}
+
 interface ResponseDockProps {
   sendState: SendState;
   snapshot?: ResponseSnapshot | null;
+  devTools?: DevToolsProps;
 }
 
 function contentType(headers: { name: string; value: string }[]): string | undefined {
@@ -31,7 +48,7 @@ function contentType(headers: { name: string; value: string }[]): string | undef
 
 /** Response dock (Zone 3). Empty until the first Send; then status + meta + tabs
  *  + the active tab body. Errors/cancels show a banner instead of a response. */
-export function ResponseDock({ sendState, snapshot }: ResponseDockProps) {
+export function ResponseDock({ sendState, snapshot, devTools }: ResponseDockProps) {
   const placement = useUiStore((state) => state.responsePlacement);
   const responseSize = useUiStore((state) => state.responseSize);
   const [tab, setTab] = useState<ResponseTabKey>("Body");
@@ -46,6 +63,7 @@ export function ResponseDock({ sendState, snapshot }: ResponseDockProps) {
       : { borderLeft: "1px solid var(--lok-border-default)" };
 
   // Snapshot mode: render stored bytes read-only, ignoring the live sendState.
+  // Benchmark is live-only, so a snapshot never gets a Bench tab.
   if (snapshot) {
     return renderResponse(
       snapshot.response,
@@ -54,6 +72,7 @@ export function ResponseDock({ sendState, snapshot }: ResponseDockProps) {
       sizeStyle,
       borderStyle,
       snapshot.executedAt,
+      undefined,
     );
   }
 
@@ -116,7 +135,15 @@ export function ResponseDock({ sendState, snapshot }: ResponseDockProps) {
 
   // success
   if (!response) return null;
-  return renderResponse(response, tab, setTab, sizeStyle, borderStyle, null);
+  return renderResponse(
+    response,
+    tab,
+    setTab,
+    sizeStyle,
+    borderStyle,
+    null,
+    devTools,
+  );
 }
 
 /** Shared response view — used both live (on send success) and read-only from a
@@ -129,11 +156,17 @@ function renderResponse(
   sizeStyle: React.CSSProperties,
   borderStyle: React.CSSProperties,
   executedAt: string | null,
+  devTools: DevToolsProps | undefined,
 ) {
   const headerContentType = contentType(response.headers);
   function copyBody() {
     void navigator.clipboard?.writeText(response.body ?? "");
   }
+
+  const jwtCandidates = detectJwtCandidates(response);
+  const showCert = response.tls != null;
+  // Bench tab is available on any live response (it hosts the warned launcher).
+  const showBench = devTools != null;
 
   return (
     <section
@@ -170,6 +203,9 @@ function renderResponse(
         onSelect={setTab}
         headerCount={response.headers.length}
         onCopy={copyBody}
+        showBench={showBench}
+        showCert={showCert}
+        jwtCount={jwtCandidates.length}
       />
       <div className="resp-body lok-scroll">
         {tab === "Body" && (
@@ -184,6 +220,26 @@ function renderResponse(
         {tab === "Headers" && <ResponseHeaders headers={response.headers} />}
         {tab === "Timeline" && <TimelineWaterfall timings={response.timings} />}
         {tab === "curl -v" && <VerboseLog verboseLog={response.verbose_log} />}
+        {tab === "Bench" && showBench && devTools && (
+          <BenchmarkPanel
+            benchState={devTools.benchState}
+            host={devTools.host}
+            isProd={devTools.isProd}
+            hasRedactedSecrets={devTools.hasRedactedSecrets}
+            onRun={devTools.onRunBenchmark}
+            onCancel={devTools.onCancelBenchmark}
+            onSelectSample={devTools.onSelectSample}
+          />
+        )}
+        {tab === "Cert" && response.tls && (
+          <CertPanel
+            tls={response.tls}
+            insecure={devTools?.insecure ?? false}
+          />
+        )}
+        {tab === "JWT" && jwtCandidates.length > 0 && (
+          <JwtPanel candidates={jwtCandidates} />
+        )}
       </div>
     </section>
   );

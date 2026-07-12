@@ -4,6 +4,7 @@ import type { RequestDraft } from "../../hooks/useRequestDraft";
 import { MethodSelect } from "./MethodSelect";
 import { UrlInput } from "./UrlInput";
 import { SendButton } from "./SendButton";
+import { BenchmarkButton } from "../devtools/BenchmarkButton";
 import { Icon } from "../common/Icon";
 
 interface RequestBarProps {
@@ -14,6 +15,7 @@ interface RequestBarProps {
   onSend: () => void;
   onCancel: () => void;
   onSave: () => void;
+  onBenchmark: () => void;
   dirty: boolean;
   requestTypeToggle?: ReactNode;
 }
@@ -28,10 +30,13 @@ export function RequestBar({
   onSend,
   onCancel,
   onSave,
+  onBenchmark,
   dirty,
   requestTypeToggle,
 }: RequestBarProps) {
   const isGraphql = draft.graphql != null;
+  const inFlight =
+    sendState.phase === "in-flight" || sendState.phase === "interpolating";
   return (
     <div className="toolbar">
       {requestTypeToggle}
@@ -49,6 +54,10 @@ export function RequestBar({
       >
         <Icon name="i-save" size={15} />
       </button>
+      <BenchmarkButton
+        disabled={draft.url.trim() === "" || inFlight}
+        onClick={onBenchmark}
+      />
       <SendButton
         sendState={sendState}
         disabled={draft.url.trim() === ""}

@@ -1,0 +1,431 @@
+/* Dev-Utils styling — benchmark / JWT / TLS panels + drawer. Tokens only; the
+   heat meter, histogram bar-grow and countdown pulse are CSS-only so the
+   base.css prefers-reduced-motion gate collapses them. */
+
+.dv-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-4);
+  padding: var(--lok-space-2) 0;
+}
+
+.dv-note {
+  margin: 0;
+  color: var(--lok-text-tertiary);
+  font-size: var(--lok-fs-sm);
+}
+.dv-note-danger {
+  color: var(--lok-status-danger);
+}
+
+/* ---- buttons ---- */
+.dv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lok-space-1);
+  padding: var(--lok-space-1) var(--lok-space-3);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-input);
+  color: var(--lok-text-primary);
+  font-size: var(--lok-fs-sm);
+  cursor: pointer;
+}
+.dv-btn:hover {
+  background: var(--lok-bg-hover);
+}
+.dv-btn-primary {
+  background: var(--lok-brand);
+  border-color: var(--lok-brand);
+  color: var(--lok-text-on);
+  align-self: flex-start;
+}
+.dv-btn-primary:hover {
+  background: var(--lok-brand-hover);
+}
+.dv-btn-danger {
+  color: var(--lok-status-danger);
+  border-color: var(--lok-status-danger);
+}
+.dv-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--lok-text-secondary);
+  padding: var(--lok-space-1);
+}
+.dv-btn-ghost:hover {
+  background: var(--lok-bg-hover);
+}
+
+/* ---- benchmark toolbar button ---- */
+.dv-bench-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lok-space-1);
+  height: 32px;
+  padding: 0 var(--lok-space-3);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-input);
+  color: var(--lok-text-primary);
+  font-size: var(--lok-fs-sm);
+  cursor: pointer;
+}
+.dv-bench-btn:hover:not(:disabled) {
+  background: var(--lok-bg-hover);
+}
+.dv-bench-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- launcher / warning gate ---- */
+.dv-launcher {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-3);
+}
+.dv-launcher-fields {
+  display: flex;
+  gap: var(--lok-space-4);
+}
+.dv-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-1);
+}
+.dv-field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--lok-space-2);
+}
+.dv-field-label {
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-tertiary);
+}
+.dv-input,
+.dv-select,
+.dv-textarea {
+  padding: var(--lok-space-1) var(--lok-space-2);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-input);
+  color: var(--lok-text-primary);
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-sm);
+}
+.dv-input {
+  width: 5.5rem;
+}
+.dv-textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.dv-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-status-warn-bg);
+  color: var(--lok-status-warn);
+  font-size: var(--lok-fs-sm);
+}
+.dv-warn-strong {
+  background: var(--lok-status-danger-bg);
+  color: var(--lok-status-danger);
+  font-weight: 600;
+}
+
+/* ---- progress + heat meter ---- */
+.dv-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-2);
+}
+.dv-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dv-progress-count {
+  font-size: var(--lok-fs-lg);
+  color: var(--lok-text-primary);
+}
+.dv-meter {
+  height: 6px;
+  border-radius: var(--lok-radius-full);
+  background: var(--lok-bg-active);
+  overflow: hidden;
+}
+.dv-meter-fill {
+  display: block;
+  height: 100%;
+  background: var(--lok-gradient-heat-x);
+  transition: width var(--lok-dur-base) var(--lok-ease-standard);
+}
+
+/* ---- stats cards ---- */
+.dv-statgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--lok-space-2);
+}
+.dv-statcard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-surface);
+}
+.dv-statlabel {
+  font-size: var(--lok-fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lok-text-tertiary);
+}
+.dv-statval {
+  font-size: var(--lok-fs-xl);
+  color: var(--lok-text-primary);
+}
+.dv-statunit {
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-tertiary);
+}
+.dv-statfoot {
+  margin-top: var(--lok-space-2);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-tertiary);
+}
+.dv-staterr {
+  color: var(--lok-status-danger);
+}
+
+/* ---- histogram ---- */
+.dv-histogram {
+  width: 100%;
+  height: auto;
+  font-family: var(--lok-font-mono);
+}
+.dv-histobar {
+  cursor: pointer;
+  transform-origin: bottom;
+  animation: dv-bar-grow var(--lok-dur-slower) var(--lok-ease-decelerate);
+}
+.dv-histobar:hover {
+  fill: var(--lok-brand-subtle);
+}
+@keyframes dv-bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.dv-histolabel {
+  font-size: 9px;
+}
+.dv-axistick {
+  font-size: 9px;
+  fill: var(--lok-text-tertiary);
+}
+.dv-sample-waterfall {
+  padding-top: var(--lok-space-2);
+  border-top: 1px solid var(--lok-border-default);
+}
+.dv-sample-head {
+  margin-bottom: var(--lok-space-2);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-secondary);
+}
+
+/* ---- shared badge / chip / kv ---- */
+.dv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--lok-fs-sm);
+  font-weight: 600;
+}
+.dv-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 22rem;
+  padding: 2px var(--lok-space-2);
+  border-radius: var(--lok-radius-full);
+  background: var(--lok-bg-active);
+  color: var(--lok-text-secondary);
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dv-kv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-1);
+  margin: 0;
+}
+.dv-kv-muted {
+  opacity: 0.85;
+}
+.dv-kv-row {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: var(--lok-space-2);
+  align-items: baseline;
+}
+.dv-kv-key {
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-tertiary);
+  font-family: var(--lok-font-mono);
+}
+.dv-kv-val {
+  font-size: var(--lok-fs-sm);
+  color: var(--lok-text-primary);
+  font-family: var(--lok-font-mono);
+  word-break: break-word;
+}
+
+/* ---- JWT ---- */
+.dv-jwt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-3);
+}
+.dv-jwt-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-active);
+  color: var(--lok-status-neutral);
+  font-size: var(--lok-fs-sm);
+}
+.dv-jwt-statusrow {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-3);
+}
+.dv-countdown {
+  font-size: var(--lok-fs-md);
+  font-family: var(--lok-font-mono);
+}
+.dv-countdown-pulse {
+  animation: dv-pulse 1.4s ease-in-out infinite;
+}
+@keyframes dv-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ---- TLS ---- */
+.dv-tls-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lok-space-3);
+}
+.dv-chip-cipher {
+  max-width: 16rem;
+}
+.dv-cert-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-3);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-md);
+  background: var(--lok-bg-surface);
+}
+.dv-cert-title {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  font-weight: 600;
+  color: var(--lok-text-primary);
+}
+.dv-cert-validity {
+  font-weight: 600;
+}
+.dv-fingerprint {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-1);
+  flex-wrap: wrap;
+}
+.dv-san-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lok-space-1);
+}
+.dv-raw-pem {
+  max-height: 12rem;
+  overflow: auto;
+  padding: var(--lok-space-2);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-code);
+  color: var(--lok-text-secondary);
+  font-size: var(--lok-fs-2xs);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ---- drawer (mirrors HistoryDrawer chrome) ---- */
+.dv-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--lok-bg-overlay);
+  display: flex;
+  justify-content: flex-end;
+}
+.dv-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(440px, 92vw);
+  height: 100dvh;
+  background: var(--lok-bg-raised);
+  border-left: 1px solid var(--lok-border-default);
+}
+.dv-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--lok-space-3) var(--lok-space-4);
+  border-bottom: 1px solid var(--lok-border-default);
+}
+.dv-drawer-title {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  margin: 0;
+  font-size: var(--lok-fs-md);
+  color: var(--lok-text-primary);
+}
+.dv-drawer-body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--lok-space-4);
+}
+.dv-drawer-subtitle {
+  margin: 0 0 var(--lok-space-2);
+  font-size: var(--lok-fs-sm);
+  color: var(--lok-text-secondary);
+}
+.dv-paste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-3);
+}

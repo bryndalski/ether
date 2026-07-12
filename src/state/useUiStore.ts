@@ -10,6 +10,7 @@ interface UiState {
   responseSize: number;
   paletteOpen: boolean;
   envManagerOpen: boolean;
+  devToolsOpen: boolean;
 
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
@@ -21,6 +22,9 @@ interface UiState {
   togglePalette: () => void;
   openEnvManager: () => void;
   closeEnvManager: () => void;
+  openDevTools: () => void;
+  closeDevTools: () => void;
+  toggleDevTools: () => void;
 }
 
 const SIDEBAR_MIN = 200;
@@ -37,6 +41,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   responseSize: 42,
   paletteOpen: false,
   envManagerOpen: false,
+  devToolsOpen: false,
 
   setTheme: (theme) => set({ theme }),
   toggleTheme: () => set({ theme: get().theme === "dark" ? "light" : "dark" }),
@@ -48,4 +53,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   togglePalette: () => set({ paletteOpen: !get().paletteOpen }),
   openEnvManager: () => set({ envManagerOpen: true }),
   closeEnvManager: () => set({ envManagerOpen: false }),
+  openDevTools: () => set({ devToolsOpen: true }),
+  closeDevTools: () => set({ devToolsOpen: false }),
+  toggleDevTools: () => set({ devToolsOpen: !get().devToolsOpen }),
 }));

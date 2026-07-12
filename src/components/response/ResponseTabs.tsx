@@ -1,28 +1,48 @@
 import { Icon } from "../common/Icon";
 
-export type ResponseTabKey = "Body" | "Headers" | "Timeline" | "curl -v";
+export type ResponseTabKey =
+  | "Body"
+  | "Headers"
+  | "Timeline"
+  | "curl -v"
+  | "Bench"
+  | "Cert"
+  | "JWT";
 
-const TABS: ResponseTabKey[] = ["Body", "Headers", "Timeline", "curl -v"];
+const BASE_TABS: ResponseTabKey[] = ["Body", "Headers", "Timeline", "curl -v"];
 
 interface ResponseTabsProps {
   active: ResponseTabKey;
   onSelect: (tab: ResponseTabKey) => void;
   headerCount: number;
   onCopy: () => void;
+  showBench: boolean;
+  showCert: boolean;
+  jwtCount: number;
 }
 
-/** Response tab strip: Body / Headers / Timeline / curl -v + a copy button. */
+/** Response tab strip: Body / Headers / Timeline / curl -v plus the conditional
+ *  dev-utils tabs (Bench / Cert / JWT — only when their data exists). */
 export function ResponseTabs({
   active,
   onSelect,
   headerCount,
   onCopy,
+  showBench,
+  showCert,
+  jwtCount,
 }: ResponseTabsProps) {
+  const tabs: ResponseTabKey[] = [...BASE_TABS];
+  if (showBench) tabs.push("Bench");
+  if (showCert) tabs.push("Cert");
+  if (jwtCount > 0) tabs.push("JWT");
+
   return (
     <div className="resp-tabs" role="tablist">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const selected = tab === active;
-        const showCount = tab === "Headers" && headerCount > 0;
+        const showHeaderCount = tab === "Headers" && headerCount > 0;
+        const showJwtCount = tab === "JWT" && jwtCount > 0;
         return (
           <button
             key={tab}
@@ -34,7 +54,8 @@ export function ResponseTabs({
             onClick={() => onSelect(tab)}
           >
             {tab}
-            {showCount && <span className="count">{headerCount}</span>}
+            {showHeaderCount && <span className="count">{headerCount}</span>}
+            {showJwtCount && <span className="count">{jwtCount}</span>}
           </button>
         );
       })}

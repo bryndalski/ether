@@ -28,7 +28,11 @@ export type IconName =
   | "i-graph"
   | "i-history"
   | "i-replay"
-  | "i-diff";
+  | "i-diff"
+  | "i-bar-chart"
+  | "i-key"
+  | "i-clock"
+  | "i-alert";
 
 interface IconProps {
   name: IconName;
