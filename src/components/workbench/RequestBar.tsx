@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { SendState } from "../../hooks/useSendRequest";
 import type { RequestDraft } from "../../hooks/useRequestDraft";
 import { MethodSelect } from "./MethodSelect";
@@ -14,9 +15,11 @@ interface RequestBarProps {
   onCancel: () => void;
   onSave: () => void;
   dirty: boolean;
+  requestTypeToggle?: ReactNode;
 }
 
-/** The 44px toolbar row: method select + URL field + Save + Send. */
+/** The 44px toolbar row: request-type toggle + method select + URL + Save + Send.
+ *  For GraphQL the method select is hidden (GraphQL is always POST). */
 export function RequestBar({
   draft,
   onMethodChange,
@@ -26,10 +29,15 @@ export function RequestBar({
   onCancel,
   onSave,
   dirty,
+  requestTypeToggle,
 }: RequestBarProps) {
+  const isGraphql = draft.graphql != null;
   return (
     <div className="toolbar">
-      <MethodSelect method={draft.method} onChange={onMethodChange} />
+      {requestTypeToggle}
+      {!isGraphql && (
+        <MethodSelect method={draft.method} onChange={onMethodChange} />
+      )}
       <UrlInput url={draft.url} onChange={onUrlChange} onEnter={onSend} />
       <button
         type="button"

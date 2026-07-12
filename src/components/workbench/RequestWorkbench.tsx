@@ -5,8 +5,11 @@ import { useNewRequest } from "../../hooks/useNewRequest";
 import { useRequestDraft } from "../../hooks/useRequestDraft";
 import { useSendRequest } from "../../hooks/useSendRequest";
 import { isRequestDirty } from "../../lib/dirty";
+import { buildOperationRequest } from "../../lib/graphqlBody";
+import { RequestTypeToggle } from "../graphql/RequestTypeToggle";
 import { EmptyState } from "../common/EmptyState";
 import { ResponseDock } from "../response/ResponseDock";
+import { GraphqlExplorer } from "../graphql/GraphqlExplorer";
 import { RequestBar } from "./RequestBar";
 import { RequestTabs, type RequestTabKey } from "./RequestTabs";
 import { ParamsPanel } from "./ParamsPanel";
@@ -29,15 +32,27 @@ export function RequestWorkbench() {
   const [tab, setTab] = useState<RequestTabKey>("Params");
 
   const dirty = isRequestDirty(draft, activeRequest);
+  const isGraphql = draft.graphql != null;
 
   const onSend = useCallback(() => {
     if (draft.url.trim() === "") return;
-    void send(draft, activeEnvironmentId);
+    // For GraphQL, build the {query,variables} POST body (leaving {{env.x}}
+    // tokens intact) and send through the exact same resolve_and_send path.
+    const outgoing = buildOperationRequest(draft);
+    void send(outgoing, activeEnvironmentId);
   }, [draft, activeEnvironmentId, send]);
 
   const onSave = useCallback(() => {
     void saveRequest(draft);
   }, [draft, saveRequest]);
+
+  const onRequestType = useCallback(
+    (graphql: boolean) => {
+      if (graphql) dispatch({ kind: "setGraphql", graphql: {} });
+      else dispatch({ kind: "clearGraphql" });
+    },
+    [dispatch],
+  );
 
   if (!activeRequest) {
     return (
@@ -80,38 +95,53 @@ export function RequestWorkbench() {
         onCancel={cancel}
         onSave={onSave}
         dirty={dirty}
+        requestTypeToggle={
+          <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
+        }
       />
-      <RequestTabs active={tab} onSelect={setTab} counts={counts} />
-      {tab === "Params" && (
-        <ParamsPanel
-          params={draft.query_params}
-          onChange={(params) => dispatch({ kind: "setParams", params })}
-        />
-      )}
-      {tab === "Headers" && (
-        <HeadersPanel
-          headers={draft.headers}
-          onChange={(headers) => dispatch({ kind: "setHeaders", headers })}
-        />
-      )}
-      {tab === "Body" && (
-        <BodyPanel
-          body={draft.body}
-          onChange={(body) => dispatch({ kind: "setBody", body })}
-        />
-      )}
-      {tab === "Auth" && (
-        <AuthPanel
-          auth={draft.auth}
-          onChange={(auth) => dispatch({ kind: "setAuth", auth })}
-        />
-      )}
-      {tab === "cURL" && (
-        <CurlTab
+      {isGraphql ? (
+        <GraphqlExplorer
           draft={draft}
-          environmentId={activeEnvironmentId}
-          onImport={(spec) => dispatch({ kind: "importSpec", spec })}
+          dispatch={dispatch}
+          sendState={sendState}
+          onRun={onSend}
+          onCancel={cancel}
         />
+      ) : (
+        <>
+          <RequestTabs active={tab} onSelect={setTab} counts={counts} />
+          {tab === "Params" && (
+            <ParamsPanel
+              params={draft.query_params}
+              onChange={(params) => dispatch({ kind: "setParams", params })}
+            />
+          )}
+          {tab === "Headers" && (
+            <HeadersPanel
+              headers={draft.headers}
+              onChange={(headers) => dispatch({ kind: "setHeaders", headers })}
+            />
+          )}
+          {tab === "Body" && (
+            <BodyPanel
+              body={draft.body}
+              onChange={(body) => dispatch({ kind: "setBody", body })}
+            />
+          )}
+          {tab === "Auth" && (
+            <AuthPanel
+              auth={draft.auth}
+              onChange={(auth) => dispatch({ kind: "setAuth", auth })}
+            />
+          )}
+          {tab === "cURL" && (
+            <CurlTab
+              draft={draft}
+              environmentId={activeEnvironmentId}
+              onImport={(spec) => dispatch({ kind: "importSpec", spec })}
+            />
+          )}
+        </>
       )}
       <ResponseDock sendState={sendState} />
     </section>

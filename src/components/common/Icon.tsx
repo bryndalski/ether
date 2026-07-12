@@ -20,7 +20,12 @@ export type IconName =
   | "i-settings"
   | "i-save"
   | "i-arrow-up"
-  | "i-arrow-down";
+  | "i-arrow-down"
+  | "i-refresh"
+  | "i-play"
+  | "i-book"
+  | "i-braces"
+  | "i-graph";
 
 interface IconProps {
   name: IconName;

@@ -111,7 +111,14 @@ export function RequestRow({
             onCancel={onCancelRename}
           />
         ) : (
-          <span className="truncate flex-1">{request.name}</span>
+          <span className="truncate flex-1">
+            {request.name}
+            {request.graphql != null && (
+              <span className="gql-badge" style={{ marginLeft: 6 }}>
+                GraphQL
+              </span>
+            )}
+          </span>
         )}
         {!renaming && (
           <button

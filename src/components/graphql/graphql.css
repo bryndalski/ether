@@ -1,0 +1,429 @@
+/* GraphQL Explorer styles — extracted 1:1 from design-system/preview/mock-graphql.html.
+   Every value is a --lok-* token (never a raw hex). The Explorer fills the
+   workbench's existing scroll region; only .col-body / .query-pane / .vars-body
+   scroll (min-height:0 + overflow:auto) so the window itself never scrolls. */
+
+.gql-explorer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* Toolbar row (op picker + url + refresh + run) */
+.gql-explorer .toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  padding: 0 var(--lok-space-4);
+  height: var(--lok-toolbar-h);
+  border-bottom: 1px solid var(--lok-border-subtle);
+  background: var(--lok-bg-surface);
+  flex: 0 0 auto;
+}
+
+.op-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-raised);
+  border: 1px solid var(--lok-border-default);
+  cursor: pointer;
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-primary);
+  font-family: var(--lok-font-mono);
+  font-weight: var(--lok-fw-semibold);
+}
+.op-select .op {
+  color: var(--lok-syn-gql);
+}
+.op-select:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: 1px;
+}
+
+.btn.refresh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-raised);
+  border: 1px solid var(--lok-border-default);
+  color: var(--lok-text-secondary);
+  font-size: var(--lok-fs-xs);
+  cursor: pointer;
+}
+.btn.refresh:hover:not(:disabled) {
+  background: var(--lok-bg-hover);
+}
+.btn.refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.btn.refresh svg {
+  width: 14px;
+  height: 14px;
+}
+.btn.refresh[aria-busy="true"] svg {
+  animation: gql-spin 0.9s linear infinite;
+}
+@keyframes gql-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn.refresh[aria-busy="true"] svg {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* 3-column body: field tree | editor | docs */
+.gql-cols {
+  display: grid;
+  grid-template-columns: 280px 1fr 260px;
+  min-height: 0;
+  flex: 1;
+}
+.gql-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.gql-col.tree-col {
+  background: var(--lok-bg-sidebar);
+  border-right: 1px solid var(--lok-border-subtle);
+}
+.gql-col.docs-col {
+  background: var(--lok-bg-sidebar);
+  border-left: 1px solid var(--lok-border-subtle);
+}
+.gql-col.mid {
+  background: var(--lok-bg-surface);
+}
+.col-head {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-3) var(--lok-space-4);
+  font-size: var(--lok-fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--lok-tracking-caps);
+  color: var(--lok-text-tertiary);
+  font-weight: var(--lok-fw-semibold);
+  border-bottom: 1px solid var(--lok-border-subtle);
+  flex: 0 0 auto;
+}
+.col-head .spacer {
+  flex: 1;
+}
+.col-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  padding: var(--lok-space-2) var(--lok-space-3);
+}
+
+/* Field tree */
+.f {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 var(--lok-space-2);
+  border-radius: var(--lok-radius-sm);
+  font-size: var(--lok-fs-xs);
+  cursor: pointer;
+  font-family: var(--lok-font-mono);
+}
+.f:hover {
+  background: var(--lok-bg-hover);
+}
+.f input[type="checkbox"] {
+  accent-color: var(--lok-heat-500);
+}
+.f .fname {
+  color: var(--lok-text-secondary);
+}
+.f.on .fname {
+  color: var(--lok-heat-300);
+}
+.f .ftype {
+  margin-left: auto;
+  color: var(--lok-syn-gql);
+  font-size: var(--lok-fs-2xs);
+  opacity: 0.85;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--lok-font-mono);
+}
+.f .ftype:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: 1px;
+}
+.f .chev,
+.f .chevr {
+  width: 12px;
+  height: 12px;
+  color: var(--lok-text-tertiary);
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+.f .chev-spacer {
+  width: 12px;
+  display: inline-block;
+}
+.f.indent {
+  padding-left: var(--lok-space-6);
+}
+.f.indent2 {
+  padding-left: var(--lok-space-8);
+}
+.f.field-type {
+  color: var(--lok-syn-gql);
+  font-weight: var(--lok-fw-semibold);
+  height: 24px;
+}
+
+/* Editor middle + variables */
+.gql-mid-split {
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 0;
+}
+.query-pane {
+  overflow: auto;
+  min-height: 0;
+}
+.query-pane .cm-editor {
+  height: 100%;
+}
+.vars-pane {
+  border-top: 1px solid var(--lok-border-subtle);
+  background: var(--lok-bg-code);
+  flex: 0 0 auto;
+}
+.vars-tabs {
+  display: flex;
+  gap: var(--lok-space-1);
+  padding: 0 var(--lok-space-4);
+  height: 30px;
+  align-items: center;
+  border-bottom: 1px solid var(--lok-border-subtle);
+}
+.vars-tabs .t {
+  font-size: var(--lok-fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--lok-tracking-wide);
+  color: var(--lok-text-tertiary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 2px;
+}
+.vars-tabs .t.active {
+  color: var(--lok-text-primary);
+}
+.vars-tabs .t:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: 1px;
+}
+.vars-body {
+  padding: var(--lok-space-2) var(--lok-space-4);
+  max-height: 160px;
+  overflow: auto;
+  min-height: 0;
+}
+.vars-body .cm-editor {
+  background: transparent;
+}
+
+/* Docs explorer */
+.docs-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: var(--lok-space-2);
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+}
+.docs-breadcrumb button {
+  background: none;
+  border: none;
+  color: var(--lok-text-secondary);
+  cursor: pointer;
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  padding: 0;
+}
+.docs-breadcrumb button:hover {
+  color: var(--lok-heat-300);
+}
+.docs-breadcrumb .sep {
+  color: var(--lok-text-disabled);
+}
+.doc-type {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-sm);
+  color: var(--lok-syn-gql);
+  font-weight: var(--lok-fw-semibold);
+  padding: var(--lok-space-2);
+}
+.doc-desc {
+  padding: 0 var(--lok-space-2) var(--lok-space-2);
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+}
+.doc-field {
+  padding: var(--lok-space-2);
+  border-radius: var(--lok-radius-sm);
+}
+.doc-field:hover {
+  background: var(--lok-bg-hover);
+}
+.doc-field .name {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+}
+.doc-field .name .n {
+  color: var(--lok-syn-key);
+}
+.doc-field .name .t {
+  color: var(--lok-syn-gql);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+  padding: 0;
+}
+.doc-field .name .t:hover {
+  text-decoration: underline;
+}
+.doc-field .name .t:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: 1px;
+}
+.doc-field .desc {
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+  margin-top: 2px;
+}
+
+/* Status bar */
+.gql-statusbar {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-4);
+  padding: 0 var(--lok-space-4);
+  height: var(--lok-statusbar-h);
+  background: var(--lok-bg-sidebar);
+  border-top: 1px solid var(--lok-border-subtle);
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+  flex: 0 0 auto;
+}
+.gql-statusbar .health {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.gql-statusbar .health .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--lok-status-success);
+}
+.gql-statusbar .health.warn .dot {
+  background: var(--lok-status-warn);
+}
+.gql-statusbar .health.danger .dot {
+  background: var(--lok-status-danger);
+}
+.gql-statusbar .spacer {
+  flex: 1;
+}
+.gql-statusbar .mono {
+  font-family: var(--lok-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* SDL fallback panel */
+.sdl-fallback {
+  padding: var(--lok-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-3);
+  min-height: 0;
+  flex: 1;
+}
+.sdl-fallback textarea {
+  flex: 1;
+  min-height: 120px;
+  resize: none;
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-sm);
+  background: var(--lok-bg-input);
+  color: var(--lok-text-primary);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  padding: var(--lok-space-3);
+}
+.sdl-fallback .err {
+  color: var(--lok-status-danger);
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+}
+
+/* Request-type segmented toggle (REST | GraphQL) in the request bar */
+.reqtype-toggle {
+  display: inline-flex;
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  overflow: hidden;
+}
+.reqtype-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 var(--lok-space-3);
+  background: var(--lok-bg-raised);
+  border: none;
+  color: var(--lok-text-tertiary);
+  font-size: var(--lok-fs-xs);
+  cursor: pointer;
+}
+.reqtype-toggle button[aria-selected="true"] {
+  background: var(--lok-bg-active);
+  color: var(--lok-text-primary);
+}
+.reqtype-toggle button:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: -2px;
+}
+
+/* GraphQL badge on a request row in the sidebar */
+.gql-badge {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  font-weight: var(--lok-fw-bold);
+  color: var(--lok-syn-gql);
+  background: color-mix(in srgb, var(--lok-syn-gql) 15%, transparent);
+  padding: 1px 5px;
+  border-radius: var(--lok-radius-xs);
+}

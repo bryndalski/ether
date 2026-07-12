@@ -6,6 +6,7 @@ import { useEffect, useReducer } from "react";
 import type {
   Auth,
   Body,
+  GraphqlMeta,
   KeyValue,
   RequestSpec,
   StoredRequest,
@@ -13,6 +14,13 @@ import type {
 import { buildUrl, parseQuery } from "../lib/urlParams";
 
 export type RequestDraft = StoredRequest;
+
+/** Neutral GraphQL meta used when a REST request is switched to GraphQL. */
+export const EMPTY_GQL: GraphqlMeta = {
+  operation_type: "query",
+  query: "",
+  variables_json: "{}",
+};
 
 export type DraftAction =
   | { kind: "seed"; request: StoredRequest }
@@ -22,6 +30,8 @@ export type DraftAction =
   | { kind: "setHeaders"; headers: KeyValue[] }
   | { kind: "setBody"; body: Body }
   | { kind: "setAuth"; auth: Auth }
+  | { kind: "setGraphql"; graphql: Partial<GraphqlMeta> }
+  | { kind: "clearGraphql" }
   | { kind: "importSpec"; spec: RequestSpec };
 
 export interface DraftCounts {
@@ -78,6 +88,18 @@ export function draftReducer(
       return { ...draft, body: action.body };
     case "setAuth":
       return { ...draft, auth: action.auth };
+    case "setGraphql":
+      // Switching REST -> GraphQL: GraphQL is always POST here, and query params
+      // don't apply. Shallow-merge the partial onto the existing (or empty) meta.
+      return {
+        ...draft,
+        method: "POST",
+        query_params: [],
+        graphql: { ...(draft.graphql ?? EMPTY_GQL), ...action.graphql },
+      };
+    case "clearGraphql":
+      // Switching GraphQL -> REST: drop the discriminator; keep url/headers/auth.
+      return { ...draft, graphql: null };
     case "importSpec": {
       const { spec } = action;
       return {
