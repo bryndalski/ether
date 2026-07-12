@@ -1,0 +1,1075 @@
+{
+  "summary": "Read-only research: funkcjonalności Postman/Insomnia/lokalnych klientów API, UX eksploratorów GraphQL, curl jako silnik na macOS",
+  "agentCount": 6,
+  "logs": [
+    "Fan-out: 5 agentów researchowych (Postman, Insomnia/Insomnium, lokalni konkurenci, GraphQL UX, curl/stack macOS)",
+    "Research done: 5/5 agentów zwróciło wyniki"
+  ],
+  "result": {
+    "results": [
+      {
+        "app": "Postman (stan 2025/2026, wersje v11/v12, Collection Format v3, \"new Postman\" AI-native)",
+        "feature_areas": [
+          {
+            "area": "Kolekcje i organizacja requestów",
+            "features": [
+              {
+                "name": "Kolekcje jako drzewo folderów",
+                "description": "Kolekcja = nazwana grupa requestów, uporządkowana w zagnieżdżone foldery. Kolekcja jest jednostką eksportu, uruchamiania (Runner/CLI), mockowania, dokumentacji i monitoringu. Od v12 jedna kolekcja może mieszać protokoły HTTP, GraphQL, gRPC, WebSocket, MQTT, MCP i 'AI requests'.",
+                "ux_details": "Lewy sidebar: drzewo kolekcji/folderów, drag&drop reorder, kontekstowe menu (duplicate, run, share, generate docs/mock/monitor). Poziom kolekcji i folderu ma własne zakładki: Authorization, Pre-request, Post-response (scripts), Variables (tylko kolekcja). Foldery dziedziczą auth/scripty z rodzica (opcja 'Inherit auth from parent')."
+              },
+              {
+                "name": "Dziedziczenie auth i skryptów w hierarchii",
+                "description": "Autoryzacja i skrypty ustawione na kolekcji/folderze spływają w dół na requesty (chyba że request nadpisze). Skrypty pre-request/post-response wykonują się kaskadowo: kolekcja → folder → request.",
+                "ux_details": "Na requeście w polu Auth jest opcja 'Inherit auth from parent'; skrypty na poziomie kolekcji są widoczne w osobnych zakładkach na węźle kolekcji."
+              },
+              {
+                "name": "Historia requestów (History)",
+                "description": "Każdy wysłany request trafia do historii (osobna zakładka w sidebarze), niezależnie od kolekcji. Dostępna także bez logowania w lightweight kliencie. Można z historii zapisać request do kolekcji.",
+                "ux_details": "Zakładka History grupuje wpisy po dacie; klik odtwarza request z URL/nagłówkami/body. W lightweight (offline) historia jest lokalna, niesynchronizowana."
+              }
+            ]
+          },
+          {
+            "area": "Model zmiennych (scoping i precedencja)",
+            "features": [
+              {
+                "name": "Pięć zakresów zmiennych z twardą precedencją",
+                "description": "Zakresy od najszerszego do najwęższego: Global → Collection → Environment → Data → Local. Przy kolizji nazw wygrywa NAJWĘŻSZY zakres. Global = cały workspace, Collection = niezależny od środowiska, Environment = per-środowisko (dev/test/prod), Data = z pliku CSV/JSON w Runnerze, Local = tymczasowy, żyje tylko przez jeden request/run.",
+                "ux_details": "Global edytuje się przez 'Globals' w stopce/workbenchu; Environment przez sidebar Environments; Collection przez zakładkę Variables na kolekcji. pm.variables.get() zwraca wartość o najwyższej precedencji (najwęższą)."
+              },
+              {
+                "name": "Składnia {{variable}} i substytucja",
+                "description": "Odwołanie przez podwójne klamry {{nazwa}}. Działa w URL, query params, nagłówkach, body, polach autoryzacji. W JSON body zmienną trzeba owinąć w cudzysłowy: {\"id\": \"{{cust_id}}\"}. To jest dokładnie mechanizm 'jak w Postmanie', o który pyta user — jeden spójny placeholder we wszystkich polach requestu.",
+                "ux_details": "Zmienne bez wartości podświetlają się na CZERWONO w URL/Params/Auth/Headers. Hover nad {{var}} pokazuje wartość, zakres (kolorowany) i flagę 'Overridden' gdy węższy zakres przesłania. Prawym na zaznaczony tekst → 'Set as variable' tworzy zmienną i podmienia tekst na {{var}}."
+              },
+              {
+                "name": "Initial value vs Current value (model wartości)",
+                "description": "Każda zmienna środowiskowa/globalna ma DWIE kolumny: Initial value (synchronizowana do chmury, współdzielona z zespołem) i Current value (lokalna, tylko u ciebie, niesynchronizowana domyślnie). To źródło klasycznej pułapki: user edytuje Current, ale eksport/współdzielenie bierze Initial.",
+                "ux_details": "Edytor środowiska = tabela kolumn Variable | Type (default/secret) | Initial value | Current value. Można 'Persist' (skopiować Current→Initial) lub 'Reset'. We wrześniu 2025 Postman przeprojektował panel zmiennych (September 2025 Product Update: 'Redesigned Variables')."
+              },
+              {
+                "name": "Przełączanie środowisk (selektor + Environment quick look)",
+                "description": "Dokładnie funkcja 'łatwe przełączanie środowisk', o którą prosi user. Aktywne jest ZAWSZE jedno środowisko; wybór z dropdownu w prawym górnym rogu natychmiast zmienia rozwiązywanie {{var}}. 'Quick look' (ikona oka) pokazuje wszystkie aktywne zmienne bez wchodzenia w edytor.",
+                "ux_details": "Dropdown top-right = lista środowisk + 'No Environment'. Klik = natychmiastowa zmiana kontekstu. Ikona oka obok = panel podglądu Globals + aktywnego środowiska z wartościami. Jeśli request używa env-zmiennej, a nie ma aktywnego środowiska → prompt do wyboru/utworzenia."
+              },
+              {
+                "name": "Zmienne bez zakresu (unscoped/placeholder)",
+                "description": "Można wpisać {{cokolwiek}} nieistniejącego; Postman traktuje to jako local placeholder zapisany tylko w tym requeście. Później można 'promować' do konkretnego zakresu przez dropdown 'Add to'.",
+                "ux_details": "Panel 'Variables in request' listuje zmienne użyte w requeście bez wartości; inline można nadać wartość i wybrać docelowy scope."
+              },
+              {
+                "name": "Ustawianie zmiennych w skryptach",
+                "description": "pm.globals.set / pm.collectionVariables.set / pm.environment.set / pm.variables.set (local). Odczyt analogicznie .get(); pm.variables.get() = najwyższa precedencja. Umożliwia chaining (wyciągnij token z odpowiedzi requestu A → użyj w B).",
+                "ux_details": "Kod w zakładkach Pre-request / Post-response. Typowy wzorzec: post-response zapisuje token do env, kolejny request używa {{token}} w nagłówku Authorization."
+              },
+              {
+                "name": "Zmienne dynamiczne (Faker) {{$...}}",
+                "description": "Wbudowane zmienne generowane w momencie wysyłki: {{$guid}} (UUID v4), {{$timestamp}} (unix sekundy), {{$randomInt}} (0–1000) oraz cała biblioteka faker.js (od v7.2) — {{$randomFirstName}}, {{$randomEmail}} itd. Zwracają nową wartość przy każdym użyciu.",
+                "ux_details": "Wpisuje się bezpośrednio w polach jak zwykłą zmienną. W skryptach: pm.variables.replaceIn('{{$randomFirstName}}'). Nazwy case-sensitive."
+              }
+            ]
+          },
+          {
+            "area": "Sekrety i Postman Vault",
+            "features": [
+              {
+                "name": "Postman Local Vault",
+                "description": "Sejf sekretów przechowywany WYŁĄCZNIE lokalnie (nie synchronizowany do chmury Postmana), szyfrowany AES-256. Dostępny na wszystkich planach. Idealny wzorzec do naśladowania dla lokalnego klienta: secrety nigdy nie opuszczają maszyny.",
+                "ux_details": "Przy pierwszym otwarciu Vault generuje vault key do zapisania w bezpiecznym miejscu; przy każdym logowaniu trzeba go podać, by odblokować sejf (albo pobierany automatycznie z systemowego menedżera haseł). UWAGA: sekrety NIE przetrwają wylogowania / przełączenia desktop↔web / zmiany maszyny — trzeba je eksportować."
+              },
+              {
+                "name": "Referencja {{vault:nazwa}}",
+                "description": "Sekrety z Vault referuje się osobną składnią {{vault:secret-name}} (odróżnioną od zwykłych {{var}}). W skryptach: pm.vault.get(). Sekret jest rozwiązywany dopiero w momencie wysyłki i maskowany w logach/podglądzie.",
+                "ux_details": "Ustawiając wrażliwe pole auth Postman proponuje zapis do Vault. Hover na secure-zmiennej pokazuje ikonę 'view'; Cmd/Ctrl odsłania wszystkie sekrety naraz."
+              },
+              {
+                "name": "Allowed domains (ograniczenie domenowe sekretu)",
+                "description": "Domyślnie sekret Vault można wysłać do dowolnej domeny. Można ograniczyć sekret do listy dozwolonych domen/subdomen (comma-separated, wildcard *.example.com). Jeśli ustawisz allowed domains, sekret można referować tylko na poziomie requestu (nie kolekcji). Ważny wzorzec bezpieczeństwa — zapobiega wyciekowi tokenu na obcy host.",
+                "ux_details": "Pole 'Allowed domains' w definicji sekretu. Znany bug: gdy base URL pochodzi ze zmiennej środowiskowej, UI błędnie pokazuje 'secret not supported for domain', ale request i tak przechodzi."
+              },
+              {
+                "name": "Shared Vault i integracje zewnętrzne",
+                "description": "Shared Vault = sekrety w chmurze na poziomie workspace (plany Solo/Team/Enterprise) — do współdzielenia w zespole. Integracje z 1Password, AWS Secrets Manager, Azure Key Vault, HashiCorp Vault (tylko Enterprise + Advanced Security add-on) — pull sekretu z zewnętrznego menedżera.",
+                "ux_details": "Eksport/import sekretów Local Vault jako JSON (encrypted lub plaintext) — jedyny sposób przeniesienia ich między maszynami/appami."
+              },
+              {
+                "name": "Secure variables (osobno od Vault)",
+                "description": "Zwykłe zmienne env/collection można oznaczyć jako 'secret' (typ) — używają tego samego szyfrowania AES-256 co Local Vault, wartości maskowane w UI.",
+                "ux_details": "Toggle 'Secure'/typ 'secret' obok zmiennej; wartość pokazywana jako kropki, hover+ikona odsłania."
+              }
+            ]
+          },
+          {
+            "area": "Typy autoryzacji",
+            "features": [
+              {
+                "name": "Pełna paleta auth typów",
+                "description": "No Auth, API Key (w headerze lub query), Bearer Token (JWT), Basic Auth, Digest Auth, OAuth 1.0, OAuth 2.0, Hawk, AWS Signature (SigV4), NTLM, Akamai EdgeGrid, JWT Bearer (generowanie tokenu z payloadu w edytorze). Ustawiane na poziomie request/folder/collection z dziedziczeniem.",
+                "ux_details": "Zakładka Authorization: dropdown Type → dynamiczny formularz pól. Wybrany typ podstawia się automatycznie do nagłówków/query w momencie wysyłki (nie widać ich w Headers do czasu wysłania)."
+              },
+              {
+                "name": "OAuth 2.0 z pełnym flow",
+                "description": "Konfiguracja tokenu (grant type: Authorization Code, Client Credentials, Password, Implicit, PKCE), 'Get New Access Token' otwiera przeglądarkę/okno do zalogowania i zwraca token. Zapamiętuje tokeny, pozwala auto-refresh.",
+                "ux_details": "Sekcja 'Configure New Token' z polami (auth URL, token URL, client id/secret, scope, callback). 'Get New Access Token' → 'Proceed' → 'Use Token'. Lista wygenerowanych tokenów z datą ważności."
+              },
+              {
+                "name": "AWS Signature (SigV4)",
+                "description": "Natywne podpisywanie requestów HMAC dla AWS: AccessKey, SecretKey, opcjonalnie Session Token, Region, Service. Postman generuje nagłówek Authorization SigV4 przy wysyłce. Kluczowe dla usera z kontekstu (backend na AWS API GW z IAM auth/SigV4).",
+                "ux_details": "Formularz z polami AccessKey/SecretKey/SessionToken/AWS Region/Service Name/advanced. Podpis liczony lokalnie w kliencie."
+              },
+              {
+                "name": "mTLS / certyfikaty klienta",
+                "description": "Mutual TLS przez client certificates konfigurowane per-domena w Settings → Certificates (CRT + KEY, opcjonalnie passphrase, PFX). Plus CA certificates. Nie jest to 'auth type' w dropdownie, tylko globalna konfiguracja certów mapowana po hoście.",
+                "ux_details": "Settings → Certificates → 'Add Certificate': host, port, CRT/KEY file, passphrase. Automatycznie dołączane do requestów pasujących do hosta."
+              }
+            ]
+          },
+          {
+            "area": "Scripting, testy i sandbox",
+            "features": [
+              {
+                "name": "Pre-request i Post-response scripts (Postman Sandbox)",
+                "description": "Runtime oparty na Node.js. Pre-request: logika PRZED wysyłką (generowanie podpisów, ustawianie zmiennych). Post-response (dawniej 'Tests'): asercje i logika PO odpowiedzi. Dostępne obiekty pm.* : pm.request, pm.response, pm.environment, pm.variables, pm.collectionVariables, pm.globals, pm.vault, pm.iterationData.",
+                "ux_details": "Osobne zakładki edytora JS z podpowiedziami i snippetami (gotowe fragmenty testów po prawej). Uruchamiane kaskadowo (kolekcja→folder→request)."
+              },
+              {
+                "name": "Testy pm.test + pm.expect (Chai)",
+                "description": "pm.test('nazwa', fn) rejestruje test; pm.expect() to asercje w składni Chai BDD (expect(...).to.have.status(200) itd.). Wyniki pokazywane jako pass/fail w zakładce Test Results odpowiedzi i agregowane w Runnerze/CLI.",
+                "ux_details": "Panel Test Results pod odpowiedzią: lista zielonych/czerwonych testów z nazwami. W Runnerze — sumaryczny pass/fail per iteracja."
+              },
+              {
+                "name": "pm.sendRequest (requesty ze skryptu)",
+                "description": "Asynchroniczne wysyłanie dodatkowych requestów ze skryptu (np. pobranie tokenu przed właściwym requestem, wywołania w tle). Umożliwia setup/teardown i chaining bez ręcznego uruchamiania.",
+                "ux_details": "Callback-based; działa w pre-request i post-response."
+              },
+              {
+                "name": "Pakiety / Package Library i import z npm/JSR (pm.require)",
+                "description": "Nowość: pm.require() importuje pakiety z 'Package Library' zespołu lub z zewnętrznych rejestrów npm/JSR do skryptów HTTP/gRPC/GraphQL. Pozwala reużywać wspólne funkcje/utilsy między requestami zamiast kopiować kod.",
+                "ux_details": "Package Library na poziomie zespołu (wymaga chmury/konta); external npm/JSR — import po nazwie pakietu w skrypcie."
+              }
+            ]
+          },
+          {
+            "area": "Collection Runner",
+            "features": [
+              {
+                "name": "Uruchamianie kolekcji z iteracjami",
+                "description": "Runner wykonuje wszystkie requesty kolekcji sekwencyjnie, N iteracji, z konfigurowalnym Delay między requestami. Zbiera wyniki testów per iteracja. Można wybrać podzbiór requestów i ich kolejność (drag reorder w Runnerze).",
+                "ux_details": "Ekran Runnera: lista requestów z checkboxami, pole Iterations, Delay (ms), opcje 'Keep variable values', 'Persist responses', 'Run manually / Schedule'. Podsumowanie pass/fail + eksport wyników."
+              },
+              {
+                "name": "Data-driven testing (CSV/JSON)",
+                "description": "Import pliku danych: CSV (pierwszy wiersz = nazwy zmiennych, każdy kolejny wiersz = iteracja) lub JSON (tablica obiektów key-value). Liczba iteracji ustawia się AUTOMATYCZNIE na liczbę wierszy. Dostęp w requestach przez {{kolumna}} lub w skryptach pm.iterationData.get('kolumna').",
+                "ux_details": "Przycisk 'Select File' w Runnerze, podgląd danych, auto-ustawienie Iterations. CSV musi mieć zakończenia linii w formacie Unix i równą liczbę kolumn."
+              },
+              {
+                "name": "Zależność od formatu kolekcji (v3 vs Newman)",
+                "description": "Ważne 2025/2026: Newman NIE jest kompatybilny z Collection format v3 (Postman v12+). Aby uruchamiać nowe kolekcje z CLI trzeba migrować na Postman CLI. Wpływa na strategię offline/CI.",
+                "ux_details": "—"
+              }
+            ]
+          },
+          {
+            "area": "Obsługa GraphQL",
+            "features": [
+              {
+                "name": "Dedykowany GraphQL client z auto-introspekcją",
+                "description": "To wprost funkcja z wymagań usera. User tworzy request typu GraphQL, WKLEJA URL endpointu, a klient SAM robi introspekcję schematu i ładuje go do eksploratora. Nie trzeba ręcznie podawać schematu.",
+                "ux_details": "Wpisanie endpointu w polu URL → schemat pojawia się w schema explorerze automatycznie. Alternatywnie: import schematu z pliku lokalnego, z URL lub wybór API z workspace."
+              },
+              {
+                "name": "Schema explorer / wizualny query builder (checkbox → query)",
+                "description": "Interaktywny eksplorator: user PRZEGLĄDA typy/pola i ZAZNACZA CHECKBOXY przy polach i argumentach, a Postman AUTOMATYCZNIE PISZE gotowy do wysłania query/mutation/subscription w edytorze w czasie rzeczywistym. Dokładnie 'user wybiera typ operacji i podpowiada pola w GUI'.",
+                "ux_details": "Split-pane: po lewej schema explorer z drzewem pól i checkboxami, w środku edytor query z auto-generowanym tekstem, po prawej odpowiedź. Zaznaczenie pola dopisuje je do query; odznaczenie usuwa."
+              },
+              {
+                "name": "Autocomplete i walidacja z introspekcji",
+                "description": "Podczas ręcznego pisania query klient podpowiada pola/argumenty na podstawie załadowanego schematu (autocomplete). Pokazuje czytelne błędy walidacji, gdy query nie pasuje do schematu.",
+                "ux_details": "Autocomplete pojawia się przy pisaniu w edytorze query (wymaga załadowanego schematu). Inline error highlighting."
+              },
+              {
+                "name": "Query / Mutation / Subscription + zmienne GraphQL",
+                "description": "Wsparcie trzech typów operacji. Subscriptions działają po WebSocket. Osobny panel GraphQL Variables (JSON) do parametryzacji operacji. Inline dokumentacja pól ze schematu obok buildera.",
+                "ux_details": "Osobna sekcja 'GraphQL Variables' pod edytorem (JSON). Dokumentacja pola wyświetlana przy przeglądaniu schematu."
+              },
+              {
+                "name": "GraphQL przez zwykły HTTP request (alternatywa)",
+                "description": "Można też wysłać GraphQL jako POST z body typu GraphQL w zwykłym requeście HTTP (bez dedykowanego clienta) — przydatne gdy endpoint blokuje introspekcję.",
+                "ux_details": "W zwykłym requeście: Body → GraphQL, pola Query i Variables."
+              }
+            ]
+          },
+          {
+            "area": "Generowanie kodu / curl / import",
+            "features": [
+              {
+                "name": "Copy as curl / generowanie snippetów",
+                "description": "Panel 'Code' (ikona </> w prawym sidebarze) generuje request w wielu językach/bibliotekach: cURL, JavaScript (Fetch, Axios), Python (Requests), Java, C#, Go, PHP itd. cURL kopiuje się jednym klikiem. Bezpośrednio relewantne — user buduje klienta na curl, więc może replikować format.",
+                "ux_details": "Klik 'Code' → dropdown wyboru języka → 'Copy'. 'Code settings' pozwala ustawić typ/ilość wcięć. Uwaga: zgłaszany bug z 'New Code Generation Mode', gdzie wygenerowany curl bywa nieimportowalny z powrotem."
+              },
+              {
+                "name": "Import curl",
+                "description": "Wklejenie komendy curl (File → Import → wklej tekst / lub bezpośrednio w pasku URL) parsuje ją do pełnego requestu (metoda, URL, nagłówki, body). Symetria z 'copy as curl'.",
+                "ux_details": "Import dialog z polem tekstowym na komendę curl; tworzy nowy request automatycznie."
+              }
+            ]
+          },
+          {
+            "area": "Import / Export i OpenAPI",
+            "features": [
+              {
+                "name": "Konwersja specyfikacji API → kolekcja",
+                "description": "Import i konwersja z OpenAPI 3.0/3.1 (YAML+JSON), Swagger 2.0, RAML, WSDL, GraphQL SDL do formatu kolekcji Postmana. Generuje foldery, requesty i przykłady odpowiedzi z definicji. Konwertery dostępne też jako moduły Node.js do CI/CD.",
+                "ux_details": "Import → wybór pliku/URL/tekstu → opcje zaawansowane (dołączać cookies, wykluczać odpowiedzi, itd.) → generacja kolekcji. Można też edytować spec w Spec Hub i wygenerować z niej kolekcję."
+              },
+              {
+                "name": "Export kolekcji i środowisk (JSON)",
+                "description": "Kolekcje i środowiska eksportują się jako pliki JSON (Collection Format v2.1, a od v12 v3 rozbity na pliki YAML łatwe do diffowania w gicie i czytania przez AI). Umożliwia wersjonowanie i przenoszenie między instancjami.",
+                "ux_details": "Kontekstowe 'Export' na kolekcji → wybór wersji formatu → plik JSON. Export środowiska bierze Initial values (nie Current!)."
+              }
+            ]
+          },
+          {
+            "area": "Mocki, dokumentacja, monitory (cloud-heavy)",
+            "features": [
+              {
+                "name": "Mock servers",
+                "description": "Symuluje serwer API zwracając zapisane 'examples'. Postman dopasowuje przychodzący request do przykładu po URL/metodzie/body/nagłówkach algorytmem najlepszego dopasowania. Cloud mocks (hostowane) lub Local Mocks (z projektu git-enabled). Private (wymaga API key) lub public.",
+                "ux_details": "'Create mock server' z kolekcji → generuje endpoint chmurowy. Dynamiczne odpowiedzi przez zmienne. Free plan: limit 1000 wywołań/mc."
+              },
+              {
+                "name": "Dokumentacja API",
+                "description": "Auto-generowana, publikowalna dokumentacja kolekcji (opisy, przykłady, snippety kodu w wielu językach). Może być publiczna. Aktualizuje się z kolekcją.",
+                "ux_details": "'View documentation' / 'Publish docs' z kolekcji; hostowane w chmurze Postmana."
+              },
+              {
+                "name": "Monitors",
+                "description": "Zaplanowane (cron) uruchamianie kolekcji z chmury Postmana do ciągłego sprawdzania zdrowia/wydajności API, alerty przy failach. Może być triggerowane też z Postman CLI.",
+                "ux_details": "'Create monitor' z kolekcji → harmonogram + region + powiadomienia. W pełni chmurowe."
+              }
+            ]
+          },
+          {
+            "area": "CLI i automatyzacja",
+            "features": [
+              {
+                "name": "Newman (open-source, legacy)",
+                "description": "Oryginalny CLI (od 2014), open-source, uruchamia kolekcje: newman run collection.json --iteration-count N --delay-request ms. Lekki i szybki, exit code 0/1 do bramek CI (--bail). Ograniczenie 2025: nie obsługuje Collection v3 (v12+).",
+                "ux_details": "Instalacja przez npm; reportery (cli, json, html); używany w pipeline'ach CI/CD."
+              },
+              {
+                "name": "Postman CLI (closed-source, nowszy)",
+                "description": "CLI Postmana (od IX 2022), closed-source, podpisany cyfrowo. Szerszy zakres: run kolekcji, tworzenie/edycja kolekcji/środowisk, mocki, docs, integracja z monitorami i governance. postman collection run my_collection.json. Rekomendowany dla v3.",
+                "ux_details": "Wymaga API key do pobierania kolekcji z chmury / raportowania wyników do Postmana."
+              }
+            ]
+          },
+          {
+            "area": "Co wymaga konta / chmury (kluczowe dla decyzji offline)",
+            "features": [
+              {
+                "name": "Lightweight API Client — co działa BEZ konta",
+                "description": "Bez logowania (od maja 2023, po zabiciu Scratch Pad): tworzenie requestów, wysyłanie HTTP/WebSocket/gRPC/GraphQL, odbiór odpowiedzi, przeglądanie lokalnej historii. Wszystko lokalnie, niesynchronizowane.",
+                "ux_details": "Po instalacji można od razu 'wystrzelić' request bez logowania."
+              },
+              {
+                "name": "Co WYMUSZA logowanie / chmurę",
+                "description": "Wymagają konta: workspace'y (a więc też KOLEKCJE i ŚRODOWISKA w pełnej formie — poza jednorazowymi requestami), synchronizacja, współpraca, Shared Vault, mock servers, monitory, publikowana dokumentacja, Package Library, AI Agent Builder, cloud sync historii. Sam Local Vault jest 'na wszystkich planach', ale odblokowanie sejfu wymaga vault key po zalogowaniu, a sekrety giną po wylogowaniu.",
+                "ux_details": "Przejście do workspace = prompt 'sign up / sign in'. To główny powód, dla którego user chce w pełni lokalny klient."
+              },
+              {
+                "name": "Kontekst 'new Postman' 2025 (v11/v12, AI-native)",
+                "description": "Nowy Postman jest AI-native ('agentic era'): Collection v3 (YAML per plik, diff-friendly), AI Agent Builder (agent mode automatyzujący design/test/docs/monitoring przez NL), wsparcie MCP/AI requests, redesign panelu zmiennych (wrzesień 2025). Kierunek to 'everything app' — właśnie ten kierunek napędza skargi na bloat.",
+                "ux_details": "AI Agent Builder wymaga zalogowania (desktop rekomendowany), bywa za beta-flagą."
+              }
+            ]
+          }
+        ],
+        "standout_features": [
+          "Auto-introspekcja GraphQL + wizualny query builder (checkbox → auto-generowany query/mutation/subscription) — dokładny wzorzec do skopiowania w MVP: user wkleja URL, aplikacja sama pobiera schemat i podpowiada pola",
+          "Jednolita składnia {{variable}} we WSZYSTKICH polach (URL, headers, body, auth) + osobna {{vault:x}} dla sekretów i {{$...}} dla zmiennych dynamicznych — jeden spójny mechanizm substytucji",
+          "Model 5 zakresów z twardą precedencją najwęższy-wygrywa (Global<Collection<Environment<Data<Local) — sprawdzony, przewidywalny model scopingu",
+          "Local Vault: sekrety szyfrowane AES-256 TYLKO lokalnie, nigdy do chmury, z allowed-domains chroniącym przed wyciekiem tokenu na obcy host — idealny wzorzec dla klienta offline",
+          "Environment selector + 'quick look' (ikona oka) — natychmiastowe przełączanie środowisk jednym kliknięciem, podgląd aktywnych zmiennych bez wchodzenia w edytor",
+          "Copy as curl / Import curl — dwukierunkowa symetria z curl (istotne, bo silnikiem MVP jest curl)",
+          "Hover-preview zmiennej z wartością, zakresem i flagą 'Overridden' + czerwone podświetlenie pustych zmiennych — świetny UX debugowania podstawień",
+          "Data-driven Runner (CSV/JSON, auto-liczba iteracji z wierszy, {{kolumna}} / pm.iterationData)"
+        ],
+        "pain_points": [
+          "Bloat / 'everything app': z prostego klienta REST urósł do platformy z Flows, AI, monitoringiem, governance — wolniejszy start, trudniejsza nawigacja, frustrujący do podstawowych wywołań",
+          "Zużycie RAM: pusta instancja z jedną kolekcją potrafi zjeść 200–500 MB; idle >400 MB; edytor tekstu robiący podobne rzeczy to 10–50 MB",
+          "Wolny start: 10–15 s do otwarcia na średnim sprzęcie; skargi na wysokie CPU/pamięć nawet w idle (liczne issues na GitHubie)",
+          "Electron: bundluje Chromium + Node do każdej instancji → inherentny narzut; crashe startowe na Linuksie (Fedora) głośne w 2023–2024",
+          "Wymuszone logowanie od v10/2023 (śmierć Scratch Pad) — brak realnego trybu offline z kolekcjami; 'renders Postman useless for many developers'",
+          "Limity free tier (np. mock server 1000 wywołań/mc) i pchanie funkcji chmurowych",
+          "Pułapka Initial vs Current value — user edytuje Current, ale eksport/share bierze Initial (typowe źródło 'u mnie działa')",
+          "Sekrety Local Vault giną po wylogowaniu / zmianie maszyny / przełączeniu desktop↔web (trzeba ręcznie eksportować do JSON)",
+          "Newman niekompatybilny z Collection v3 (v12+) — zmusza do migracji na closed-source Postman CLI",
+          "Migracja developerów do lżejszych alternatyw (Apidog, klienty w Go/GTK, Bruno itp.) z powodu narzutu i przymusu chmury"
+        ],
+        "local_first_notes": "Dla naszego w pełni lokalnego klienta (offline, bez konta, bez telemetrii, curl jako silnik) Postman daje jasne wzorce DO skopiowania i pułapki DO uniknięcia. (1) Zmienne: przejąć jednolitą składnię {{var}} we wszystkich polach (URL/headers/body/auth) + model 5 zakresów z precedencją najwęższy-wygrywa; ALE uprościć — pominąć rozdwojenie Initial vs Current value (główne źródło pomyłek) i trzymać jedną lokalną wartość na zmienną. Kolekcje/środowiska u nas MUSZĄ działać w 100% offline bez logowania — to dokładnie to, czego Postman odmawia (workspace wymusza konto). (2) Przełączanie środowisk: dropdown selektora + 'quick look' (podgląd aktywnych zmiennych) to minimalny, sprawdzony UX. (3) Sekrety: wzorować się na Local Vault (AES-256, nigdy do chmury, allowed-domains blokujące wyciek tokenu na obcy host), ale rozwiązać jego wadę — u nas sekrety mają PRZETRWAĆ restart/brak konta (klucz z Keychain macOS, nie 'vault key po zalogowaniu'). Odrębna składnia {{secret:x}}/{{vault:x}} dla sekretów jest dobra (maskowanie w podglądzie/logach). (4) GraphQL: dokładnie odtworzyć auto-introspekcję po wpisaniu URL + schema explorer z checkboxami auto-generującymi query/mutation/subscription + autocomplete z załadowanego schematu — to killer feature i główne wymaganie usera; fallback: import schematu z pliku/URL gdy introspekcja wyłączona. (5) curl: skoro silnikiem jest curl, warto oddać dwukierunkową symetrię (copy as curl / import curl) niemal za darmo. (6) Anti-bloat: świadomie NIE budować mocków/monitorów/AI/Flows w MVP — to właśnie one napędzają skargi na RAM/wolny start; postawić na natywny, lekki UI zamiast Electrona, by wygrać na starcie i pamięci tam, gdzie Postman przegrywa (200–500 MB, 10–15 s start).",
+        "sources": [
+          "https://learning.postman.com/docs/use/send-requests/variables/variables",
+          "https://community.postman.com/t/variable-scope-precedence/8450",
+          "https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-variables",
+          "https://learning.postman.com/docs/use/postman-vault/postman-vault-secrets",
+          "https://learning.postman.com/docs/use/postman-vault/postman-vault-key",
+          "https://learning.postman.com/docs/use/postman-vault/use-vault-secrets",
+          "https://learning.postman.com/docs/sending-requests/postman-vault/manage-vault-secrets",
+          "https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-vault",
+          "https://www.postman.com/product/graphql-client/",
+          "https://learning.postman.com/docs/sending-requests/graphql/graphql-client-interface",
+          "https://blog.postman.com/announcing-postmans-new-graphql-client/",
+          "https://learning.postman.com/docs/sending-requests/graphql/graphql-client-first-request",
+          "https://learning.postman.com/docs/getting-started/basics/using-api-client",
+          "https://blog.postman.com/announcing-new-lightweight-postman-api-client/",
+          "https://community.postman.com/t/postman-version-10-no-more-offline-mode-renders-postman-useless-for-many-developers/48812",
+          "https://learning.postman.com/docs/use/send-requests/authorization/authorization-types",
+          "https://learning.postman.com/docs/use/send-requests/authorization/aws-signature",
+          "https://learning.postman.com/docs/use/send-requests/authorization/oauth-20",
+          "https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-send-request",
+          "https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/overview",
+          "https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-scripts",
+          "https://blog.postman.com/using-csv-and-json-files-in-the-postman-collection-runner/",
+          "https://learning.postman.com/docs/collections/running-collections/working-with-data-files",
+          "https://learning.postman.com/docs/use/send-requests/create-requests/generate-code-snippets",
+          "https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-curl-commands",
+          "https://learning.postman.com/docs/developer/collection-conversion/",
+          "https://blog.postman.com/postman-now-supports-openapi-3-1/",
+          "https://learning.postman.com/docs/design-apis/specifications/import-a-specification",
+          "https://www.postman.com/product/mock-servers/",
+          "https://learning.postman.com/docs/design-apis/mock-apis/overview",
+          "https://learning.postman.com/docs/monitoring-your-api/intro-monitors",
+          "https://blog.postman.com/postman-cli-vs-newman/",
+          "https://learning.postman.com/docs/collections/using-newman-cli/command-line-integration-with-newman",
+          "https://blog.postman.com/new-postman-is-here/",
+          "https://blog.postman.com/september-2025-product-updates/",
+          "https://learning.postman.com/docs/tests-and-scripts/write-scripts/variables-list",
+          "https://apidog.com/blog/postman-everything-app-strategy-why-developers-leaving/",
+          "https://github.com/postmanlabs/postman-app-support/issues/4687",
+          "https://news.ycombinator.com/item?id=30177337"
+        ]
+      },
+      {
+        "app": "Insomnia (Kong) + fork Insomnium — inwentarz funkcjonalności, stan 2025/2026",
+        "feature_areas": [
+          {
+            "area": "Dokumenty, kolekcje i Design Documents (OpenAPI design-first)",
+            "features": [
+              {
+                "name": "Request Collections",
+                "description": "Kolekcja to kontener requestów (REST, GraphQL, gRPC, WebSocket, SSE) pogrupowanych w foldery. Jednostka pracy, do której przypięte są środowiska, autoryzacja i skrypty.",
+                "ux_details": "W lewym pasku wybierasz projekt, w nim tworzysz 'Collection' lub 'Document'. Foldery można zagnieżdżać, przeciągać (drag-and-drop) i nadawać im własne środowisko, autoryzację i pre-request/after-response skrypty (dziedziczone przez requesty w folderze). Pasek requestu: metoda HTTP (dropdown GET/POST/…), URL z autocomplete zmiennych, taby Body/Auth/Query/Headers/Docs/Scripts/Settings."
+              },
+              {
+                "name": "Design Document (OpenAPI, design-first)",
+                "description": "Osobny typ dokumentu do projektowania API: edytor specyfikacji OpenAPI 2.0/3.0/3.1 (i Swagger) obok live-preview i możliwości wygenerowania z niego kolekcji testowej.",
+                "ux_details": "Tworzysz 'Design Document'. Ekran dzielony: po lewej edytor YAML/JSON spec z podpowiedziami i walidacją, po prawej wyrenderowana dokumentacja (live preview) aktualizowana na bieżąco. Z Design Document można wygenerować kolekcję requestów, lintować spec (Spectral) i eksportować surowy spec. Wbudowany linter podkreśla błędy specyfikacji."
+              },
+              {
+                "name": "Request Collection Runner (Unlimited)",
+                "description": "Uruchamianie całej kolekcji/folderu sekwencyjnie z iteracjami i danymi CSV/JSON (data-driven). Zbiera wyniki testów i asercji.",
+                "ux_details": "Wprowadzony w 9.4+. Runner uruchamiasz z poziomu kolekcji: wybierasz requesty, liczbę iteracji, delay, plik danych (iterationData). Wyniki testów z asercji Chai wyświetlane per-request. Bez limitu przebiegów (marketingowo 'Unlimited Collection Runner')."
+              },
+              {
+                "name": "Testy (test suites, Chai)",
+                "description": "Zakładka testów pozwala pisać asercje JS z biblioteką Chai walidujące odpowiedzi (status, body, nagłówki, czas).",
+                "ux_details": "Test suites definiuje się w dokumencie/kolekcji; testy w JS (Chai expect). Uruchamiane w GUI lub przez inso CLI (run test). Historycznie testy były osobną zakładką; obecnie łączą się z after-response scripts."
+              }
+            ]
+          },
+          {
+            "area": "Środowiska, zmienne i szablony (kluczowe dla wymagań usera 1 i 3)",
+            "features": [
+              {
+                "name": "Base environment + Sub-environments",
+                "description": "Każda kolekcja/projekt ma jedno 'base environment' (wartości domyślne) i dowolną liczbę sub-environments (np. production/staging/development), które nadpisują tylko różniące się klucze. Definicja jako czysty obiekt JSON.",
+                "ux_details": "Klikasz nazwę środowiska w górnej belce → 'Manage Environments'. Base to root JSON; sub-environment dziedziczy wszystko z base, definiuje tylko delty. Przełączanie środowiska = jeden klik w dropdownie w belce (natychmiastowe podmienienie {{ _.var }} w całej kolekcji). Sub-environments można kolorować (color-code) dla szybkiej identyfikacji. Edytor to podświetlany JSON."
+              },
+              {
+                "name": "Hierarchia środowisk (Global / Collection / Folder)",
+                "description": "3 poziomy: Global environments (widoczne dla wszystkich kolekcji w projekcie), Collection environments, Folder environments. Wprowadzone/rozbudowane w 9.3 (global env, folder-level auth/headers/scripting).",
+                "ux_details": "Priorytet rozwiązywania nazw (od najwyższego): folder → wybrany collection sub-env → collection base → wybrany global sub-env → global base. Pozwala trzymać wspólne sekrety globalnie, a per-kolekcja tylko nadpisania."
+              },
+              {
+                "name": "Substytucja zmiennych {{ _.var }} (Nunjucks)",
+                "description": "Silnik szablonów Nunjucks. Zmienne wstawiasz składnią {{ _.nazwaZmiennej }} w URL, nagłówkach, body, parametrach query i konfiguracji auth — dokładnie mechanizm 'jak w Postmanie', którego oczekuje user.",
+                "ux_details": "W dowolnym polu wpisujesz {{ i pojawia się autocomplete zmiennych (albo Ctrl+Space). Wstawiona zmienna renderuje się jako kolorowa 'pigułka'/token — najeżdżając widzisz wyliczoną wartość (live preview). Notacja _ to alias korzenia środowiska. GraphQL query NIE wspiera templatingu, ale GraphQL variables JSON — tak."
+              },
+              {
+                "name": "Template Tags (wyjście poza proste zmienne)",
+                "description": "Dynamiczne tagi wykonujące logikę w miejscu zmiennej. Zestaw wbudowanych: Base64 (encode/decode), Timestamp/now (z formatem Moment.js), UUID (v1/v4), OS (dane o systemie), Hash (algorytm+encoding), File (wczytanie pliku z dysku), JSONPath (wyciąga dane z JSON-stringa), Cookie (z cookie jar), Prompt (pyta usera o input), Response (wartość z odpowiedzi innego requestu — request chaining), Request (wartość z bieżącego requestu, np. CSRF z cookie).",
+                "ux_details": "Wstawiasz przez Ctrl+Space, tag renderuje się jako klikalna pigułka. Klik otwiera edytor tagu w trybie 'Standard' (formularz ze strukturalnymi polami — Insomnia sama generuje składnię) albo 'Raw Template Syntax' (ręczna edycja składni Nunjucks, włączane w Preferences). Formularz daje podpowiedzi i walidację + podgląd wyniku na żywo."
+              },
+              {
+                "name": "Response tag / request chaining",
+                "description": "Najważniejszy tag do łańcuchowania requestów: 'Response' pobiera wartość z odpowiedzi innego requestu (np. token/ID świeżo utworzonego zasobu) i wstrzykuje w bieżący. 'Request' czyta z bieżącego requestu.",
+                "ux_details": "W edytorze tagu Response wybierasz: request źródłowy z listy, tryb wyzwalania (kiedy dosłać/użyć zbuforowanej odpowiedzi), typ filtra (JSONPath lub XPath) do wyłuskania konkretnego pola z body. Dzięki temu buduje się przepływy typu login → weź token → użyj w kolejnych requestach bez ręcznego kopiowania."
+              },
+              {
+                "name": "Private (Secret) environments + Vault key",
+                "description": "Sub-environment można oznaczyć jako 'private' — nie jest synchronizowany ani eksportowany, przechowywany lokalnie zaszyfrowany, dostęp wymaga 'vault key'. Zmienne typu Secret są maskowane, nie leżą plaintextem.",
+                "ux_details": "Preferences → General → Security → 'Generate Vault Key'. Tworzysz prywatny sub-env w global environments, ustawiasz typ zmiennej na 'Secret'. W skryptach czytasz przez insomnia.vault.get('NAZWA'). Idealne pod sekrety/tokeny, które nie mają wyciec do chmury ani do eksportu."
+              },
+              {
+                "name": "Pre-request i After-response scripts (JS)",
+                "description": "Skrypty JS na poziomie requestu/folderu/kolekcji. Pre-request: ustawianie zmiennych, nagłówków, parametrów, body przed wysłaniem. After-response (od 9.3): testy/asercje, zapis wartości z odpowiedzi do środowiska.",
+                "ux_details": "Zakładka 'Scripts' w requeście. API obiektu insomnia.* (Postman-podobne): insomnia.environment, insomnia.globals, insomnia.vault, insomnia.variables, insomnia.request/response. Skrypty można też uruchamiać przez inso CLI. Znany bug: env-vars z after-response nie zawsze zapisują się w test runnerze."
+              }
+            ]
+          },
+          {
+            "area": "GraphQL — eksplorator i introspekcja (kluczowe wymaganie usera 2)",
+            "features": [
+              {
+                "name": "Tworzenie requestu GraphQL",
+                "description": "Osobny typ body 'GraphQL'. User podaje URL endpointu (np. http://localhost:5000/graphql), metoda POST. Interfejs pokazuje dwie sekcje: Query (obowiązkowa) i Variables (JSON).",
+                "ux_details": "Przy tworzeniu wybierasz typ GraphQL albo przełączasz istniejący request na body-type GraphQL z menu body. Insomnia sama składa payload: { query, variables (opcjonalne), operationName (auto z pierwszej nazwanej query) }."
+              },
+              {
+                "name": "Automatyczna introspekcja schematu",
+                "description": "Po wpisaniu URL (lub zmianie właściwości requestu) Insomnia AUTOMATYCZNIE odpala introspection query i pobiera schemat — dokładnie zachowanie, którego chce user (sam robi introspekcję i podpowiada pola). Wszystkie atrybuty requestu (auth, nagłówki) są dołączane do introspection query, więc endpointy za autoryzacją też działają.",
+                "ux_details": "Introspekcja odpala się przy przełączeniu na nowy GraphQL request lub zmianie URL. Zbuforowany schemat napędza autocomplete, walidację i przeglądarkę dokumentacji. Jeśli auth jest wymagany, ustaw go najpierw — bo introspekcja leci z tymi samymi nagłówkami."
+              },
+              {
+                "name": "Autocomplete oparty na schemacie",
+                "description": "Edytor query podpowiada nazwy operacji, wymagane argumenty i pola do pobrania na podstawie zintrospektowanego schematu. Walidacja inline z komunikatami błędów podkreślanymi w edytorze.",
+                "ux_details": "Piszesz query, Ctrl+Space wywołuje podpowiedzi (nazwy query/mutation, argumenty, pola obiektów). Błędne pola/typy są podkreślane inline z opisem błędu. Obsługa argumentów, komentarzy i fragmentów."
+              },
+              {
+                "name": "Docs Explorer / przeglądarka schematu",
+                "description": "Interaktywny sidebar dokumentacji schematu — user klika i drąży przez queries/mutations, pola obiektów i inputy (rozwijane definicje typów).",
+                "ux_details": "Otwierasz z dropdownu schematu przez 'Show Documentation'. Sidebar pozwala drążyć: queries → mutations → typy obiektów → pola/inputy z rozwijanymi definicjami i opisami. Najechanie na pole w edytorze pokazuje inline popup; na macOS Ctrl+Click na polu skacze do jego definicji. To realizuje 'GUI podpowiada pola'."
+              },
+              {
+                "name": "Dropdown schematu: Refresh / Show Documentation / Prettify / Auto Complete",
+                "description": "Menu przy edytorze query z opcjami zarządzania schematem i formatowaniem.",
+                "ux_details": "'Refresh Schema' — ręczne, wymuszone ponowne pobranie schematu z serwera (ratunek na częsty problem 'stale schema'). 'Show Documentation' — otwiera Docs Explorer. 'Prettify' — formatuje query. 'Auto Complete' — szczegółowe podpowiedzi pól."
+              },
+              {
+                "name": "GraphQL Variables (JSON)",
+                "description": "Osobna sekcja Variables jako poprawny obiekt JSON — oddziela zmienne od struktury query. Tu (w przeciwieństwie do samego query) działa substytucja zmiennych {{ _.var }}.",
+                "ux_details": "Podświetlany edytor JSON pod query. Pozwala parametryzować query wartościami ze środowisk/template tagów."
+              }
+            ]
+          },
+          {
+            "area": "Typy autoryzacji",
+            "features": [
+              {
+                "name": "Pełna lista typów auth (dropdown 'Auth')",
+                "description": "Basic Auth, Digest Auth, OAuth 1.0, OAuth 2.0, Microsoft NTLM, AWS IAM v4 (SigV4), Bearer Token, Hawk, Atlassian ASAP, Netrc file. Do tego brak auth / dziedziczenie z folderu.",
+                "ux_details": "Zakładka 'Auth' w requeście, dropdown wyboru typu. Basic: user/hasło lub API key. Bearer: z prefixem i opcją 'send'. AWS IAM v4: do requestów AWS API. OAuth 2.0: standardowe flow (GitHub/Google itd.). Netrc: auto-login z pliku ~/.netrc. Wszystkie pola auth wspierają zmienne {{ _.var }}."
+              },
+              {
+                "name": "Client Certificates (mTLS)",
+                "description": "Przypisanie certyfikatu klienckiego do konkretnej domeny — automatycznie użyty przy każdym requeście do tej domeny. PFX (macOS) i PEM (Windows/Linux).",
+                "ux_details": "Konfiguracja per-domena w ustawieniach kolekcji/dokumentu. Certyfikat + klucz + hasło. Nie jest częścią dropdownu Auth requestu, tylko osobna sekcja Client Certificates."
+              },
+              {
+                "name": "Auth przez pluginy i template tagi",
+                "description": "Rozszerzenia auth: plugin dekodujący JWT do referencji, plugin pobierający credentiale AWS z ~/.aws/credentials, tag do współdzielenia OAuth2 tokenu jednego requestu w innych, pluginy HMAC/SHA512-HMAC auth, Auth0 token store/refresh.",
+                "ux_details": "Instalowane z Plugin Hub. ResponseHook przechwytuje token z odpowiedzi OAuth2 i udostępnia innym requestom (chaining tokenów bez ręcznej roboty)."
+              }
+            ]
+          },
+          {
+            "area": "Storage, prywatność i szyfrowanie (kontekst po dramie 2023)",
+            "features": [
+              {
+                "name": "Local Vault (100% lokalnie)",
+                "description": "Typ projektu przechowujący wszystkie pliki lokalnie na maszynie — zero danych w chmurze. Opcjonalnie z Git Sync. Praca offline.",
+                "ux_details": "Przy tworzeniu projektu wybierasz 'Local Vault'. Zmiana typu: Project Settings → Type dropdown → Change → Update. Uwaga: konwersja Cloud→Local KASUJE dane z chmury i kończy współdzielenie."
+              },
+              {
+                "name": "Scratch Pad (bez konta)",
+                "description": "Tryb użycia Insomnii BEZ logowania — dane wyłącznie lokalnie. To był 'plaster' na dramę 2023: pozwala pracować bez konta.",
+                "ux_details": "Na ekranie logowania klikasz 'Use the local Scratch Pad'. Przeznaczony dla pojedynczego developera; brak pełni funkcji zespołowych. Piaskownica bez chmury."
+              },
+              {
+                "name": "Git Sync",
+                "description": "Wersjonowanie w dowolnym zewnętrznym repo Git (GitHub/GitLab/Bitbucket) — dane nigdy nie przechodzą przez chmurę Kong. Branching + wbudowane rozwiązywanie konfliktów w GUI.",
+                "ux_details": "Commit/push/pull/branch z poziomu Insomnii. Konflikty rozwiązywane w apce przy pull/push. Credentiale Git: per-projekt, z ~/.gitconfig lub globalnie w Preferences → Credentials. UWAGA bezpieczeństwa: Insomnia NIE wymusza ochrony sekretów w repo — trzeba używać private environments/zewnętrznych vaultów. W planie Essentials: Git Sync max 3 userów ALBO unlimited userów bez Git Sync."
+              },
+              {
+                "name": "Cloud Sync (E2EE) + passphrase",
+                "description": "Opcjonalna synchronizacja i współpraca zespołowa w chmurze, szyfrowana end-to-end. Projekt Cloud Sync staje się automatycznie dostępny dla całej organizacji.",
+                "ux_details": "Przy logowaniu apka prosi o 'passphrase' — sekret używany po stronie klienta do szyfrowania/odszyfrowania danych projektu (E2EE). Commit/push/revert, branchowanie per-kolekcja, real-time sync między urządzeniami. Brak branch protections."
+              }
+            ]
+          },
+          {
+            "area": "Historia, import/eksport, CLI, pluginy",
+            "features": [
+              {
+                "name": "Historia odpowiedzi (Response History) + Timeline",
+                "description": "Insomnia trzyma historię odpowiedzi per-request — można wracać do wcześniejszych response'ów. Panel odpowiedzi ma m.in. Timeline (surowy zapis połączenia: nagłówki, TLS, timing), Preview, Headers, Cookies.",
+                "ux_details": "Dropdown historii w panelu odpowiedzi pozwala wybrać poprzednią odpowiedź (per-request). Timeline pokazuje logi połączenia w stylu curl -v (przydatne do debugowania TLS/redirectów). Preview renderuje JSON/HTML/obrazy."
+              },
+              {
+                "name": "Import",
+                "description": "Import z: File, URL, cURL, Clipboard. Obsługiwane formaty: Insomnia V5, Postman (Collections/Environments/Data Dumps), OpenAPI 2.0/3.0/3.1, Swagger, HAR, cURL, WSDL. Auto-detekcja poleceń cURL (wkle, zamienia na request).",
+                "ux_details": "W workspace klikasz 'Import' → wybierasz źródło. cURL wykrywany automatycznie i konwertowany na request. Import całych kolekcji Postmana ze środowiskami."
+              },
+              {
+                "name": "Export",
+                "description": "Eksport aktywnego Design Document (requesty + środowiska + testy), wybranej kolekcji (requesty + środowiska) albo całego workspace. Eksport surowego OpenAPI z Design Document.",
+                "ux_details": "W nagłówku dokumentu/kolekcji 'Export' → wybór typu pliku. Surowy OpenAPI też przez inso CLI: `inso export spec \"<Nazwa>\" --output plik.yaml`."
+              },
+              {
+                "name": "inso CLI",
+                "description": "Narzędzie CLI do CI/CD: run test (testy), run collection (uruchom kolekcję), lint spec (walidacja OpenAPI przez Spectral), export spec (eksport OpenAPI), generate-docs (dokumentacja), script (skrypty z .insorc). Aktualne wersje ~13.x (wstecz do 10.3).",
+                "ux_details": "Konfiguracja przez plik .insorc (JSON/YAML) — domyślne opcje i skróty poleceń. Flaga --ci wyłącza interaktywne prompty (do pipeline'ów). Pracuje na wyeksportowanych danych/Git repo."
+              },
+              {
+                "name": "Pluginy + Plugin Hub",
+                "description": "Rozszerzalność przez pluginy npm. Typy hooków: RequestHook, ResponseHook; pluginy dodają template tagi, pozycje w menu, motywy (themes), custom auth. Plugin Hub agreguje paczki npm (nazwa 'insomnia-plugin-*') automatycznie w ~24h od publikacji.",
+                "ux_details": "Instalacja: Preferences → Plugins → wpisz nazwę paczki npm → 'Install Plugin' (albo przycisk na stronie Plugin Hub). Context API daje dostęp do request/response/app UI/store. Popularne: symulacja słabej sieci, Auth0 token store/refresh, JWT auth workspace-wide z auto-odnawianiem, HMAC template tag, AWS credentials z profilu."
+              }
+            ]
+          },
+          {
+            "area": "Fork Insomnium — co wyciął, status",
+            "features": [
+              {
+                "name": "Baza forka i motywacja",
+                "description": "Insomnium to fork Kong/insomnia z wersji 2023.5.8 — OSTATNI commit przed wymuszeniem logowania na konto. Powstał jako odpowiedź społeczności na dramę wymuszonego konta chmurowego.",
+                "ux_details": "Maintainer: 'I still think Insomnia is a nice product in general, but I have to disagree with the direction it is going.' Zachowuje UI/UX Insomnii z tamtego okresu."
+              },
+              {
+                "name": "Co usunięto (100% local, privacy-first)",
+                "description": "Wycięto: logowanie użytkownika, tracking, analitykę, wszelką komunikację z zewnętrznymi serwerami. Aplikacja działa w 100% offline, bez chmury.",
+                "ux_details": "Zero konta, zero telemetrii, zero 'w tle' — dokładnie profil, który buduje user. Dane lokalnie."
+              },
+              {
+                "name": "Co zachowano",
+                "description": "Testowanie GraphQL, REST, WebSockets, Server-sent events (SSE), gRPC. Czyli pełen zakres protokołów Insomnii z 2023.5.8, wliczając eksplorator GraphQL i środowiska.",
+                "ux_details": "Dostępny na macOS, Windows, Ubuntu/Debian/CentOS/Fedora, AUR (Arch). Build ze źródeł: npm run app-package."
+              },
+              {
+                "name": "Status: praktycznie martwy/maintenance-only",
+                "description": "Repo NIE jest już aktywnie utrzymywane ('Due to another related project, this repo is no longer being actively maintained'). Na Hacker News (sierpień 2024) ogłoszono jako 'dead'. Maintainer zachęca do forkowania, nie nazywa 'related project'. Kod zamrożony na bazie 2023.5.8 — brak nowych featurów Insomnii z 9.x/10.x/11.x (global env, collection runner, pre-req/after-response scripts, vault key itd.).",
+                "ux_details": "Dla nas: Insomnium działa i jest w pełni lokalny, ale nie dostanie nowych funkcji ani poprawek bezpieczeństwa — to referencja UX, nie żywy konkurent."
+              }
+            ]
+          }
+        ],
+        "standout_features": [
+          "Automatyczna introspekcja GraphQL 'sama z siebie' po wpisaniu URL (z dołączeniem auth/nagłówków) + Docs Explorer z drążeniem typów i Ctrl+Click do definicji pola — dokładnie model, którego chce user w wymaganiu 2.",
+          "Substytucja {{ _.var }} (Nunjucks) renderowana jako klikalna pigułka z live-preview wartości w URL/nagłówkach/body/auth — realizuje wymaganie 3 (styl Postmana), plus autocomplete zmiennych Ctrl+Space.",
+          "Base environment + kolorowane sub-environments z jednoklikowym przełączaniem i priorytetem global→collection→folder — wzorzec 'łatwego przełączania środowisk' (wymaganie 1).",
+          "Template Tags z edytorem 'Standard' (formularz generujący składnię) vs 'Raw' — szczególnie tag Response do request chaining (wybór requestu źródłowego + filtr JSONPath/XPath + tryb wyzwalania).",
+          "Private (Secret) environments za Vault Key — sekrety nie są synchronizowane ani eksportowane, maskowane, szyfrowane lokalnie: wzorzec 'secrets' pod nasz klient offline.",
+          "Local Vault + Scratch Pad + Git Sync jako trzy w pełni bez-chmurowe tryby (efekt uboczny dramy 2023) — potwierdza rynkowy popyt na lokalność, którą budujemy.",
+          "Response History per-request + Timeline (log połączenia w stylu curl -v) do debugowania."
+        ],
+        "pain_points": [
+          "DRAMA 2023: Insomnia 8.0 (wrzesień 2023) wymusiła logowanie na konto i domyślnie migrowała lokalne dane do chmury — userzy 'stracili' dane za 'okupem' założenia konta; jeden GitHub issue zebrał 340+ reakcji i 120+ komentarzy, ocena spadła z 4.5 do 2.1. To trwały ubytek zaufania — 'klient API trzyma tokeny i wewnętrzne endpointy, nie może być jeden release od wymogu chmury'. Napędziło mindshare Bruno i Yaak.",
+          "Naprawa połowiczna: local-only wróciło w 8.3, ale to Kong 'przywrócił', nie 'nigdy nie zabrał' — nieufność została; wielu przeniosło się na alternatywy.",
+          "GraphQL: nawracające bugi z pobieraniem/odświeżaniem schematu — 400/403 przy fetchu schematu mimo działającego endpointu w przeglądarce, 'stale schema' (Ctrl+Shift pokazuje przestarzałe wartości), zablokowanie fetcha na nieaktualnym refresh tokenie, regresje 'recent changes make Insomnia harder for GraphQL'.",
+          "Electron: ciężka, zasobożerna aplikacja (typowy zarzut do Insomnii vs lekkie natywne/Rust klienty jak Yaak).",
+          "Złożoność modelu storage/kont po 2023: 3 typy projektów (Local Vault / Git Sync / Cloud Sync) + Scratch Pad + passphrase + Vault Key bywają mylące; konwersje typów potrafią bezpowrotnie kasować dane ('remote changes not present locally will be lost').",
+          "Git Sync w tańszych planach ograniczony (max 3 userów albo brak Git Sync) — komercyjne bramkowanie funkcji, które user offline chciałby mieć za darmo.",
+          "GraphQL query nie wspiera templatingu (tylko variables) — ograniczenie przy dynamicznych zapytaniach.",
+          "Bug: env-vars ustawiane w after-response script nie zawsze zapisują się w test runnerze."
+        ],
+        "local_first_notes": "Wnioski pod nasz w pełni lokalny klient (macOS, silnik curl, bez konta/telemetrii): (1) Insomnia UDOWODNIŁA rynkowy popyt na lokalność — cała drama 2023 i wzrost Bruno/Yaak to dowód, że 'zero konta, zero chmury, zero telemetrii' jest realnym wyróżnikiem, nie niszą. (2) Model środowisk do skopiowania: base + sub-environments jako czysty JSON, jednoklikowe przełączanie w belce, kolorowanie, hierarchia (globalne→kolekcja→folder), priorytet rozwiązywania nazw. (3) Substytucja: notacja {{ _.var }} (Nunjucks) z autocomplete i renderem jako pigułka+live-preview to sprawdzony UX 'jak w Postmanie' — warto odtworzyć w URL/nagłówkach/body/auth. (4) Sekrety: wzorzec 'Private/Secret environment' za lokalnym kluczem (Vault Key), nie synchronizowany i nie eksportowany, maskowany — nasz odpowiednik: sekrety w Keychain macOS, oddzielone od eksportowalnych kolekcji. (5) GraphQL: MVP to auto-introspekcja po URL (z dołączonymi auth/nagłówkami) + autocomplete pól + Docs Explorer z drążeniem + JAWNY przycisk 'Refresh Schema' (bo 'stale schema' to najczęstszy ból Insomnii — my musimy robić refresh niezawodnie i widocznie). GraphQL variables jako JSON z substytucją zmiennych. (6) Uważać na złożoność, którą Insomnia sobie nafundowała (3 typy storage + passphrase + vault key) — my mamy jeden tryb (lokalny), więc możemy to radykalnie uprościć. (7) curl-owy 'Timeline' (log w stylu curl -v) mamy za darmo z silnika curl — to atut do wyeksponowania. (8) Import z cURL/OpenAPI/Postman/HAR to tabelka must-have do migracji userów. (9) Insomnium (fork offline) potwierdza, że da się mieć pełną funkcjonalność 100% lokalnie — ale jest MARTWY, więc jest luka rynkowa na żywy, dopieszczony, lokalny klient (którą częściowo wypełnia Yaak — pokrywa osobny agent).",
+        "sources": [
+          "https://developer.konghq.com/insomnia/graphql/",
+          "https://konghq.com/blog/insomnia-graphql",
+          "https://developer.konghq.com/insomnia/environments/",
+          "https://developer.konghq.com/insomnia/template-tags/",
+          "https://developer.konghq.com/insomnia/authentication-authorization/",
+          "https://developer.konghq.com/insomnia/storage/",
+          "https://developer.konghq.com/insomnia/scripts/",
+          "https://developer.konghq.com/insomnia/test/",
+          "https://developer.konghq.com/insomnia/import-export/",
+          "https://docs.insomnia.rest/inso-cli/cli-command-reference",
+          "https://docs.insomnia.rest/insomnia/client-certificates",
+          "https://insomnia.rest/plugins",
+          "https://docs.insomnia.rest/insomnia/introduction-to-plugins/",
+          "https://docs.insomnia.rest/insomnia/hooks-and-actions/",
+          "https://github.com/woss/fork-insomnium",
+          "https://news.ycombinator.com/item?id=41128221",
+          "https://news.ycombinator.com/item?id=37708582",
+          "https://github.com/Kong/insomnia/discussions/6626",
+          "https://github.com/Kong/insomnia/discussions/6590",
+          "https://github.com/Kong/insomnia/issues/6577",
+          "https://github.com/Kong/insomnia/issues/8309",
+          "https://github.com/Kong/insomnia/issues/3078",
+          "https://github.com/Kong/insomnia/discussions/5595",
+          "https://konghq.com/blog/product-releases/insomnia-8-3",
+          "https://insomnia.rest/features/local-vault",
+          "https://dev.to/_d7eb1c1703182e3ce1782/postman-vs-insomnia-vs-bruno-best-api-client-in-2026-1pf7"
+        ]
+      },
+      {
+        "app": "Inwentarz funkcjonalności lokalnych/offline-first klientów API (2025/2026) — Bruno, Yaak, RapidAPI for Mac (dawny Paw), Hoppscotch, HTTPie Desktop (+ Posting jako terminal-benchmark)",
+        "feature_areas": [
+          {
+            "area": "Bruno (priorytet #1) — git-native, offline-first, pliki .bru",
+            "features": [
+              {
+                "name": "Storage: kolekcja jako folder plików .bru",
+                "description": "Każdy request to osobny plik tekstowy w małym DSL (.bru); kolekcja = zwykły folder z plikiem metadanych bruno.json + podfoldery (auth/, users/, orders/). Wszystko żyje w repo git obok kodu.",
+                "ux_details": "User tworzy kolekcję wskazując katalog na dysku. Foldery/requesty w sidebarze = 1:1 struktura folderów na dysku. Zmiany widać w PR-ach jako czytelny diff tekstowy. Zero bazy danych, zero konta, zero chmury — pełny offline. To wzorzec, który najlepiej pasuje do naszego produktu."
+              },
+              {
+                "name": "Model zmiennych (7 poziomów) + substytucja {{var}}",
+                "description": "Runtime > Request > Folder > Collection > Environment > Global Environment > Process(.env) — jasna precedencja. Referencja przez {{variable}} w URL, nagłówkach, body i parametrach.",
+                "ux_details": "Notacja {{var}} wpisywana wprost w dowolne pole tekstowe (jak w Postmanie — dokładnie wymóg #3 usera). Zmienne env/folder/collection trzymane w plikach <env>.bru / <folder>.bru. Skrypty: bru.setVar/getVar. To najprostszy do zaimplementowania model substytucji."
+              },
+              {
+                "name": "Środowiska + przełączanie w toolbarze",
+                "description": "Środowiska (Prod/Dev/Local) jako pliki <env>.bru z parami klucz-wartość. Aktywne środowisko wybiera się globalnie.",
+                "ux_details": "Dropdown w górnym pasku narzędzi, domyślnie 'No Environment'; po wyborze wyświetla nazwę środowiska. Jeden klik = przełączenie kontekstu wszystkich {{var}}. Prosty, przewidywalny wzorzec przełączania środowisk."
+              },
+              {
+                "name": "Secrety (split nazwa/wartość dla gita)",
+                "description": "Trzy metody: (1) oznaczenie zmiennej jako :secret w UI, (2) plik .env w rootcie kolekcji, (3) integracja z secret managerem. Secrety szyfrowane OS-level (Keychain) lub fallback AES256.",
+                "ux_details": "Kluczowy wzorzec: nazwa zmiennej trafia do gita, ale WARTOŚĆ nigdy — trzymana w lokalnym, gitignorowanym store. Bruno automatycznie strippuje sekrety przy commit/export. .gitignore: .env, *.bru.local, environments/.secrets. To rozwiązuje dylemat 'kolekcje w gicie vs sekrety poza gitem'."
+              },
+              {
+                "name": "GraphQL: introspekcja + wizualny Query Builder",
+                "description": "Ładowanie schematu przez introspekcję (Load from Introspection do endpointu) LUB z pliku .graphql/.json. Wizualny builder do klikania pól. Dokładnie realizuje wymóg #2 usera.",
+                "ux_details": "User otwiera request GraphQL → zakładka Query → ikona przełącznika sidebara → panel po lewej pokazuje Query/Mutation/Subscription. Rozwijanie typów szewronem, checkboxy przy polach (zaznaczenie zagnieżdżonego auto-zaznacza rodzica). Sekcja Arguments: required (!) auto-on, enum→dropdown, bool→selektor, skalar→input. Argumenty automatycznie konwertowane na $zmienne GraphQL. Dwukierunkowa synchronizacja builder↔edytor tekstowy. Autocomplete i walidacja z załadowanego schematu. Limity: 1 query/request, max głębokość 7. UWAGA: introspekcja wymaga poprawnie skonfigurowanych nagłówków auth (częsty problem)."
+              },
+              {
+                "name": "CLI runner (bru run) z asercjami i raportami",
+                "description": "Uruchamianie kolekcji z terminala/CI bez GUI. Sekwencyjne wykonanie + asercje + skrypty testowe, exit non-zero przy failu.",
+                "ux_details": "bru run <folder> --env sandbox; --env-var klucz=wartość dla nadpisań. Dwa tryby walidacji: deklaratywny (asserts { res.status: eq 200 }) i programistyczny (test('...', ()=>expect(res.status).to.equal(200)) z Chai). Raporty --reporter-html/junit/json. Idealne do CI/CD."
+              },
+              {
+                "name": "Silnik HTTP: Axios (Node) — nie curl",
+                "description": "Network Execution Engine oparty na Axios; obsługa SSL/TLS, proxy (manual/system/PAC), trwałych cookies, timeline logging.",
+                "ux_details": "mTLS przez --client-cert-config (JSON), --noproxy do bypassu. WADA istotna dla nas: to Node/Axios, nie curl — więc reprodukcja requestu jako komenda curl nie jest natywnie wierna. Nasz produkt na curl byłby tu wyróżnikiem."
+              }
+            ]
+          },
+          {
+            "area": "Yaak — twórca Insomnii (Gregory Schier), Tauri/Rust, local-first",
+            "features": [
+              {
+                "name": "Tech i storage (Tauri+Rust, SQLite + mirror do plików)",
+                "description": "Zbudowany na Tauri + Rust + React, licencja MIT. Local-first: brak konta, brak telemetrii, brak chmury. Dane w lokalnej bazie (SQLite) z opcją 'data directory' mirrorującego workspace do plików.",
+                "ux_details": "User pracuje w pełni offline. Może włączyć mirror workspace'a do systemu plików → wersjonowanie w Git (choć obecnie mirror domyślnie wyklucza środowiska — świadoma decyzja bezpieczeństwa, do konfiguracji). Model 'baza + opcjonalne pliki' to hybryda między Bruno (czyste pliki) a HTTPie (czysta baza)."
+              },
+              {
+                "name": "Git-sync wbudowany + importery",
+                "description": "Wbudowany Git workflow na plain files; importery z Postman, Insomnia, OpenAPI/Swagger, curl.",
+                "ux_details": "Sekcja Collaboration → Local Directory/Git Sync. Insomnia importer ułatwia migrację (Yaak = 'druga próba' twórcy Insomnii). Import z curl = wklejasz komendę curl, dostajesz request."
+              },
+              {
+                "name": "Środowiska: base + sub-environments (dziedziczenie)",
+                "description": "Dwupoziomowa hierarchia: base environment (root workspace'a) + sub-environments dziedziczące i nadpisujące zmienne base. Zmienne sub-env dostępne tylko gdy dane sub-env jest aktywne.",
+                "ux_details": "Autocomplete zmiennych przez Ctrl+Space w dowolnym polu; wszystkie zmienne renderowane przed wysłaniem requestu. Model base+sub jest bardziej ekspresyjny niż płaskie środowiska Bruno (np. wspólne base + warianty per-tenant)."
+              },
+              {
+                "name": "Template Functions / Dynamic Values (pluginy TS)",
+                "description": "Zamiast statycznego tekstu — funkcje generujące wartości dynamiczne: UUID, timestamp, hash, secure(), keychain(), prompt (pyta usera), read file. Wbudowane + własne w kilku liniach TypeScript jako plugin.",
+                "ux_details": "Dostępne przez menu autocomplete w każdym polu tekstowym. secure(...) szyfruje dowolny fragment inline. keychain(...) pobiera sekret prosto z OS keychain (nie duplikuje w Yaak). To wzorzec 'dynamic values as code/plugins' — bardzo elastyczny, wart adaptacji."
+              },
+              {
+                "name": "Secrety: szyfrowanie per-workspace + OS keychain",
+                "description": "secure() Template Function szyfruje tekst; szyfrowanie włączane per-workspace. Master key 32B w OS keychain, workspace key 32B w bazie zaszyfrowany master keyem.",
+                "ux_details": "Sharable Environments — można współdzielić środowiska z zaszyfrowanymi sekretami (odbiorca musi mieć klucz). Model dwuwarstwowego klucza (master w keychain + workspace w bazie) to solidny wzorzec bezpieczeństwa dla lokalnej apki."
+              },
+              {
+                "name": "GraphQL: auto-introspekcja + Documentation Explorer",
+                "description": "Automatyczne pobranie schematu przez introspekcję → autocomplete pól/typów/argumentów. Documentation Explorer do przeglądania schematu bez wychodzenia z apki (zamiennik GraphiQL).",
+                "ux_details": "Dwa panele: query/mutation + variables JSON. Explorer otwierany z menu schematu albo Cmd/Ctrl-klik na nazwie typu w query → pokazuje typy, pola, queries, mutations i ich argumenty. Chaining odpowiedzi między requestami. To najbliższy wymogowi #2 usera 'interaktywny eksplorator GraphQL'."
+              },
+              {
+                "name": "Protokoły + silnik reqwest (Rust)",
+                "description": "REST, GraphQL, gRPC, WebSocket, SSE. Auth: OAuth 2.0, JWT, Basic. Silnik HTTP oparty na Rust (reqwest), nie curl.",
+                "ux_details": "System pluginów (auth, template tags, UI, importery, motywy). Companion CLI uruchamia zapisane requesty poza GUI. Natywny Rust = szybki i lekki, ale znów nie curl — reprodukcja jako curl nie jest 1:1."
+              }
+            ]
+          },
+          {
+            "area": "RapidAPI for Mac (dawny Paw) — benchmark natywnego macOS UX",
+            "features": [
+              {
+                "name": "Status projektu (2026): aktywny, ale w trybie utrzymania",
+                "description": "Najnowsza wersja 4.5.5 z 2026-04-20. Regularne wydania, ale ostatnie to głównie 'bug fixes and performance improvements' + drobne poprawki okna/toolbara — innowacja wyhamowała po przejęciu przez Rapid/RapidAPI.",
+                "ux_details": "Tylko macOS. Płatny: ~79.95 USD one-time (personal license) + plany team/enterprise subskrypcyjne. Wymaga macOS Big Sur 11.0+. Traktować jako wzorzec jakości natywnego UX, nie jako aktywnie rozwijanego lidera funkcji."
+              },
+              {
+                "name": "Dynamic Values jako tokeny/chipy w polach (najlepszy UX substytucji)",
+                "description": "Zamiast tekstowego {{var}} — dynamic value to osadzony 'token/chip' w polu (URL/header/body). Typy: environment variable, response value (parse JSON/XML z innego requestu), timestamp, UUID, base64, hash, OAuth1/AWS S3 signature, nonce.",
+                "ux_details": "User wstawia dynamic value z menu → w polu pojawia się kolorowy chip (nie surowy tekst), który po kliknięciu pokazuje/edytuje konfigurację (np. z którego requestu parsować pole JSON). To UX-owo lepsze niż gołe {{var}} — mniej literówek, samodokumentujące. Warte rozważenia jako opcjonalna nakładka nad tekstową składnią {env.x}."
+              },
+              {
+                "name": "Chained requests (zależności między requestami)",
+                "description": "Request może mieć dependencies — wysłanie go automatycznie wykonuje wcześniej requesty zależne (request/response/cookies dynamic values), tworząc łańcuch.",
+                "ux_details": "Environments też są dynamiczne — mogą referencjonować inne zmienne i poprzednie odpowiedzi. Response chaining: wynik jednego requestu (np. token z logowania) automatycznie zasila kolejny. Wzorzec do rozważenia dla flow auth."
+              },
+              {
+                "name": "Native macOS UX + code generation",
+                "description": "Natywny Cocoa (Obj-C/Swift), Grand Central Dispatch dla wielowątkowości (płynny UI przy ciężkich zadaniach). Generowanie kodu klienta w wielu językach.",
+                "ux_details": "Czysty, natywny interfejs = benchmark jakości dla naszej macOS apki. Code gen: Swift, JS, Ruby, Python, Obj-C (NSURLConnection/AFNetworking), PHP, jQuery. Projekt zapisywany do pliku .paw (format binarny — słabo git-diff-friendly, w przeciwieństwie do Bruno)."
+              }
+            ]
+          },
+          {
+            "area": "Hoppscotch — web/self-hosted + lokalny Agent (relay)",
+            "features": [
+              {
+                "name": "Storage: local-first w przeglądarce + opcjonalny sync",
+                "description": "Domyślnie dane lokalnie (session/local storage przeglądarki), bez trackingu/analityki/reklam. Opcjonalny sync przez Hoppscotch Cloud lub self-hosted instance. Dostępny też jako desktop + CLI.",
+                "ux_details": "Kolekcje synced z local/cloud session storage — NIE pliki per-request na dysku (inaczej niż Bruno). Import/export: Postman, OpenAPI, GitHub Gists, JSON. Self-host wymaga Dockera (konfiguracja env, auth providers, SMTP)."
+              },
+              {
+                "name": "Lokalny Agent — relay omijający CORS przeglądarki",
+                "description": "Standalone lokalna usługa (HTTP relay) dająca możliwości, których zabrania sandbox przeglądarki: custom headers, dostęp do localhost, client certificates, bypass CORS.",
+                "ux_details": "Agent słucha na localhost:9119 (permisywny CORS), sparowanie z web-clientem przez handshake z 6-cyfrowym OTP → szyfrowany kanał AES-256-GCM + wymiana kluczy X25519. Wzorzec 'web UI + lokalny natywny relay' — istotny gdy silnik ma być lokalny (u nas: to samo osiąga natywna apka z curl bez CORS)."
+              },
+              {
+                "name": "Środowiska (JSON) + GraphQL z introspekcją",
+                "description": "Środowiska jako pliki JSON key-value; secret vars nie eksportowane przy eksporcie środowiska. GraphQL: introspekcja schematu, multi-column documentation browser, query builder, subskrypcje.",
+                "ux_details": "Dedykowana zakładka GraphQL z introspekcją schematu i przeglądarką dokumentacji w wielu kolumnach — dobry wzorzec eksploratora. Quick-peek środowiska (podgląd wartości zmiennych bez przełączania kontekstu)."
+              }
+            ]
+          },
+          {
+            "area": "HTTPie Desktop — Electron, spaces, cloud-optional",
+            "features": [
+              {
+                "name": "Storage: wewnętrzna baza + opcjonalny cloud sync",
+                "description": "Electron. Dane domyślnie w local storage (offline-first, incognito bez konta). Opcjonalny cloud sync po zalogowaniu przez GitHub — backup i synchronizacja między urządzeniami.",
+                "ux_details": "Offline-first: pracuje bez sieci, wznawia sync po powrocie połączenia. WADA dla nas: BRAK integracji Git i brak plików per-request na dysku — tylko export do JSON. Cloud-lock przy współpracy. To anty-wzorzec względem git-native Bruno."
+              },
+              {
+                "name": "Spaces (workspaces) + local-only environments",
+                "description": "Spaces = izolowane workspace'y (własne kolekcje, requesty, drafty, zmienne, środowiska). Środowiska duplikowalne, local lub synced. Local-only environments nie trafiają do chmury.",
+                "ux_details": "Local-only environments = miejsce na sekrety, które mają nie synchronizować się do chmury/urządzeń (rozwiązanie problemu sekretów bez dedykowanego vaulta). Przełączanie spaces i środowisk swobodne."
+              },
+              {
+                "name": "Substytucja {{var}} recursive + autocomplete",
+                "description": "Składnia double-brace {{variableName}}, zmienne rozwiązywane rekurencyjnie w obrębie space'a, z autocomplete podczas pisania.",
+                "ux_details": "Rekurencyjne rozwiązywanie (zmienna może wskazywać na inną zmienną) + autocomplete = wygodny wzorzec, tożsamy z wymogiem #3 usera."
+              },
+              {
+                "name": "GraphQL: auto-fetch schematu (introspekcja) + walidacja",
+                "description": "Wybierasz typ body 'GraphQL', podajesz query i JSON variables osobno (syntax highlighting per język). App auto-pobiera schemat z serwera → świadomość queries/mutations/hierarchii typów → autocomplete i walidacja.",
+                "ux_details": "Osobne pola: query i variables JSON. Automatyczna introspekcja daje autocomplete i walidację 'na żywo' — realizuje wymóg #2 usera (app sama robi introspekcję i podpowiada pola). Advanced import (m.in. z cURL, ANSI-C quoting)."
+              }
+            ]
+          },
+          {
+            "area": "Wątek przekrojowy — curl jako silnik i klienty terminalowe",
+            "features": [
+              {
+                "name": "curl/libcurl jako silnik — luka rynkowa",
+                "description": "Żaden z badanych klientów DESKTOPOWYCH nie używa curl jako silnika: Bruno=Axios, Yaak=reqwest(Rust), HTTPie/Hoppscotch=Electron/web fetch, Paw=własny Cocoa. curl pojawia się tylko jako format import/export.",
+                "ux_details": "libcurl: modularna architektura, wiele backendów TLS (OpenSSL/GnuTLS/mbedTLS/Rustls/Schannel/WolfSSL), HTTP/2, HTTP/3, proxy, connection pooling, auth (Basic/Digest/NTLM/SPNEGO/OAuth). Aktualny stabilny curl 8.21.0 (2026-06-24). Silnik curl = wyróżnik: każdy request 1:1 kopiowalny jako komenda curl, zero 'magii', pełna transparentność i offline."
+              },
+              {
+                "name": "Posting / httpYac — klienty terminalowe jako referencja plikowa",
+                "description": "Posting: TUI (Textual), requesty w prostych plikach YAML (czytelne, wersjonowalne), keyboard-centric, działa po SSH. httpYac: pliki .http (jak VS Code REST Client) dla REST/SOAP/GraphQL/gRPC + CLI.",
+                "ux_details": "Potwierdzają trend 'requesty jako pliki tekstowe pod git' (YAML/.http). Dla nas: potwierdzenie, że plikowy, git-native storage (wzorzec Bruno) jest oczekiwany przez zaawansowanych devów i naturalnie łączy się z silnikiem curl."
+              }
+            ]
+          }
+        ],
+        "standout_features": [
+          "Bruno: kolekcja = folder plików .bru pod gitem + secret-split (nazwy w gicie, wartości w lokalnym gitignorowanym store szyfrowanym OS/AES256) — wzorzec #1 do skopiowania dla naszego produktu",
+          "Bruno GraphQL Query Builder: introspekcja schematu → wizualne klikanie pól checkboxami w drzewie typów → argumenty auto-konwertowane na $zmienne → dwukierunkowa sync builder↔edytor (dokładnie wymóg #2 usera)",
+          "Yaak: base + sub-environments z dziedziczeniem/override — bardziej ekspresyjne niż płaskie środowiska; oraz template functions/dynamic values jako pluginy TypeScript",
+          "Yaak: dwuwarstwowe szyfrowanie sekretów (master key 32B w OS keychain + workspace key w bazie), secure() inline i keychain() pobierający sekret z systemu bez duplikacji",
+          "Yaak GraphQL Documentation Explorer: Cmd-klik na typ w query otwiera przeglądarkę schematu (zamiennik GraphiQL) — najbliższy 'interaktywnemu eksploratorowi GraphQL' z wymogu #2",
+          "Paw/RapidAPI: Dynamic Values jako osadzone tokeny/chipy w polach (nie surowy {{var}}) z typami response-value/UUID/timestamp/hash/OAuth1 sig — UX-owo lepsza forma substytucji + response chaining",
+          "HTTPie: auto-introspekcja schematu GraphQL dająca autocomplete i walidację + local-only environments (sekrety poza chmurą)",
+          "Hoppscotch Agent: lokalny relay HTTP (localhost:9119, OTP handshake, AES-256-GCM/X25519) omijający CORS — pokazuje, że lokalny natywny silnik znosi ograniczenia przeglądarki (u nas rozwiązuje to natywna apka z curl)"
+        ],
+        "pain_points": [
+          "ŻADEN badany klient desktopowy nie używa curl jako silnika (Bruno=Axios, Yaak=reqwest, HTTPie/Hoppscotch=web fetch, Paw=własny natywny) — brak wierności 'request 1:1 = komenda curl'; to luka, którą nasz produkt może wypełnić",
+          "HTTPie Desktop: brak integracji Git i brak plików per-request na dysku (tylko JSON export) + cloud-lock przy współpracy — anty-wzorzec względem git-native",
+          "Paw/RapidAPI: tylko macOS, płatny (~80 USD), plik projektu .paw binarny (słabo git-diff-friendly), rozwój w trybie utrzymania (ostatnie wydania to głównie bugfixy)",
+          "Bruno: introspekcja GraphQL potyka się gdy nagłówki auth nie są poprawnie skonfigurowane (częsty zgłaszany problem); Query Builder ograniczony (1 query/request, max głębokość 7, brak argumentów-list dla złożonych input types)",
+          "Hoppscotch: kolekcje trzymane w session/local storage przeglądarki, nie jako pliki per-request pod gitem (jak Bruno); self-host wymaga Dockera; web wymaga lokalnego Agenta do ominięcia CORS",
+          "Yaak: młody projekt, mniejszy ekosystem/pluginy; mirror do plików domyślnie wyklucza środowiska (trzeba świadomie skonfigurować, by wersjonować env w Git)",
+          "Ogólnie: mieszanie storage (baza vs pliki) utrudnia jednocześnie git-diff-friendliness i szyfrowanie sekretów — Bruno rozwiązuje to najczyściej przez split nazwa/wartość"
+        ],
+        "local_first_notes": "Rekomendowany zestaw wzorców dla naszego w pełni lokalnego macOS klienta na curl:\n\nSTORAGE (wzorzec Bruno): kolekcja = folder plików tekstowych per-request (własny czytelny format, np. TOML/YAML/DSL) pod gitem, z plikiem metadanych kolekcji. Diff-friendly, review w PR, offline, zero konta/telemetrii. Odrzucamy model HTTPie (wewnętrzna baza + cloud) jako sprzeczny z git-native. Opcjonalnie hybryda jak Yaak (SQLite do szybkości + mirror do plików), ale prościej trzymać czyste pliki.\n\nSEKRETY (wzorzec Bruno + Yaak): split nazwa/wartość — nazwa zmiennej w gicie, wartość w lokalnym gitignorowanym store szyfrowanym macOS Keychain. Wsparcie .env w rootcie kolekcji. Rozważyć secure()/keychain() Yaak: pobieranie sekretów wprost z Keychain bez duplikacji. Auto-strip sekretów przy commit/export.\n\nŚRODOWISKA (wymóg #1 usera): base + sub-environments jak w Yaak (dziedziczenie/override) — bogatsze niż płaskie środowiska; przełączanie przez dropdown w toolbarze (wzorzec Bruno). Env w plikach pod gitem (bez wartości sekretnych).\n\nSUBSTYTUCJA {env.x} (wymóg #3): tekstowe {{env.x}} / {env.x} w URL, nagłówkach, body, params z autocomplete i rekurencyjnym rozwiązywaniem (jak HTTPie/Bruno). Opcjonalnie nakładka UX z chipami/tokenami jak w Paw dla dynamic values (UUID/timestamp/response-value) — mniej literówek, samodokumentujące. Dynamic values warto zaprojektować jako rozszerzalne (wzorzec pluginów Yaak).\n\nGRAPHQL (wymóg #2): user wybiera typ operacji + podaje URL → app robi introspekcję schematu → wizualny eksplorator: drzewo typów z checkboxami przy polach (Bruno), Documentation Explorer z Cmd-klik na typ (Yaak), autocomplete i walidacja (HTTPie/Bruno). Argumenty auto-konwertowane na zmienne GraphQL. Osobne panele query + variables JSON. Uwaga na auth przy introspekcji (użyć zmiennych środowiskowych/tokenów kolekcji).\n\nSILNIK (nasza przewaga): curl/libcurl jako silnik = wyróżnik nieobecny u konkurencji. Każdy request odwzorowywalny 1:1 jako komenda curl (transparentność, 'kopiuj jako curl' który REALNIE odpowiada wykonaniu), pełny offline, dojrzała obsługa TLS/HTTP2/HTTP3/proxy/mTLS/auth z libcurl. To argument marketingowy i techniczny jednocześnie.\n\nCLI RUNNER (wzorzec Bruno): headless runner kolekcji z asercjami (deklaratywne + programistyczne) i raportami HTML/JUnit/JSON do CI — naturalnie spójny z plikowym storage.\n\nMVP (minimalny sensowny zakres): (1) plikowy git-native storage kolekcji, (2) środowiska base+sub + secrety w Keychain + substytucja {env.x} wszędzie, (3) silnik curl z 'kopiuj jako curl', (4) GraphQL introspekcja + wizualny eksplorator pól. Post-MVP: dynamic values/pluginy, chained requests, CLI runner, gRPC/WS/SSE.",
+        "sources": [
+          "https://blog.usebruno.com/managing-secrets",
+          "https://docs.usebruno.com/secrets-management/overview",
+          "https://blog.usebruno.com/manage-variables",
+          "https://docs.usebruno.com/send-requests/graphql/query-builder",
+          "https://blog.usebruno.com/bruno-cli",
+          "https://docs.usebruno.com/bru-cli/commandOptions",
+          "https://deepwiki.com/usebruno/bruno/3.2-network-execution-engine",
+          "https://qaskills.sh/blog/bruno-api-testing-git-guide-2026",
+          "https://yaak.app/blog/insomnia-alternative",
+          "https://github.com/mountain-loop/yaak",
+          "https://yaak.app/docs/templating/template-functions",
+          "https://yaak.app/docs/templating/environments-and-variables",
+          "https://yaak.app/docs/collaboration/secrets-encryption",
+          "https://yaak.app/docs/request-types/graphql-requests",
+          "https://feedback.yaak.app/p/graphql-documentation-explorer",
+          "https://yaak.app/changelog/2025.2.0",
+          "https://paw.cloud/updates",
+          "https://paw.cloud/docs/dynamic-values/introduction",
+          "https://paw.cloud/docs/environments/environments-from-responses",
+          "https://rapidapi.com/guides/response-chaining",
+          "https://www.checkops.com/paw/",
+          "https://formulae.brew.sh/cask/rapidapi",
+          "https://docs.hoppscotch.io/documentation/features/environments",
+          "https://deepwiki.com/hoppscotch/hoppscotch/7.2-self-hosting-guide",
+          "https://qaskills.sh/blog/hoppscotch-api-testing-complete-guide",
+          "https://httpie.io/docs/desktop/graphql",
+          "https://httpie.io/docs/desktop/space-variables-and-environments",
+          "https://httpie.io/docs/desktop/local-only-environments",
+          "https://httpie.io/docs/desktop/environments",
+          "https://github.com/darrenburns/posting",
+          "https://apidog.com/blog/best-terminal-tui-rest-api-clients/",
+          "https://curl.se/"
+        ]
+      },
+      {
+        "topic": "Deep-dive UX interaktywnych eksploratorów GraphQL (GraphiQL 4/5 + plugin-explorer, Altair, Apollo Sandbox/Studio, Postman, Insomnia) + biblioteki OSS do osadzenia w lokalnym macOS kliencie API na curl",
+        "findings": [
+          {
+            "title": "GraphiQL: plugin-explorer buduje query klikaniem checkboxów, dwukierunkowo z tekstem (AST↔UI)",
+            "detail": "@graphiql/plugin-explorer (kod z OneGraph/graphiql-explorer, licencja MIT) renderuje schemat jako DRZEWO pól. UX: pole-liść (skalar/enum) ma CHECKBOX — zaznaczasz i pole natychmiast pojawia się w query w panelu edytora; pole-obiekt ma STRZAŁKĘ (arrow) do rozwinięcia i pokazania podpól. Argumenty i typy input pola są wystawiane jako inputy formularza (checkbox włącza argument, potem podajesz wartość). Klucz działania: eksplorator PARSUJE bieżący tekst query do AST i renderuje z niego drzewo, a każda zmiana checkboxa przepisuje AST z powrotem na tekst — synchronizacja jest dwukierunkowa (edycja tekstu ręcznie aktualizuje zaznaczenia i odwrotnie). Wybór typu operacji (query/mutation/subscription) robi się przyciskiem tworzącym nową operację danego typu. Osadzanie: React, propsy `schema`, `query`, `onEdit`, `makeDefaultArg`, `getDefaultScalarArgValue`. To osobny checkbox-owy builder — NIE mylić z wbudowanym Doc Explorer (przeglądarka dokumentacji, w GraphiQL 4 wydzielona jako standalone plugin)."
+          },
+          {
+            "title": "GraphiQL 4 (maj 2025) i GraphiQL 5 (lipiec 2025) — przełom: edytor Monaco zamiast CodeMirror",
+            "detail": "GraphiQL 4.1 (31.05.2025): build Vite zamiast Webpack, React Compiler, React 19 (drop 16/17), stan przeniesiony z React Context na zustand (hooki: useEditorStore/useExecutionStore/usePluginStore/useSchemaStore), wydzielone standalone pluginy Doc Explorer i History, odświeżone taby. GraphiQL 5 (17.07.2025): DOMYŚLNIE Monaco Editor (silnik VSCode) zamiast CodeMirror — daje IntelliSense, hover-tooltips, go-to-definition, command palette (F1); ciężkie operacje językowe (lint, autocomplete, analiza) idą do Web Workers, UI zostaje płynne. Variables/Headers używają teraz JSONC (komentarze dozwolone, stripowane przed wysłaniem). UMD CDN usunięte — tylko ESM (esm.sh). WNIOSEK dla nas: fundacja odeszła od codemirror-graphql/cm6-graphql na rzecz monaco-graphql jako przyszłościowej ścieżki."
+          },
+          {
+            "title": "Flow introspekcji w GraphiQL: fetcher robi introspection query; zmiana fetchera = re-introspekcja",
+            "detail": "GraphiQL dostaje `fetcher` (funkcja HTTP), którym przy starcie wysyła standardowy introspection query (__schema) do endpointu i z odpowiedzi (introspection JSON) buduje obiekt schematu przez graphql-js `buildClientSchema`. Można też podać schemat WPROST propsem `schema` (pominięcie introspekcji). Odświeżenie: gdy podasz NOWY fetcher, GraphiQL ponownie robi introspekcję. Dla endpointów z wyłączoną introspekcją standardowy fallback to załadowanie SDL i zbudowanie schematu przez `buildSchema` (SDL→GraphQLSchema) — SDL nie wymaga introspekcji. Walidacja/autocomplete działają od momentu, gdy obiekt schematu istnieje (introspekcja LUB SDL)."
+          },
+          {
+            "title": "Altair GraphQL Client — najbardziej 'lokalny' wzorzec: Electron+Angular, cała logika na froncie",
+            "detail": "Altair (open source, feature-rich, wieloplatformowy; desktop = Electron, front = Angular/TypeScript) to najbliższy architektonicznie wzorzec dla lokalnego klienta: backend serwuje tylko HTML/assety, a front robi całość — persistuje stan lokalnie, generuje przeszukiwalny indeks dokumentacji schematu, wykonuje dynamiczne skrypty w runtime, zarządza ENVIRONMENT VARIABLES i KOLEKCJAMI query. UX docs: introspekcja pobiera opisy wszystkich pól/endpointów; Documentation Explorer pozwala nawigować po typach/query/mutation/subscription i SZUKAĆ w docs; 'Add query'/generacja query z docs wstawia gotowe zapytanie do edytora BEZ ręcznego wpisywania (z konfigurowalną głębokością zagnieżdżenia). Odświeżanie schematu: ręczny reload LUB auto-refresh po zmianie schematu na serwerze. FALLBACK: można załadować schemat (plik SDL) bezpośrednio do docs, gdy jesteś offline albo API ma wyłączoną introspekcję."
+          },
+          {
+            "title": "Altair — subskrypcje (WS + SSE), zmienne i kolekcje",
+            "detail": "Subskrypcje: Altair testuje je natywnie, wspiera stary protokół subscriptions-transport-ws ORAZ nowy graphql-ws, a także GraphQL over SSE — plus powiadomienia desktopowe gdy poza aplikacją. Ma pełne zarządzanie environment variables i kolekcjami zapytań — dokładnie wymagania (1) usera. To najsilniejszy referencyjny model dla lokalnego, offline-friendly klienta bez konta."
+          },
+          {
+            "title": "Apollo Sandbox/Studio Explorer — 'złoty standard' UX klikania pól; też na Monaco; osadzalny",
+            "detail": "Sandbox = wersja BEZ KONTA (studio.apollographql.com/sandbox), Studio Explorer = zalogowana. UX budowania: w panelu Documentation (po lewej) 'wchodzisz' w schemat od entry-pointów typu Query; przycisk ⊕ przy polu DODAJE pole do operacji w bieżącej ścieżce i automatycznie generuje zmienne dla argumentów pola. Skróty masowe: dropdown przy 'Fields' → 'Select all scalar fields' (wszystkie skalary bez podpól) oraz 'Select all fields recursively' (całe poddrzewo naraz). Operation editor to MONACO z pełnym IntelliSense: lint, autocomplete, peek/jump-to-definition (cmd+click). Fuzzy-search po schemacie (⌘+K) pokazuje wszystkie ścieżki do pola. Panele: Variables, Headers, Environment variables (+ preflight scripts), persystowane. Wszystkie typy operacji (Query/Mutation/Subscription). Explorer da się OSADZIĆ na własnej stronie (embeddable Explorer / iframe)."
+          },
+          {
+            "title": "Apollo Explorer — panel Variables i Headers (wzorzec UX do skopiowania)",
+            "detail": "Dodanie argumentu: klik ⊕ przy inpucie dodaje argument do operacji, a jego wartość podajesz w zakładce Variables (JSON). Headers: zakładka Headers obok Variables → '+ New header' → nazwa+wartość, wysyłane z operacją. Ten wzorzec (argument z docs → zmienna w Variables → nagłówki w osobnej zakładce) jest identyczny w Apollo/Postman/GraphiQL i jest de facto standardem UX, który powinniśmy odtworzyć."
+          },
+          {
+            "title": "Postman GraphQL — 'interactive schema explorer' z checkboxami pól pogrupowanych po Query/Mutation/Subscription",
+            "detail": "Wpisanie URL endpointu → Postman AUTOMATYCZNIE pobiera schemat przez introspekcję. Interactive schema explorer to wizualny edytor: pola pogrupowane pod typami Query/Mutation/Subscription, zaznaczasz CHECKBOXY pól (np. hello, person→name, age) i query buduje się w edytorze; podczas pisania podpowiada autocomplete z wybranego schematu. Źródło schematu można wybrać: introspekcja / wybór API z workspace / import schematu z pliku lokalnego LUB z URL. Wsparcie dla GraphQL variables w body. Gdy API nie odpowiada na introspekcję (wyłączona) — trzeba wskazać/zaimportować schemat ręcznie (plik/URL) albo sprawdzić ustawienia serwera."
+          },
+          {
+            "title": "Insomnia GraphQL — kiedy pobiera schemat i ISTOTNE ograniczenie templatingu",
+            "detail": "Insomnia automatycznie robi introspekcję gdy PRZEŁĄCZASZ się na nowy request GraphQL albo ZMIENIASZ URL/właściwości requestu (introspekcja niesie auth/headers requestu). Po pobraniu schematu: autocomplete (cmd/ctrl+space — nazwy query, wymagane inputy, pola do pobrania), inline validation z komunikatami błędów, przeglądanie docs ('Show Documentation' z dropdown Schema; hover po polach; na macOS Ctrl+Click po polu). Variables jako JSON pod query (pusty → klucz variables pomijany w payloadzie). KRYTYCZNE OGRANICZENIE: templating Insomnii ({{ _.zmienna }}) NIE DZIAŁA w treści query — działa TYLKO w variables. To ważna nauka: nasza substytucja {env.x} powinna działać WSZĘDZIE (URL/headers/body/variables), inaczej niż w Insomnii."
+          },
+          {
+            "title": "Biblioteki OSS napędzające autocomplete/walidację — wszystkie MIT, monorepo graphql/graphiql",
+            "detail": "Rdzeń: graphql-language-service (współdzielone usługi językowe: hint/lint/diagnostyka/definicje) zasila trzy warstwy edytorowe: (a) codemirror-graphql — CodeMirror 5, parser+live linter+typeahead z schematu, NAJDOJRZALSZY i najstabilniejszy ale legacy (CM5); (b) cm6-graphql — CodeMirror 6, autocomplete+lint z schematu, nowoczesny ale mniejszy ekosystem; (c) monaco-graphql — Monaco (silnik VSCode), schema-driven language mode, uruchamia się w Web Workerze; był długo pre-release ('in the works'), ale od GraphiQL 5 (lipiec 2025) jest DOMYŚLNYM i produkcyjnym wyborem fundacji. Wszystko licencja MIT — wolno osadzić w komercyjnej/zamkniętej apce. Doc Explorer i History są wydzielone jako standalone pluginy (@graphiql/react)."
+          },
+          {
+            "title": "Subskrypcje — protokoły i biblioteki klienckie do osadzenia",
+            "detail": "Standard 2025/2026: graphql-ws (WebSocket, zero-dependency, aktywnie utrzymywany, v6.x; wspierany przez Apollo Server i NestJS) — zastąpił zdeprecjonowany subscriptions-transport-ws. Alternatywa: graphql-sse (GraphQL over Server-Sent Events, zero-dependency, HTTP/1-safe, prostszy, przechodzi przez firewalle/packet-inspection; single-connection mode omija limit ~100 połączeń, przy HTTP/2 więcej). Obie MIT, zero-dependency — idealne do lokalnego klienta. GraphiQL pozwala ustawić subscriptionsProtocol (WS vs SSE). WunderGraph/część ekosystemu promuje SSE/Fetch nad WS. Dla nas: WS jako domyślny transport subskrypcji, SSE jako opcja fallback — obie biblioteki lekkie i osadzalne."
+          },
+          {
+            "title": "Substytucja zmiennych {env.x} — Postman jako wzorzec, ale z lekcją z Insomnii",
+            "detail": "Postman: składnia {{nazwa}} w URL i Headers (i body); scope'y global/collection/environment; typy zmiennych zwykłe i SECRET (szyfrowane/maskowane); initial vs current value (current lokalny, nie synchronizowany). Przełączanie środowisk = wybór aktywnego environment z listy → wszystkie {{ }} rozwiązują się z niego. To dokładnie wymaganie (1) i (3) usera. Dla lokalnego, offline klienta bez konta: pomiń chmurowe vaulty/synchronizację, zrób lokalny magazyn (np. Keychain macOS na sekrety, plik/JSON na zwykłe env), a substytucję {env.x} zaimplementuj JEDNOLICIE w URL+headers+body+variables (nie powielaj ograniczenia Insomnii, gdzie templating nie działa w query)."
+          },
+          {
+            "title": "Klucz techniczny introspekcji: tanie do samodzielnej implementacji na graphql-js",
+            "detail": "Cały flow eksploratora stoi na graphql-js (MIT): getIntrospectionQuery() generuje standardowy introspection query → POST (lub GET) na endpoint → introspection JSON → buildClientSchema(json) daje GraphQLSchema. Ścieżka SDL (wyłączona introspekcja/offline): buildSchema(sdlString) → GraphQLSchema. Na obiekcie schematu: parse(query)→AST, validate(schema, ast) do błędów, a graphql-language-service dostarcza hint/autocomplete. Oznacza to, że introspekcję, walidację i podpowiedzi można zbudować na jednym pakiecie (graphql + graphql-language-service) niezależnie od wybranego edytora."
+          }
+        ],
+        "recommendations": [
+          "Silnik edytora GraphQL: osadź MONACO + monaco-graphql (MIT), nie CodeMirror. Powód: fundacja GraphQL przeniosła GraphiQL 5 (lipiec 2025) na Monaco jako domyślny, ciężkie operacje idą do Web Workera (płynne UI), a Apollo Studio/Sandbox też jest na Monaco. To przyszłościowy, aktywnie rozwijany wybór. cm6-graphql traktuj jako lżejszą alternatywę tylko jeśli chcesz uniknąć wagi Monaco; codemirror-graphql (CM5) — pomiń jako legacy.",
+          "Interaktywny checkbox-builder: NIE pisz od zera — osadź @graphiql/plugin-explorer (kod OneGraph, MIT). Daje dokładnie żądany UX (checkbox na liściu buduje query, strzałka rozwija obiekt, argumenty jako formularz, dwukierunkowa synchronizacja AST↔tekst). Wybór typu operacji (query/mutation/subscription) i propsy schema/query/onEdit gotowe. To flagowa funkcja usera dostępna prawie za darmo.",
+          "Cała warstwa 'schema intelligence' (introspekcja, walidacja, autocomplete) stoi na dwóch pakietach MIT: graphql (graphql-js) + graphql-language-service. Zbuduj introspekcję sam: getIntrospectionQuery → POST przez curl → buildClientSchema; a fallback SDL: buildSchema(sdl). To odwiązuje Cię od konkretnego edytora i pozwala zaimplementować własny UX docs/podpowiedzi.",
+          "Flow introspekcji zaprojektuj tak: (1) pobierz schemat automatycznie po wpisaniu/zmianie URL endpointu (jak Postman/Insomnia); (2) daj ręczny przycisk 'Refresh schema' i re-introspekcję po zmianie środowiska/nagłówków (auth wpływa na widoczność schematu); (3) TWARDY fallback na plik SDL (.graphql) gdy introspekcja wyłączona/offline — to wymóg dla klienta offline; (4) czytelny komunikat 'introspekcja wyłączona → wskaż SDL' zamiast cichej porażki.",
+          "Substytucja {env.x}: zaimplementuj JEDNOLICIE w URL, nagłówkach, body ORAZ variables — nie powielaj ograniczenia Insomnii (gdzie templating nie działa w treści query). Wzoruj się na Postman (scope global/collection/environment, przełącznik aktywnego środowiska, typ 'secret'). Sekrety trzymaj lokalnie w macOS Keychain (nie w plaintext), zwykłe env w kolekcji/pliku — zgodnie z zasadą offline/bez telemetrii.",
+          "Panele Variables/Headers/Environment: skopiuj sprawdzony wzorzec Apollo/Postman — argument dodany z eksploratora auto-generuje zmienną w zakładce Variables (JSON), osobna zakładka Headers ('+ New header'), osobna warstwa Environment z aktywnym środowiskiem. Persystuj stan lokalnie (jak Altair robi z kolekcjami/env).",
+          "Subskrypcje w MVP+1: osadź graphql-ws (WebSocket, domyślny) i opcjonalnie graphql-sse (SSE, fallback) — obie MIT, zero-dependency, lekkie. Pozwól przełączać protokół w ustawieniach endpointu (jak GraphiQL subscriptionsProtocol). Uwaga: curl jest do zapytań/mutacji (HTTP); do subskrypcji potrzebny osobny transport WS/SSE, więc zaplanuj to jako oddzielny moduł, nie przez curl.",
+          "Webview vs natywnie: dla eksploratora GraphQL osadź komponenty webowe (Monaco + monaco-graphql + @graphiql/plugin-explorer + graphql-language-service) w WEBVIEW (WKWebView jeśli Swift-native, albo cały front w Electron/Tauri jak Altair). Pisanie natywnego edytora z autocomplete/lintem GraphQL od zera to ogromny koszt bez zwrotu — cały dojrzały ekosystem OSS jest webowy i MIT. Silnik HTTP (curl) i magazyn/Keychain zostaw natywnie; komunikacja webview↔natywne przez bridge (query z UI → natywne curl → wynik z powrotem do webview).",
+          "Referencyjna architektura do naśladowania = Altair: cała logika na froncie (persist stanu lokalnie, indeks docs schematu, environment variables, kolekcje, subskrypcje WS+SSE, fallback SDL). To najbliższy Twojemu 'lokalny/offline/bez konta' model i jest open source (choć Angular/Electron) — warto przejrzeć jego kod jako wzorzec, nawet jeśli budujesz na innym stacku.",
+          "MVP zakres: (a) edytor Monaco+monaco-graphql z autocomplete/lint; (b) auto-introspekcja po URL + ręczny refresh + fallback SDL + obsługa wyłączonej introspekcji; (c) @graphiql/plugin-explorer (checkbox builder) z wyborem query/mutation/subscription; (d) panele Variables(JSON)+Headers; (e) substytucja {env.x} jednolita wszędzie + przełącznik środowisk + sekrety w Keychain; (f) egzekucja przez curl. Poza MVP: subskrypcje WS/SSE, kolekcje/historia, indeks przeszukiwania docs, auto-refresh schematu."
+        ],
+        "sources": [
+          "https://github.com/graphql/graphiql",
+          "https://github.com/OneGraph/graphiql-explorer",
+          "https://www.npmjs.com/package/@graphiql/plugin-explorer",
+          "https://graphql.org/blog/2025-05-31-graphiql-4/",
+          "https://graphql.org/blog/2025-07-17-graphiql-5/",
+          "https://www.npmjs.com/package/monaco-graphql",
+          "https://www.npmjs.com/package/cm6-graphql",
+          "https://www.npmjs.com/package/codemirror-graphql",
+          "https://altairgraphql.dev/docs/features/documentation",
+          "https://altairgraphql.dev/docs/features/graphql-subscriptions",
+          "https://altairgraphql.dev/docs/features/",
+          "https://github.com/altair-graphql/altair",
+          "https://www.apollographql.com/docs/graphos/platform/explorer",
+          "https://www.apollographql.com/docs/graphos/platform/sandbox",
+          "https://www.apollographql.com/tutorials/lift-off-part3/06-query-building-in-apollo-sandbox",
+          "https://learning.postman.com/docs/sending-requests/graphql/graphql-client-interface",
+          "https://learning.postman.com/docs/use/send-requests/protocols/graphql/graphql-http",
+          "https://developer.konghq.com/insomnia/graphql/",
+          "https://konghq.com/blog/engineering/insomnia-graphql",
+          "https://www.npmjs.com/package/graphql-ws",
+          "https://github.com/enisdenjo/graphql-sse",
+          "https://wundergraph.com/blog/deprecate_graphql_subscriptions_over_websockets",
+          "https://www.graphql-js.org/api-v16/utilities/",
+          "https://learning.postman.com/docs/use/send-requests/variables/variables",
+          "https://blog.postman.com/introducing-secret-variable-type-in-postman/"
+        ],
+        "embeddable_components": [
+          "monaco-graphql (MIT) — silnik edytora GraphQL na Monaco/VSCode; autocomplete, lint, hover, go-to-definition w Web Workerze; domyślny w GraphiQL 5 (produkcyjny od lipca 2025)",
+          "@graphiql/plugin-explorer / OneGraph graphiql-explorer (MIT) — interaktywny checkbox-builder query; propsy schema/query/onEdit/makeDefaultArg; dwukierunkowa synchronizacja AST↔tekst; flagowa funkcja usera",
+          "graphql-language-service (MIT) — współdzielone usługi językowe (hint/lint/diagnostyka/definicje) niezależne od edytora; napędza codemirror-graphql, cm6-graphql i monaco-graphql",
+          "graphql (graphql-js, MIT) — getIntrospectionQuery + buildClientSchema (introspekcja) oraz buildSchema (fallback SDL) + parse/validate; fundament całej warstwy schema-intelligence",
+          "cm6-graphql (MIT) — lżejsza alternatywa dla Monaco: CodeMirror 6 z autocomplete/lint z schematu (jeśli waga Monaco jest problemem)",
+          "@graphiql/react (MIT) — komponenty React (w tym standalone Doc Explorer i History od GraphiQL 4) do złożenia własnego IDE",
+          "graphql-ws (MIT, zero-dependency) — klient subskrypcji przez WebSocket (domyślny standard 2025/2026, zastąpił subscriptions-transport-ws)",
+          "graphql-sse (MIT, zero-dependency) — klient subskrypcji przez Server-Sent Events (fallback, HTTP/1-safe, single-connection mode)"
+        ]
+      },
+      {
+        "topic": "Stack techniczny dla lokalnego (offline) klienta API na macOS z curl pod maską — silnik HTTP, shell aplikacji, przechowywanie secretów, składnie interpolacji zmiennych; rekomendacja MVP",
+        "findings": [
+          {
+            "title": "(a) curl-binary shell-out: %{json} zwraca TYLKO metadane/timingi, nie ciało ani nagłówki — problem dwóch strumieni",
+            "detail": "Flaga `--write-out '%{json}'` (curl 7.70+) generuje ~800-bajtowy obiekt JSON z: http_code/response_code, http_version, method, url_effective, remote_ip/remote_port, content_type, num_redirects, ssl_verify_result, oraz kompletem timingów (time_total, time_namelookup, time_connect, time_appconnect, time_pretransfer, time_starttransfer) i rozmiarów (size_download/upload/header, num_headers). NIE zawiera ciała odpowiedzi ani nagłówków odpowiedzi. Konsekwencja architektoniczna: budując klienta na shell-outcie musisz orkiestrować kilka kanałów: ciało → `-o /tmp/plik` lub stdout, nagłówki odpowiedzi → `-D /tmp/hdr` lub `-i`, metryki → `-w '%{json}'` na osobny fd/stderr. Praktyczny wzorzec: `curl -sS -D <(headers) -o body.bin -w '%{json}' ...` albo separator sentinelowy między body a JSON. Dodatkowo: parsowanie nagłówków odpowiedzi jest po Twojej stronie (curl nie daje ich w JSON), a `-i` skleja je z body co wymaga ręcznego splitu na pierwszym CRLFCRLF. Od curl 7.82 istnieje skrót `--json` (ustawia Content-Type+Accept: application/json i --data naraz) — wygodne dla wysyłki, nie dla parsowania odpowiedzi."
+          },
+          {
+            "title": "(a) curl shell-out ma realne ryzyko argument-injection — używać tablicy argów, NIGDY sklejać stringa; walidować URL i wartości nagłówków",
+            "detail": "Kluczowa reguła bezpieczeństwa: uruchamiaj `curl` przez API tablicy argumentów (execve — Rust std::process::Command, Node child_process.execFile/spawn bez shella, Swift Process z arguments[]), NIGDY przez string podawany do /bin/sh. Tablica argów sprawia, że atakujący co najwyżej poda złe flagi curla, ale nie odpali innego procesu (brak `;`, `|`, `$()`). ALE nawet z tablicą argów curl ma własną powierzchnię ataku: znany raport HackerOne (short-flag/argument injection) — jeśli user-controlled wartość (np. URL ze zmiennej `{env.x}`) zaczyna się od `-` lub `@`, curl potraktuje ją jako flagę/plik (`@/etc/passwd` w -d wczyta plik, `-K` wczyta config). Mitygacja: prefiksuj URL-e `--` po flagach lub waliduj, że URL zaczyna się od http(s)://; nigdy nie pozwalaj by interpolowana zmienna zaczynała się od `-`/`@` bez sanityzacji; używaj `--data-raw` zamiast `--data` (to drugie interpretuje `@` jako plik i usuwa newline). OWASP wprost radzi: 'use HTTP client libraries instead of curl via shell' — shell-out to najwięcej pracy nad parsowaniem i najwięcej pułapek bezpieczeństwa, choć zerowa zależność kompilacyjna."
+          },
+          {
+            "title": "(a) libcurl przez bindingi — dojrzałość per stack: Rust `curl` crate (najbardziej battle-tested), `isahc` (ergonomiczny async na libcurl), node-libcurl, Swift SwiftyCurl/curl-apple",
+            "detail": "RUST: crate `curl` (alexcrichton/curl-rust) to cienki, bezpieczny wrapper 1:1 nad C-API libcurl z multi-interfejsem (wiele równoległych transferów) — najdojrzalszy, ale niska ergonomia (ręczne callbacki write/header/progress). `isahc` (dawniej chttp) opakowuje libcurl w idiomatyczne, runtime-agnostyczne async/await API z pełnym HTTP/1.1 i HTTP/2 — wygodniejszy, ale cięższy binarnie (async). Oba dają natywnie: streaming (write callback), progress callback, cookies (jar), mTLS (client cert+key), HTTP/2; HTTP/3 zależy od tego czy systemowe/zbundowane libcurl skompilowano z backendem QUIC (nie jest domyślne). NODE: `node-libcurl` (JCMais) — 'najszybszy klient HTTP dla Node', prebuilt binaries, wspiera HTTP/2/3, mTLS, cookies, auth (Basic/Digest/NTLM/Negotiate/Kerberos), streaming; UWAGA: to właśnie fork tej biblioteki (`@getinsomnia/node-libcurl`) napędza Insomnię i Bruno — sprawdzony w boju w dokładnie naszej klasie produktu; wady: natywny addon (kompilacja/prebuilty per platforma+ABI Node), brak worker-threads. SWIFT: `SwiftyCurl` (wrapper ObjC nad `curl-apple`, który auto-buduje xcframework dla macOS/iOS w 24h po nowym libcurl) oraz `Curly`/`CurlyClient` (eksponuje opcje cURL niedostępne w URLSession). Alternatywa na macOS: natywny URLSession (HTTP/2, HTTP/3 od macOS 14, mTLS przez URLSessionDelegate) — ale świadomie odrzucany, bo user chce curl jako silnik dla wierności 'curl-owej' i możliwości Copy-as-cURL 1:1."
+          },
+          {
+            "title": "(b) Shell aplikacji: dla lekkiej apki mac z osadzonym edytorem kodu — Tauri v2 wygrywa rozmiarem/RAM, natywny SwiftUI wygrywa integracją, Electron przegrywa wagą",
+            "detail": "TAURI v2 (Rust core + systemowy WebView = WKWebView na macOS): binarka 2-10 MB (minimalny core <600 KB), ~50 MB RAM, start ~4x szybszy niż Electron; benchmarki 2026 potwierdzają ~half RAM i 40% szybszy start vs Electron. macOS to najlepsza platforma Tauri, bo WKWebView jest first-class (Apple wszędzie go używa) — świetny rendering CSS, natywne menu/notyfikacje przez pluginy. ELECTRON (bundluje cały Chromium): 80-200 MB instalatora, 120+ MB RAM — dyskwalifikuje 'lekką' apkę, ale ma najbardziej przewidywalny, jednolity engine (Chromium wszędzie) i największy ekosystem. NATYWNY SwiftUI: najmniejszy narzut i najlepsza integracja z macOS/Keychain, ale (1) tylko Apple (brak Win/Linux jeśli kiedyś), (2) osadzenie Monaco/CodeMirror wymaga WKWebView i tak — więc tracisz część zysku, (3) wolniejszy development GUI o dużej liczbie form/edytorów. Osadzenie edytora: w Tauri/Electron ładujesz Monaco/CodeMirror natywnie w WebView; w SwiftUI musisz i tak wstawić WKWebView z JS-bridgem. UWAGA Tauri v2 na macOS: sidecar (externalBin, do zbundowania binarki curl) DZIAŁA, ale ma znane tarcia — binarka sidecara musi być podpisana inaczej Gatekeeper ją zablokuje, są zgłoszone błędy notaryzacji przy externalBin, i trzeba obsłużyć zmianę origin dev(localhost)→prod(tauri.localhost). Alternatywa: linkować libcurl w Rust zamiast bundlować binarkę curl — omija problem notaryzacji sidecara."
+          },
+          {
+            "title": "(b) Edytor kodu pod GraphQL autocomplete: CodeMirror 6 lepszy do lekkiej apki w WebView; Monaco cięższy ale 'VS-Code-grade'",
+            "detail": "MONACO (silnik VS Code): ~5-10 MB uncompressed, pełny ekosystem LSP, zoptymalizowany pod ogromne pliki (100k+ linii, viewport tokenization). Ma gotowe wsparcie GraphQL przez `monaco-graphql` (autocomplete/hover/walidacja z introspekcji). Wada: ciężki, gorzej na mobile/w WebView, workery web. CODEMIRROR 6: tree-shakeable od ~50 kB (core ~300 KB), modularny, przyjazny mobile i WebView — rekomendowany właśnie do scenariuszy embedded jak Tauri. GraphQL: paczka `cm6-graphql` (od zespołu GraphiQL) daje autocomplete/lint/hover na bazie schematu z introspekcji. Rekomendacja dla nas: CodeMirror 6 + cm6-graphql (lekkość pod Tauri), Monaco tylko jeśli chcemy VS-Code-owy feel od ręki. Sam GraphiQL 3/Explorer można też osadzić jako gotowy komponent, ale własny CodeMirror daje pełną kontrolę nad UX 'wybierz operację → adres → introspekcja → podpowiadaj pola w GUI'."
+          },
+          {
+            "title": "(b) Interaktywny eksplorator GraphQL: mechanika introspekcji, którą trzeba zaimplementować",
+            "detail": "Wzorzec działa tak: user podaje URL i typ operacji (query/mutation/subscription) → apka wysyła standardowy introspection query (pola `__schema`/`__type`, zwraca typy, pola, argumenty, kinds, enum values, deprecated) → z wyniku budujesz `GraphQLSchema` (biblioteka `graphql-js` `buildClientSchema(introspectionResult)`) → schema karmi autocomplete edytora (cm6-graphql / monaco-graphql) ORAZ pozwala zbudować GUI-owy 'explorer' typu klikalne drzewo pól (jak GraphiQL Explorer / graphiql-explorer, one-graph), gdzie zaznaczanie checkboxów przy polach generuje treść zapytania. Introspekcja bywa wyłączona na prod GraphQL API (security) — trzeba obsłużyć fallback (błąd + ręczne wklejenie SDL). Insomnia robi dokładnie to: 'automatically fetches the schema via introspection, enabling intelligent autocomplete, real-time validation, and linting'. To dobry wzorzec do skopiowania."
+          },
+          {
+            "title": "(c) Przechowywanie secretów: macOS Keychain z każdego stacku + wzorzec .env w .gitignore",
+            "detail": "RUST/TAURI: crate `keyring` = jedno API nad natywnymi magazynami (na macOS → Security framework/Keychain), 'same security guarantees as Safari saving a password'. Gotowe pluginy: `tauri-plugin-keyring` (HuakunShen, wrapper na keyring crate) i `tauri-plugin-secure-storage`. WAŻNE: `tauri-plugin-stronghold` (IOTA Stronghold, szyfrowany plik) jest DEPRECATED i zniknie w Tauri v3 — NIE budować na nim; jeśli potrzeba szyfrowanego pliku, klucz szyfrujący i tak trzymać w keyring. NODE/ELECTRON: `keytar` był kanonem, ale jest ZARCHIWIZOWANY/nieutrzymywany — następcy: Electron `safeStorage` API (natywne, szyfruje przez Keychain), lub crossplatformowe `@napi-rs/keyring` (napi binding do rustowego keyring), ewentualnie `keyv`+os-keychain. SWIFT: bezpośrednio Security framework (SecItemAdd/SecItemCopyMatching) lub wrapper `KeychainAccess`. WZORZEC .env: sekrety per-środowisko w plikach kolekcji trzymać ODDZIELNIE od danych współdzielonych — wzorzec Bruno/Insomnia: `.bru`/kolekcja w repo (bez sekretów), a wartości secretów w lokalnym pliku środowiskowym (`*.env` / `environment.local`) dopisanym do `.gitignore`; w apce oznaczać zmienne flagą `secret:true` i renderować jako `••••`, a fizycznie trzymać w Keychain (nie w pliku kolekcji), żeby offline+bez-konta nie znaczyło 'sekrety plaintext na dysku'."
+          },
+          {
+            "title": "(d) Składnie interpolacji: Postman {{var}} + {{$dynamic}}, Insomnia Nunjucks {{ _.var }}/template tags, Bruno {{var}} + {{$random}} + {{process.env.X}}",
+            "detail": "POSTMAN: `{{variableName}}` dla zmiennych; dynamiczne zaczynają się od `$` np. `{{$guid}}` (UUID v4), `{{$timestamp}}` (Unix sekundy), `{{$randomInt}}` (0-1000), a od v7.2 setki zmiennych z faker.js (`{{$randomFullName}}`, `{{$randomEmail}}` itd.). PRECEDENCJA scope (od najszerszego do najwęższego, wygrywa najwęższy): global → collection → environment → data → local. W skryptach: `pm.variables.replaceIn('{{$randomFirstName}}')`. INSOMNIA: NIE zwykłe `{{var}}` — używa silnika Nunjucks: referencja zmiennej środowiskowej to `{{ _.myVar }}` lub `{{ _['my-variable'] }}` (dlatego import z Postmana ŁAMIE się — inna składnia); dynamiczne dane przez 'template tags' (Ctrl+Space → Faker tag), dostępne też filtry Nunjucks (`| escape`, `| safe`) i tagi (response-chaining: wyciąganie wartości z poprzedniej odpowiedzi po JSONPath). BRUNO: `{{var}}` jak Postman, dynamiczne `{{$randomData}}` (też faker.js: `{{$randomUUID}}`, `{{$randomFullName}}`...), oraz `{{process.env.X}}` do wciągania systemowych env vars (kluczowe dla sekretów poza repo). Dla naszego `{env.x}`: to nowa, prosta składnia — najbliżej Bruno; warto zaprojektować jednoznaczny namespacing (`{{env.X}}`, `{{secret.X}}`, `{{$dynamic}}`) od początku."
+          },
+          {
+            "title": "(d) Edge-case'y interpolacji, które trzeba zaprojektować z góry: escapowanie, nesting, kolejność rozwijania, template injection",
+            "detail": "ESCAPOWANIE: cudzysłowy w wartościach łamią JSON w body — Insomnia ma udokumentowany bug ('Quotes in parameters for template-tags are not escaped' → cały JSON body staje się nieprawidłowy); Nunjucks wymaga jawnego `| escape` / autoescape. Nasza apka musi kontekstowo escapować: inaczej w URL (percent-encode), inaczej w JSON body (JSON-string escape), inaczej w nagłówku. NESTING: zmienna wskazująca na zmienną (`{{base}}` = `{{host}}/api`) — trzeba iteracyjnego rozwijania z limitem głębokości i detekcją cykli (inaczej pętla nieskończona). KOLEJNOŚĆ: dynamiczne (`{{$guid}}`) generują się PRZY wysyłce (nie cache'ują między polami, chyba że przypiszesz do zmiennej) — Postman: `pm.variables.replaceIn` żeby ustabilizować tę samą wartość w kilku miejscach. BEZPIECZEŃSTWO SZABLONÓW: KRYTYCZNE — Insomnia miała CVE (2025) na template injection przez Nunjucks ('improper handling of user-controlled input' → arbitrary code execution). Wniosek dla nas: NIE dawać usera pełnego Turing-zupełnego silnika szablonów (Nunjucks/Handlebars z dostępem do globali); użyć zamkniętej, niewykonywalnej substytucji (prosty parser `{{namespace.key}}` + zamknięty rejestr funkcji dynamicznych), bez eval, bez dostępu do process/fs z poziomu szablonu. To jednocześnie prostsze i bezpieczniejsze niż Nunjucks."
+          }
+        ],
+        "recommendations": [
+          "STACK MVP (rekomendacja): Tauri v2 (Rust core + WKWebView) jako shell — najlepszy stosunek lekkości (2-10 MB, ~50 MB RAM, szybki start) do możliwości, a macOS to najmocniejsza platforma Tauri. Frontend w webview: React/Svelte + CodeMirror 6 z cm6-graphql do edytora zapytań i GraphQL autocomplete.",
+          "SILNIK HTTP: linkować libcurl przez Rust (crate `curl` dla kontroli 1:1 nad opcjami, opcjonalnie `isahc` dla ergonomii async) ZAMIAST shell-outu do binarki curl. Zyskujesz: streaming/progress/mTLS/cookies/HTTP-2 natywnie w jednym API, brak problemu 'dwóch strumieni' z `%{json}`, brak ryzyka argument-injection, brak tarć z notaryzacją sidecara. Zachowaj funkcję 'Copy as cURL' (generuj równoważną komendę curl do schowka) — to daje 'curl pod maską' UX bez wad shell-outu.",
+          "JEŚLI wymóg 'dosłownie binarka curl pod maską' jest twardy: shell-out ale (1) tylko przez tablicę argów (std::process::Command, nigdy /bin/sh), (2) waliduj URL zaczyna się od http(s):// i żadna interpolowana wartość nie zaczyna się od `-`/`@`, (3) użyj `--data-raw` nie `--data`, (4) `-w '%{json}'` na osobny deskryptor + `-D` nagłówki + `-o` body, i licz się z notaryzacją sidecara na macOS.",
+          "SECRETY: macOS Keychain przez `tauri-plugin-keyring` (crate `keyring`). NIE używać `tauri-plugin-stronghold` (deprecated w v3). Sekrety fizycznie w Keychain, w plikach kolekcji tylko referencje `{{secret.X}}`; pliki środowiskowe z wartościami do `.gitignore`. Oznaczaj `secret:true` → maskuj w UI.",
+          "INTERPOLACJA: zaprojektuj WŁASNY, zamknięty (nie-Turing-zupełny) silnik substytucji `{{namespace.key}}` z namespace'ami `env.` / `secret.` / `$dynamic` — NIE osadzaj Nunjucks/Handlebars (Insomnia miała CVE na template injection). Wymagania: kontekstowe escapowanie (URL vs JSON vs header), iteracyjne rozwijanie nestingu z limitem i detekcją cykli, zamknięty rejestr funkcji dynamicznych ($randomUUID/$timestamp/$randomInt via jedna lib typu faker), precedencja scope global→collection→environment→local.",
+          "GraphQL EXPLORER: standardowy introspection query → `buildClientSchema` (graphql-js) → schema karmi cm6-graphql (autocomplete/lint) ORAZ GUI-owe drzewo pól (wzorzec GraphiQL Explorer: klik w pole = generacja zapytania). Obsłuż fallback gdy introspekcja wyłączona (ręczne wklejenie SDL).",
+          "Rozważ też ścieżkę natywną SwiftUI TYLKO jeśli macOS-only na zawsze i zależy Ci maksymalnie na integracji/Keychain — ale i tak potrzebujesz WKWebView na edytor, więc przewaga topnieje; Tauri daje opcję cross-platform w przyszłości niemal za darmo."
+        ],
+        "sources": [
+          "https://daniel.haxx.se/blog/2020/03/17/curl-write-out-json/",
+          "https://curl.se/docs/manpage.html",
+          "https://github.com/alexcrichton/curl-rust",
+          "https://crates.io/crates/curl",
+          "https://lib.rs/crates/isahc",
+          "https://github.com/JCMais/node-libcurl",
+          "https://www.npmjs.com/package/@getinsomnia/node-libcurl",
+          "https://curl.se/mail/lib-2024-11/0031.html",
+          "https://swiftpackageregistry.com/vzsg/Curly",
+          "https://rustify.rs/articles/rust-tauri-vs-electron-2026",
+          "https://www.pkgpulse.com/guides/electron-vs-tauri-2026",
+          "https://www.gethopp.app/blog/tauri-vs-electron",
+          "https://v2.tauri.app/develop/sidecar/",
+          "https://github.com/tauri-apps/tauri/issues/11992",
+          "https://www.pkgpulse.com/guides/monaco-editor-vs-codemirror-6-vs-sandpack-in-browser-2026",
+          "https://agenthicks.com/research/codemirror-vs-monaco-editor-comparison",
+          "https://graphql.org/learn/introspection/",
+          "https://www.contentful.com/blog/graphql-introspection-queries/",
+          "https://github.com/HuakunShen/tauri-plugin-keyring",
+          "https://v2.tauri.app/plugin/stronghold/",
+          "https://github.com/orgs/tauri-apps/discussions/7846",
+          "https://learning.postman.com/docs/tests-and-scripts/write-scripts/variables-list",
+          "https://learning.postman.com/docs/use/send-requests/variables/variables",
+          "https://developer.konghq.com/insomnia/template-tags/",
+          "https://docs.usebruno.com/testing/script/dynamic-variables",
+          "https://bruno-docs.vercel.app/variables/interpolation",
+          "https://github.com/Kong/insomnia/issues/6204",
+          "https://tantosec.com/blog/2025/06/insomnia-api-client-template-injection/",
+          "https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html",
+          "https://hackerone.com/reports/3669305",
+          "https://matklad.github.io/2021/07/30/shell-injection.html"
+        ],
+        "embeddable_components": [
+          "Tauri v2 (Rust core + WKWebView) jako shell aplikacji macOS",
+          "CodeMirror 6 + cm6-graphql jako edytor zapytań z GraphQL autocomplete",
+          "libcurl przez Rust crate `curl`/`isahc` jako silnik HTTP (zamiast shell-out)",
+          "Funkcja 'Copy as cURL' generująca równoważną komendę",
+          "tauri-plugin-keyring (crate keyring) → macOS Keychain dla secretów",
+          "Własny zamknięty silnik interpolacji {{env.x}}/{{secret.x}}/{{$dynamic}} z kontekstowym escapowaniem",
+          "GraphQL introspection → buildClientSchema → GUI explorer (drzewo pól jak GraphiQL Explorer)",
+          "Rejestr funkcji dynamicznych $randomUUID/$timestamp/$randomInt (faker.js)",
+          "curl --write-out %{json} do metryk (jeśli shell-out) na osobnym deskryptorze"
+        ]
+      }
+    ],
+    "critic": {
+      "missing": [
+        "COOKIES / cookie jar: research nie pokrywa zarządzania ciasteczkami (Set-Cookie -> cookie jar -> automatyczne dosyłanie, per-env/per-domain jar, podgląd/edycja jar). To rdzeń klienta API (login-flow, sesje). curl ma -c/-b i libcurl cookie engine — trzeba to zaprojektować (persystencja, izolacja per środowisko, secure/httpOnly, wygaszanie).",
+        "REDIRECTY (3xx): brak decyzji o -L/--location, max-redirs, zachowaniu metody i nagłówków przy 30x (301/302/307/308), strip Authorization przy cross-host redirect (bezpieczeństwo), pokazaniu łańcucha przekierowań w timeline. To domyślne zachowanie każdego requestu.",
+        "FILE UPLOAD / multipart/form-data i x-www-form-urlencoded: całkowicie pominięte. Klient API musi wspierać multipart (-F, w tym pliki z dysku), raw body, form-urlencoded, binary body. Interpolacja {env.x} w polach formularza + wskazanie pliku (@path) to must-have; zawartość binarna + duże pliki komplikują silnik.",
+        "PROXY: research wspomina proxy tylko marginalnie (Bruno/libcurl); brak decyzji o system proxy vs manual vs PAC, honorowaniu HTTP(S)_PROXY/NO_PROXY, uwierzytelnianiu proxy, i debugowaniu MITM/korporacyjnych proxy. curl to daje natywnie — ale UX/UI trzeba zaprojektować.",
+        "CERTYFIKATY / TLS: mTLS (client cert) jest wzmiankowane, ale brak: opcji 'ignoruj błąd certyfikatu' (-k/--insecure) z jawnym ostrzeżeniem, custom CA bundle (--cacert), pinning, self-signed dla dev, wybór wersji TLS/cipher, weryfikacja hosta. Krytyczne przy testach dev/staging z self-signed.",
+        "TIMEOUTY / RETRY / anulowanie: brak --connect-timeout / --max-time, retry z backoff (--retry), anulowania trwającego requestu (abort), oraz keep-alive/connection reuse. Podstawa UX niezawodnościowego.",
+        "WYDAJNOŚĆ DUŻYCH ODPOWIEDZI: pominięte streaming/truncation. Duże/nieskończone odpowiedzi (SSE, chunked, wielo-MB JSON) zabijają viewer, jeśli renderowany w całości w webview. Potrzeba: streaming do pliku, limit podglądu, wirtualizacja, gzip/br decompression (--compressed), leniwe formatowanie JSON.",
+        "IMPORT Z POSTMANA — głębia i pułapki: research mówi 'import z Postman/OpenAPI/HAR' jako tabelka, ale nie analizuje realiów: Postman Collection v2.1 vs v3, translacja skryptów pm.* (nieprzenośne!), zmienne {{var}} vs nasz {env.x}, auth-typy 1:1, environment exports (initial vs current). To decyduje o adopcji użytkowników.",
+        "HISTORIA / PONAWIANIE / DIFF: brak modelu historii requestów (per-request response history jest u konkurentów), replay z historii, i porównywania odpowiedzi (diff dwóch runów) — kluczowe dla debugowania API.",
+        "OBSERWABILNOŚĆ / TIMELINE: curl -v/--trace daje surowy log; research wspomina 'Timeline za darmo', ale nie projektuje: podział request/response headers, TLS handshake, timing waterfall (DNS/connect/TLS/TTFB/download z %{json}), rozmiary, HTTP/2 vs 3. To realny wyróżnik przy silniku curl.",
+        "AUTH TYPY jako pełny plan: research wylicza typy u konkurentów, ale nie ustala NASZEGO zakresu MVP dla auth (Bearer/Basic/API-Key na start? OAuth2 flow z callbackiem = duży moduł; AWS SigV4 = istotny bo backend usera na API GW IAM). Brak decyzji = ryzyko scope-creep lub braku kluczowego SigV4.",
+        "PARAMETRY zapytania / edytor URL: brak UX rozbijania query params na tabelę key/value (enable/disable per param), path variables (:id / {id}), URL-encoding zasady, i bulk-edit. Codzienny rdzeń klienta.",
+        "PROTOKOŁY POZA HTTP: WebSocket / SSE / gRPC są u Yaak/Insomnia/Altair, ale research nie rozstrzyga czy wchodzą w nasz zakres. curl NIE obsłuży WS/gRPC — potrzebny osobny transport (jak zauważono dla GraphQL subscriptions). Trzeba to jawnie wyciąć lub zaplanować.",
+        "TESTY / ASERCJE / SKRYPTY: konkurenci mają pre/post-scripts + asercje (Chai) + CLI runner. Research to opisuje u nich, ale nie decyduje czy budujemy sandbox skryptów (i jaki — ryzyko CVE template-injection z Insomnii dotyczy też skryptów JS/eval). To wpływa na architekturę bezpieczeństwa.",
+        "BEZPIECZEŃSTWO EKSFILTRACJI SEKRETÓW: pominięto 'allowed domains' dla NASZYCH sekretów (Postman ma), maskowanie sekretów w Copy-as-curl / timeline / historii / eksporcie, oraz ryzyko wycieku tokenu w komendzie curl kopiowanej do schowka (pełny sekret w plaintext).",
+        "OFFLINE/UPDATE/DYSTRYBUCJA macOS: brak planu podpisu/notaryzacji aplikacji i (jeśli sidecar) binarki curl, auto-update (Sparkle), Gatekeeper, oraz wersji libcurl (systemowa vs bundlowana — HTTP/3/QUIC nie jest domyślne). To ryzyko wydania na macOS.",
+        "GRPC reflection / kodowanie: jeśli gRPC w grze — brak analizy server reflection (odpowiednik introspekcji GraphQL) i proto/.proto importu; curl gRPC nie zrobi.",
+        "COLLABORATION / GIT bez sekretów: model 'kolekcje w gicie, sekrety poza' jest wzmiankowany (Bruno), ale brak decyzji o NASZYM formacie plików (diff-friendly), merge-konfliktach i tym co ląduje w repo vs Keychain."
+      ],
+      "corrections": [
+        "'Newman NIE jest kompatybilny z Collection format v3' — sformułowane zbyt kategorycznie/trwale. Postman CLI to rekomendowana ścieżka dla nowych funkcji, ale kompatybilność Newman/v3 zmienia się; traktuj jako 'do zweryfikowania na bieżąco', nie fakt na zawsze. Dla NAS i tak nieistotne (nie budujemy na Newman).",
+        "'--data-raw ... nie interpretuje @ jako pliku' — mylące. To --data / -d --> @ = plik i strip newline. --data-raw wysyła treść dosłownie (bez @-magic). Zdanie w researchu jest w większości OK, ale w jednym miejscu sugeruje, że problem @ dotyczy --data-raw — dokładnie odwrotnie. Warto doprecyzować, bo to bezpośrednio dotyczy naszej sanityzacji interpolacji.",
+        "'curl --write-out %{json} nie zawiera nagłówków odpowiedzi' — prawda dla ciała/nagłówków jako takich, ALE nowsze curl (7.83+) mają %{header_json} zwracające nagłówki odpowiedzi w JSON. Research pomija tę opcję, przez co przesadza z 'problemem dwóch strumieni'. Nadal potrzebny osobny kanał na body, ale nagłówki można wziąć z header_json.",
+        "'Insomnium jest martwy' — w większości trafne (maintenance-only od 2024), ale jako referencja UX/kod nadal użyteczny; określenie 'praktycznie martwy konkurent' jest OK, natomiast 'brak poprawek bezpieczeństwa' to argument PRZECIW używaniu go jako biblioteki, nie tylko jako referencji — research nie wyciąga tego wniosku wprost.",
+        "'keytar zarchiwizowany' + 'stronghold deprecated' — oba prawdziwe kierunkowo, ale to obszar szybko-zmienny (2025/2026). Rekomendacja (keyring crate -> Keychain / Electron safeStorage) jest słuszna; jednak status bibliotek należy potwierdzić na dzień startu implementacji, nie przyjmować z researchu.",
+        "'HTTP/3 zależy od backendu QUIC w libcurl (nie domyślne)' — prawda, ale research nie mówi jasno, że systemowy libcurl na macOS (LibreSSL/Secure Transport) często NIE ma HTTP/3 ani nawet HTTP/2 w pełnej krasie; trzeba bundlować własny libcurl. To wzmacnia argument za linkowaniem własnego libcurl, nie systemowego — research to sugeruje słabo.",
+        "'GraphQL subscriptions działają po WebSocket' (sekcja Postman) — OK, ale to sprzeczne z naszą architekturą 'silnik curl', co research łapie dopiero w innej sekcji. Spójnie: subskrypcje = osobny moduł WS/SSE, NIE curl. Warto ujednolicić, bo w kilku miejscach 'GraphQL w kliencie' brzmi jakby curl obsługiwał subskrypcje.",
+        "'Local Vault Postmana — na wszystkich planach, ale sekrety giną po wylogowaniu' — to prawda, ale research w jednym miejscu chwali go jako wzorzec, a w innym słusznie krytykuje; dla NAS wniosek jest jednoznaczny (Keychain, przetrwanie restartu) — nie ma sprzeczności, tylko warto to skonsolidować, by nie sugerować, że Local Vault to dobry wzorzec persystencji (nie jest)."
+      ],
+      "mvp_recommendation": "MVP v1 = 'niezawodny, transparentny, lokalny klient REST+GraphQL na curl, którego NIE da się zrobić w Postmanie bez konta'. MUSI WEJŚĆ: (1) Pełny cykl requestu HTTP: metody, edytor URL z query-params (tabela enable/disable) i path-vars, nagłówki (tabela), body (raw/JSON, form-urlencoded, multipart z uploadem pliku), przez libcurl linkowany w Rust (NIE shell-out, NIE systemowy libcurl — bundlowany dla HTTP/2). (2) Silnik z domyślną obsługą: cookie jar per-środowisko, redirecty (-L, ze STRIP Authorization cross-host), --compressed, timeouty+anulowanie, timing waterfall z %{json}+%{header_json}, tryb --insecure z jawnym ostrzeżeniem + custom CA. (3) Środowiska base+sub z jednoklikowym przełącznikiem + quick-look; interpolacja {{env.x}}/{{secret.x}}/{{$dynamic}} JEDNOLICIE w URL/headers/body/params/GraphQL-variables (zamknięty, nie-Turing silnik — NIE Nunjucks, ze względu na CVE) z kontekstowym escapowaniem i detekcją cykli. (4) Sekrety w macOS Keychain (przetrwanie restartu, bez konta), maskowane w UI/timeline/eksporcie; kolekcje jako pliki diff-friendly pod git (wartości sekretów poza repo). (5) Auth MVP: No-Auth, Bearer, Basic, API-Key, ORAZ AWS SigV4 (bo backend usera to API GW/IAM — to realny powód istnienia narzędzia). (6) GraphQL: auto-introspekcja po URL (z auth/nagłówkami) + JAWNY 'Refresh schema' + fallback SDL, edytor CodeMirror6+cm6-graphql (lżejszy pod Tauri niż Monaco) z autocomplete/lint, @graphiql/plugin-explorer (checkbox-builder query/mutation/subscription), panele Variables(JSON)+Headers. (7) Copy-as-curl 1:1 (z MASKOWANIEM sekretów) + Import-curl. (8) Historia requestów z replay. SHELL: Tauri v2 + WKWebView. ŚWIADOMIE WYCIĄĆ z v1: OAuth2 pełne flow (post-MVP — duży moduł z callbackiem), WebSocket/SSE/gRPC i GraphQL subscriptions (osobny transport, nie curl), skrypty pre/post + asercje + CLI runner (post-MVP), mocki/monitory/docs/AI/Flows (to bloat, którego user nienawidzi w Postmanie), współpraca chmurowa, OpenAPI/HAR import (po curl+Postman import), proxy-PAC, chained requests, dynamic-value-chips (nakładka UX na tekstowe {{}} — później). Import z Postmana OGRANICZ w v1 do: struktura kolekcji + requesty + nagłówki + auth-typy + zmienne env; JAWNIE zrzuć skrypty pm.* jako nieprzenośne (pokaż ostrzeżenie), bo próba ich tłumaczenia to studnia bez dna.",
+      "differentiators": [
+        "WIERNOŚĆ curl 1:1: jedyny desktopowy klient, gdzie wykonany request == komenda 'Copy as curl' (bo silnikiem JEST libcurl). Bruno=Axios, Yaak=reqwest, HTTPie/Hoppscotch=fetch — u nich 'copy as curl' to aproksymacja. Nasza jest dosłowna i debugowalna w terminalu. To techniczny I marketingowy hak dla devów backendowych.",
+        "TRANSPARENTNY TIMELINE 'jak curl -v' za darmo z silnika: pełny waterfall DNS/connect/TLS/TTFB/download (%{json}), surowe nagłówki, wynik weryfikacji TLS, HTTP/2 vs 3 — poziom obserwowalności, którego Postman/Insomnia nie dają out-of-the-box. Sprzedaje się jako 'API client dla ludzi, którzy i tak by odpalili curl -v'.",
+        "PRAWDZIWIE LOKALNY, BEZ KONTA, BEZ TELEMETRII na ŻYWO: rynek udowodnił popyt (drama Insomnia 2023, wzrost Bruno/Yaak, martwy Insomnium). Wygrywamy tam, gdzie Postman wymusza konto do samych kolekcji/środowisk, a Insomnium jest martwy — dostarczając ŻYWY, dopieszczony, lokalny klient z sekretami w Keychain (przetrwają restart — czego Postman Local Vault NIE robi).",
+        "LEKKOŚĆ macOS-native (Tauri+WKWebView): 2–10 MB binarki, ~50 MB RAM, szybki start — bezpośredni cios w największy ból Postmana (200–500 MB RAM, 10–15 s start, Electron). 'Otwiera się zanim Postman pokaże splash'.",
+        "GraphQL bez tarcia: auto-introspekcja + widoczny, niezawodny 'Refresh schema' (najczęstszy ból Insomnii to stale schema) + TWARDY fallback SDL dla prod z wyłączoną introspekcją. Interpolacja {env.x} DZIAŁA W CIELE QUERY (czego Insomnia NIE potrafi — tam tylko variables). To konkretna, mierzalna przewaga funkcjonalna.",
+        "SigV4/AWS-first: natywne podpisywanie SigV4 + profile z ~/.aws + Copy-as-curl działający z podpisanym requestem czyni nas najlepszym lokalnym klientem do testowania API Gateway/IAM (nisza, w której Postman jest ciężki, a Bruno/Yaak słabsze) — i to jest DOKŁADNIE stack backendu, na którym zbudowano to narzędzie.",
+        "GIT-NATIVE bez wycieku sekretów: kolekcje jako czytelne pliki diff-friendly (wzorzec Bruno) + split nazwa-w-repo/wartość-w-Keychain + auto-strip przy eksporcie i maskowanie w Copy-as-curl — rozwiązuje dylemat 'kolekcje w PR vs sekrety poza repo' czyściej niż Postman (chmura) i bezpieczniej niż domyślny Insomnia Git Sync (który nie wymusza ochrony sekretów)."
+      ]
+    }
+  }
+}
