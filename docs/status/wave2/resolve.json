@@ -1,0 +1,36 @@
+{
+  "task": "resolve",
+  "branch": "feat/m3-resolve",
+  "worktree": "/tmp/lok-resolve",
+  "status": "done",
+  "summary": "resolve+send pipeline gluing interpolation, secrets, SigV4, engine and history",
+  "files": {
+    "added": ["src-tauri/src/resolve.rs"],
+    "modified": ["src-tauri/src/lib.rs"]
+  },
+  "commands": [
+    "resolve_and_send(request: StoredRequest, environment_id: Option<String>) -> Result<ResponseData, String>",
+    "resolve_preview_curl(request: StoredRequest, environment_id: Option<String>) -> Result<String, String>"
+  ],
+  "pure_functions": [
+    "flatten_env(envs, id) -> HashMap<String, String>",
+    "build_render_ctx(envs, id, flat, redact) -> Result<RenderCtx, String>",
+    "resolve_spec(request, ctx, redact) -> Result<RequestSpec, String>"
+  ],
+  "design_notes": [
+    "Env inheritance flattened base->sub (target wins); inheritance cycles broken by a visited set.",
+    "Secrets fetched per-name from Keychain via secrets::secret_get; redact mode substitutes ••• and never reads the Keychain (used by preview_curl).",
+    "URL structure rendered as RawText so an interpolated host:port is not corrupted; appended query params percent-encoded once; RequestSpec.query_params left empty so the engine does not double-encode.",
+    "Headers -> Header target (rejects CRLF), JSON body -> JsonBody target, other raw bodies -> RawText, auth material -> RawText.",
+    "SigV4 signed over the resolved spec, headers folded in, then auth downgraded to None so the engine does not re-sign (avoids resolving credentials twice).",
+    "History persisted by the engine only; this module never touches the history table.",
+    "preview_curl returns a readable error when curlgen::to_curl is still a stub ('not implemented')."
+  ],
+  "verification": {
+    "cargo_fmt": "clean",
+    "cargo_clippy_all_targets_deny_warnings": "clean",
+    "cargo_test": "116 passed / 2 ignored (Keychain) lib + 14 integration; 0 failed",
+    "resolve_tests_added": 26,
+    "e2e": "resolve_and_send tested against a local std::net TcpListener server with {{env.host}} in the URL (offline, loopback)"
+  }
+}

@@ -3,6 +3,7 @@ pub mod engine;
 pub mod importers;
 pub mod interp;
 pub mod models;
+pub mod resolve;
 pub mod secrets;
 pub mod sigv4;
 pub mod store;
@@ -18,6 +19,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             engine::execute_request,
             engine::cancel_request,
+            resolve::resolve_and_send,
+            resolve::resolve_preview_curl,
             interp::preview_template,
             store::list_collections,
             store::upsert_collection,
