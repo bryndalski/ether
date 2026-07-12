@@ -1,0 +1,27 @@
+{
+  "task": "importers",
+  "branch": "feat/m6-importers",
+  "scope": ["src-tauri/src/importers.rs"],
+  "status": "done",
+  "commands_implemented": [
+    "import_postman",
+    "import_insomnia",
+    "import_har",
+    "import_http_file",
+    "scan_shell_history_curls"
+  ],
+  "design": {
+    "core": "each importer is a pub(crate) fn over a literal string (JSON/text/history); tauri wrappers only adapt io/errors so tests never touch HOME or network",
+    "ids": "uuid v4 via uuid crate",
+    "postman": "collection v2.1; folders->nested Collection(parent_id); item->StoredRequest; raw/host+path url; headers; raw/urlencoded/formdata->multipart body; bearer/basic/apikey auth; {{var}} preserved; pm.* scripts NOT translated, one warning per request; environment+globals->Environment",
+    "insomnia": "export v4; request_group->Collection; request->StoredRequest; environment->Environment; {{ _.var }}->{{env.var}} (utf8-safe rewrite); complex {% ... %} tags left verbatim with one warning",
+    "har": "log.entries[].request->StoredRequest grouped by host; denoise skips image/css/font/js mime (warning with count); Authorization/Cookie -> secret warning per host",
+    "http_file": "JetBrains/.http dialect; ### block split; METHOD URL line; headers to blank line then body; # // comments; VS Code @name; {{v}} preserved",
+    "shell_history": "~/.zsh_history (strip ': <ts>:<dur>;' prefix) + ~/.bash_history; filter curl lines (also after VAR=val / sudo); dedup; newest first; limit"
+  },
+  "verification": {
+    "fmt": "clean",
+    "clippy": "clean (-D warnings)",
+    "tests": "103 unit + 14 integration passed, 2 ignored (keychain); 11 new importer tests all offline"
+  }
+}
