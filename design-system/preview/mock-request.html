@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lokówka — Request Workbench</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* App-shell — 100dvh, no scrollable window; only panels scroll. */
+  html,body{overflow:hidden;height:100dvh}
+  body{background-image:var(--lok-gradient-ambient),none}
+  .app{display:grid;grid-template-rows:var(--lok-titlebar-h) 1fr var(--lok-statusbar-h);height:100dvh}
+
+  /* Title bar (macOS traffic lights padded left) */
+  .titlebar{display:flex;align-items:center;gap:var(--lok-space-4);padding:0 var(--lok-space-4);
+    background:var(--lok-bg-app);border-bottom:1px solid var(--lok-border-subtle);-webkit-app-region:drag}
+  .traffic{display:flex;gap:8px;padding-right:var(--lok-space-3)}
+  .traffic i{width:12px;height:12px;border-radius:999px;display:block}
+  .traffic .r{background:#ff5f57} .traffic .y{background:#febc2e} .traffic .g{background:#28c840}
+  .titlebar .doc{display:flex;align-items:center;gap:8px;font-size:var(--lok-fs-xs);color:var(--lok-text-secondary)}
+  .titlebar .doc .method{font-size:var(--lok-fs-2xs)}
+  .titlebar .spacer{flex:1}
+  .titlebar .env-wrap{-webkit-app-region:no-drag}
+
+  /* Main split: sidebar | editor+response */
+  .main{display:grid;grid-template-columns:var(--lok-sidebar-w) 1fr;min-height:0}
+
+  /* Sidebar */
+  .sidebar{background:var(--lok-bg-sidebar);border-right:1px solid var(--lok-border-subtle);display:flex;flex-direction:column;min-height:0}
+  .side-head{display:flex;align-items:center;gap:var(--lok-space-2);padding:var(--lok-space-3)}
+  .side-search{flex:1;position:relative}
+  .side-search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--lok-text-tertiary)}
+  .side-search input{width:100%;height:28px;padding:0 var(--lok-space-3) 0 30px;border-radius:var(--lok-radius-sm);
+    background:var(--lok-bg-input);border:1px solid var(--lok-border-default);color:var(--lok-text-primary);font-size:var(--lok-fs-xs)}
+  .side-search input:focus{outline:none;border-color:var(--lok-border-focus);box-shadow:0 0 0 3px var(--lok-focus-ring)}
+  .icon-btn{width:28px;height:28px;display:grid;place-items:center;border-radius:var(--lok-radius-sm);
+    background:var(--lok-bg-raised);border:1px solid var(--lok-border-default);color:var(--lok-text-secondary);cursor:pointer}
+  .icon-btn:hover{background:var(--lok-bg-active);color:var(--lok-text-primary)}
+  .icon-btn svg{width:15px;height:15px}
+  .tree{flex:1;overflow:auto;padding:0 var(--lok-space-2) var(--lok-space-3)}
+  .tree-group>.row{color:var(--lok-text-secondary);font-weight:var(--lok-fw-semibold)}
+  .tree .row{display:flex;align-items:center;gap:8px;height:28px;padding:0 var(--lok-space-2);border-radius:var(--lok-radius-sm);
+    font-size:var(--lok-fs-xs);cursor:pointer;color:var(--lok-text-secondary)}
+  .tree .row:hover{background:var(--lok-bg-hover)}
+  .tree .row.active{background:var(--lok-bg-selected);color:var(--lok-text-primary)}
+  .tree .row.active::before{content:"";position:absolute;left:0;width:2px;height:16px;border-radius:2px;background:var(--lok-gradient-heat)}
+  .tree .row{position:relative}
+  .tree .chev{width:13px;height:13px;color:var(--lok-text-tertiary);flex:none}
+  .tree .indent{padding-left:var(--lok-space-6)}
+  .tree .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tree .folder svg{width:14px;height:14px;color:var(--lok-text-tertiary)}
+
+  /* Editor column */
+  .editor{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--lok-bg-surface)}
+  .toolbar{display:flex;align-items:center;gap:var(--lok-space-2);height:var(--lok-toolbar-h);
+    padding:0 var(--lok-space-4);border-bottom:1px solid var(--lok-border-subtle)}
+  .method-select{display:flex;align-items:center;gap:6px;height:32px;padding:0 var(--lok-space-3);border-radius:var(--lok-radius-sm);
+    background:var(--lok-bg-raised);border:1px solid var(--lok-border-default);cursor:pointer}
+  .method-select .method{font-size:var(--lok-fs-xs)}
+  .method-select svg{width:13px;height:13px;color:var(--lok-text-tertiary)}
+  .url-field{flex:1;height:32px;padding:0 var(--lok-space-3);border-radius:var(--lok-radius-sm);
+    background:var(--lok-bg-input);border:1px solid var(--lok-border-default);color:var(--lok-text-primary);
+    font-family:var(--lok-font-mono);font-size:var(--lok-fs-md)}
+  .url-field:focus{outline:none;border-color:var(--lok-border-focus);box-shadow:0 0 0 3px var(--lok-focus-ring)}
+  .url-field .var{color:var(--lok-heat-300)}
+
+  .req-tabs{display:flex;align-items:center;gap:var(--lok-space-1);height:var(--lok-tabbar-h);padding:0 var(--lok-space-4);
+    border-bottom:1px solid var(--lok-border-subtle)}
+  .pane{flex:1;overflow:auto;min-height:0}
+  .pane-inner{padding:var(--lok-space-4)}
+
+  /* KV editor rows */
+  .kv{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:var(--lok-space-2);align-items:center;padding:2px 0}
+  .kv input{height:28px;padding:0 var(--lok-space-2);border-radius:var(--lok-radius-sm);background:var(--lok-bg-input);
+    border:1px solid var(--lok-border-subtle);color:var(--lok-text-primary);font-family:var(--lok-font-mono);font-size:var(--lok-fs-xs)}
+  .kv input:focus{outline:none;border-color:var(--lok-border-focus);box-shadow:0 0 0 2px var(--lok-focus-ring)}
+  .kv .k{color:var(--lok-syn-key)}
+  .kv .rm{width:24px;height:24px;display:grid;place-items:center;border-radius:var(--lok-radius-sm);
+    color:var(--lok-text-tertiary);cursor:pointer;background:transparent;border:none}
+  .kv .rm:hover{color:var(--lok-status-danger);background:var(--lok-status-danger-bg)}
+  .kv .rm svg{width:13px;height:13px}
+  .kv-head{display:grid;grid-template-columns:26px 1fr 1fr 28px;gap:var(--lok-space-2);
+    font-size:var(--lok-fs-2xs);text-transform:uppercase;letter-spacing:var(--lok-tracking-wide);
+    color:var(--lok-text-tertiary);padding-bottom:var(--lok-space-2);margin-bottom:var(--lok-space-1);border-bottom:1px solid var(--lok-border-subtle)}
+
+  /* Response dock (bottom) */
+  .response{border-top:1px solid var(--lok-border-default);background:var(--lok-bg-code);
+    display:flex;flex-direction:column;height:var(--lok-response-h,44%);min-height:220px;
+    animation:dock-rise var(--lok-dur-slow) var(--lok-ease-decelerate) both}
+  @keyframes dock-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .resp-head{display:flex;align-items:center;gap:var(--lok-space-3);padding:var(--lok-space-2) var(--lok-space-4);
+    border-bottom:1px solid var(--lok-border-subtle);background:var(--lok-bg-surface)}
+  .resp-status{display:flex;align-items:baseline;gap:var(--lok-space-2)}
+  .resp-status .code{font-family:var(--lok-font-mono);font-size:var(--lok-fs-lg);font-weight:var(--lok-fw-bold);
+    color:var(--lok-status-success);font-variant-numeric:tabular-nums;animation:pop var(--lok-dur-slow) var(--lok-ease-spring) both}
+  @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.05)}100%{transform:scale(1)}}
+  .resp-status .txt{font-size:var(--lok-fs-xs);color:var(--lok-text-secondary)}
+  .resp-meta{display:flex;gap:var(--lok-space-4);margin-left:auto;font-family:var(--lok-font-mono);font-size:var(--lok-fs-xs);
+    font-variant-numeric:tabular-nums;color:var(--lok-text-secondary)}
+  .resp-meta b{color:var(--lok-text-primary);font-weight:var(--lok-fw-semibold)}
+  .resp-tabs{display:flex;gap:var(--lok-space-1);padding:0 var(--lok-space-4);border-bottom:1px solid var(--lok-border-subtle);background:var(--lok-bg-surface)}
+  .resp-body{flex:1;overflow:auto;padding:var(--lok-space-4)}
+  .resp-body pre{font-family:var(--lok-font-mono);font-size:var(--lok-fs-sm);line-height:var(--lok-lh-code);white-space:pre;tab-size:2}
+  .ln{color:var(--lok-text-disabled);user-select:none;display:inline-block;width:2.2em;text-align:right;margin-right:var(--lok-space-3)}
+
+  /* status bar */
+  .statusbar{display:flex;align-items:center;gap:var(--lok-space-4);padding:0 var(--lok-space-4);
+    background:var(--lok-bg-sidebar);border-top:1px solid var(--lok-border-subtle);font-size:var(--lok-fs-2xs);color:var(--lok-text-tertiary)}
+  .statusbar .health{display:flex;align-items:center;gap:6px}
+  .statusbar .health .dot{width:6px;height:6px;border-radius:999px;background:var(--lok-status-success)}
+  .statusbar .spacer{flex:1}
+  .statusbar .mono{font-family:var(--lok-font-mono);font-variant-numeric:tabular-nums}
+
+  .curl-log{font-family:var(--lok-font-mono);font-size:var(--lok-fs-xs);line-height:1.6;white-space:pre-wrap}
+  .curl-log .gt{color:var(--lok-status-info)} .curl-log .lt{color:var(--lok-heat-400)}
+  .curl-log .star{color:var(--lok-text-tertiary)} .curl-log .redact{color:var(--lok-text-disabled)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <!-- Titlebar -->
+  <div class="titlebar">
+    <div class="traffic"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="doc"><span class="method get">GET</span><span>Users · List</span></div>
+    <div class="spacer"></div>
+    <div class="env-wrap"><span class="env-pill staging"><span class="dot"></span>staging <svg class="chev"><use href="#i-chev"/></svg></span></div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="side-head">
+        <div class="side-search"><svg><use href="#i-search"/></svg><input placeholder="Search  ⌘K"></div>
+        <button class="icon-btn" title="New request"><svg><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="tree-group">
+          <div class="row"><svg class="chev"><use href="#i-chev"/></svg><span class="folder"><svg><use href="#i-folder"/></svg></span><span class="lbl">Duotio API</span></div>
+          <div class="row indent active"><span class="method get">GET</span><span class="lbl">List users</span></div>
+          <div class="row indent"><span class="method post">POST</span><span class="lbl">Create user</span></div>
+          <div class="row indent"><span class="method patch">PATCH</span><span class="lbl">Update profile</span></div>
+          <div class="row indent"><span class="method delete">DELETE</span><span class="lbl">Remove user</span></div>
+        </div>
+        <div class="tree-group" style="margin-top:6px">
+          <div class="row"><svg class="chevr" style="width:13px;height:13px;color:var(--lok-text-tertiary)"><use href="#i-chevr"/></svg><span class="folder"><svg><use href="#i-folder"/></svg></span><span class="lbl">Auth</span></div>
+        </div>
+        <div class="tree-group" style="margin-top:2px">
+          <div class="row"><svg class="chevr" style="width:13px;height:13px;color:var(--lok-text-tertiary)"><use href="#i-chevr"/></svg><span class="folder"><svg><use href="#i-folder"/></svg></span><span class="lbl">Billing</span></div>
+        </div>
+        <div class="tree-group" style="margin-top:2px">
+          <div class="row"><svg class="chev"><use href="#i-chev"/></svg><span class="folder"><svg><use href="#i-folder"/></svg></span><span class="lbl">Webhooks</span></div>
+          <div class="row indent"><span class="method put">PUT</span><span class="lbl">Register endpoint</span></div>
+          <div class="row indent"><span class="method head">HEAD</span><span class="lbl">Ping</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Editor + response -->
+    <div class="editor">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="method-select"><span class="method get">GET</span><svg><use href="#i-chev"/></svg></div>
+        <div class="url-field" contenteditable="false" style="display:flex;align-items:center">https://api.duotio.com/v1/users?limit=<span class="var">{{env.pageSize}}</span></div>
+        <button class="btn-send"><svg><use href="#i-send"/></svg>Send</button>
+      </div>
+
+      <!-- Request tabs -->
+      <div class="req-tabs">
+        <button class="tab">Params <span class="count">1</span></button>
+        <button class="tab active">Headers <span class="count">4</span></button>
+        <button class="tab">Body</button>
+        <button class="tab">Auth</button>
+        <button class="tab">cURL</button>
+      </div>
+
+      <!-- Request pane -->
+      <div class="pane">
+        <div class="pane-inner">
+          <div class="kv-head"><span></span><span>Header</span><span>Value</span><span></span></div>
+          <div class="kv"><input type="checkbox" checked><input class="k" value="Authorization"><input value="Bearer {{secret.token}}"><button class="rm"><svg><use href="#i-x"/></svg></button></div>
+          <div class="kv"><input type="checkbox" checked><input class="k" value="Content-Type"><input value="application/json"><button class="rm"><svg><use href="#i-x"/></svg></button></div>
+          <div class="kv"><input type="checkbox" checked><input class="k" value="X-Request-Id"><input value="{{$uuid}}"><button class="rm"><svg><use href="#i-x"/></svg></button></div>
+          <div class="kv"><input type="checkbox"><input class="k" value="Accept-Encoding" placeholder="Header"><input value="gzip, br" placeholder="Value"><button class="rm"><svg><use href="#i-x"/></svg></button></div>
+        </div>
+      </div>
+
+      <!-- Response dock -->
+      <div class="response">
+        <div class="resp-head">
+          <div class="resp-status">
+            <span class="code lok-tnums">200</span>
+            <span class="txt">OK</span>
+          </div>
+          <div class="resp-meta">
+            <span>Time <b>148 ms</b></span>
+            <span>Size <b>1.24 KB</b></span>
+            <span>TLS <b>1.3</b></span>
+          </div>
+        </div>
+        <div class="resp-tabs">
+          <button class="tab active">Body</button>
+          <button class="tab">Headers <span class="count">9</span></button>
+          <button class="tab">Timeline</button>
+          <button class="tab">curl -v</button>
+          <button class="tab" style="margin-left:auto"><svg style="width:13px;height:13px"><use href="#i-copy"/></svg></button>
+        </div>
+        <div class="resp-body">
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:var(--lok-space-6)">
+            <!-- JSON pretty -->
+            <pre><span class="tok-punct">{</span>
+  <span class="ln">2</span><span class="tok-key">"data"</span><span class="tok-punct">: [</span>
+  <span class="ln">3</span>  <span class="tok-punct">{</span> <span class="tok-key">"id"</span><span class="tok-punct">:</span> <span class="tok-str">"usr_8Fk2a"</span><span class="tok-punct">,</span> <span class="tok-key">"name"</span><span class="tok-punct">:</span> <span class="tok-str">"Ada Lovelace"</span> <span class="tok-punct">},</span>
+  <span class="ln">4</span>  <span class="tok-punct">{</span> <span class="tok-key">"id"</span><span class="tok-punct">:</span> <span class="tok-str">"usr_3Qm9z"</span><span class="tok-punct">,</span> <span class="tok-key">"name"</span><span class="tok-punct">:</span> <span class="tok-str">"Alan Turing"</span> <span class="tok-punct">}</span>
+  <span class="ln">5</span><span class="tok-punct">],</span>
+  <span class="ln">6</span><span class="tok-key">"total"</span><span class="tok-punct">:</span> <span class="tok-num">2</span><span class="tok-punct">,</span>
+  <span class="ln">7</span><span class="tok-key">"has_more"</span><span class="tok-punct">:</span> <span class="tok-bool">false</span>
+<span class="tok-punct">}</span></pre>
+
+            <!-- Waterfall inline -->
+            <div>
+              <div class="sg-label" style="margin-bottom:var(--lok-space-3)">Timeline · waterfall</div>
+              <div class="wf">
+                <div class="wf-row"><span class="lbl">DNS</span><div class="wf-track"><span class="wf-bar" style="left:0;width:8%;background:var(--lok-phase-dns)"></span></div><span class="ms">11</span></div>
+                <div class="wf-row"><span class="lbl">Connect</span><div class="wf-track"><span class="wf-bar" style="left:8%;width:13%;background:var(--lok-phase-connect)"></span></div><span class="ms">19</span></div>
+                <div class="wf-row"><span class="lbl">TLS</span><div class="wf-track"><span class="wf-bar" style="left:21%;width:19%;background:var(--lok-phase-tls)"></span></div><span class="ms">27</span></div>
+                <div class="wf-row"><span class="lbl">TTFB</span><div class="wf-track"><span class="wf-bar" style="left:40%;width:47%;background:var(--lok-phase-ttfb)"></span></div><span class="ms">69</span></div>
+                <div class="wf-row"><span class="lbl">Download</span><div class="wf-track"><span class="wf-bar" style="left:87%;width:13%;background:var(--lok-phase-download)"></span></div><span class="ms">22</span></div>
+              </div>
+              <div class="wf-legend">
+                <span class="lg"><span class="sw2" style="background:var(--lok-phase-dns)"></span>DNS</span>
+                <span class="lg"><span class="sw2" style="background:var(--lok-phase-connect)"></span>Connect</span>
+                <span class="lg"><span class="sw2" style="background:var(--lok-phase-tls)"></span>TLS</span>
+                <span class="lg"><span class="sw2" style="background:var(--lok-phase-ttfb)"></span>TTFB</span>
+                <span class="lg"><span class="sw2" style="background:var(--lok-phase-download)"></span>Download</span>
+              </div>
+              <div class="sg-label" style="margin:var(--lok-space-5) 0 var(--lok-space-2)">curl -v · secrets redacted</div>
+              <div class="curl-log"><span class="star">*</span> Trying 34.120.11.4:443…
+<span class="star">*</span> TLSv1.3 (OUT), handshake, ClientHello
+<span class="gt">></span> GET /v1/users?limit=25 HTTP/2
+<span class="gt">></span> authorization: Bearer <span class="redact">••••••••••</span>
+<span class="lt">&lt;</span> HTTP/2 200
+<span class="lt">&lt;</span> content-type: application/json</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span class="health"><span class="dot"></span>staging · reachable</span>
+    <span class="mono">200 OK</span>
+    <span class="spacer"></span>
+    <span class="mono">148&nbsp;ms · 1.24&nbsp;KB</span>
+    <span class="mono">libcurl 8.7.1 · HTTP/2 · TLS 1.3</span>
+  </div>
+</div>
+</body>
+</html>

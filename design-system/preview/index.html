@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lokówka — Design System v2 · Styleguide</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Lucide inline symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+</defs></svg>
+
+<header class="sg-topbar">
+  <div class="sg-brand">
+    <span class="flame"><svg width="15" height="15" style="color:#fff"><use href="#i-flame"/></svg></span>
+    <span class="wordmark">Lokówka</span>
+    <span class="sg-sub">Design System v2 · Styleguide</span>
+  </div>
+  <div class="spacer"></div>
+  <div class="theme-toggle" role="group" aria-label="Theme">
+    <button id="t-dark" aria-pressed="true" onclick="setTheme('dark')"><svg><use href="#i-moon"/></svg>Dark</button>
+    <button id="t-light" aria-pressed="false" onclick="setTheme('light')"><svg><use href="#i-sun"/></svg>Light</button>
+  </div>
+</header>
+
+<main class="sg-shell">
+
+  <!-- PHILOSOPHY -->
+  <section class="sg-section" style="margin-top:var(--lok-space-4)">
+    <div class="sg-eyebrow">What makes us distinctive</div>
+    <h2 style="font-size:var(--lok-fs-xl)">A precision instrument, not a dashboard.</h2>
+    <p>Deep OLED floor that reads as empty until something is <em>on</em>. The one thing that glows is the brand — a heat gradient (magenta → red-orange → amber, "a curling iron heating up"), reserved for exactly four things: <strong>Send</strong>, <strong>active / progress</strong>, the <strong>waterfall wait / download</strong> phases, and the <strong>live env accent</strong>. Everything else stays quiet, dense, monospaced-where-it-counts neutral ink. Color always <em>means</em> something — a method, a status, a phase — never decorates.</p>
+  </section>
+
+  <!-- COLORS: surfaces -->
+  <section class="sg-section">
+    <div class="sg-eyebrow">Color</div>
+    <h2>Surfaces — elevation by light</h2>
+    <p>Back → front, surfaces step up in luminance so panels separate on OLED with no border. Hairline borders are a whisper, used only where light alone can't do the job.</p>
+    <div class="sw-grid">
+      <div class="sw"><div class="chip" style="background:var(--lok-bg-app)"></div><div class="meta"><div class="name">bg-app</div><div class="hex lok-mono">#060709</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lok-bg-sidebar)"></div><div class="meta"><div class="name">bg-sidebar</div><div class="hex lok-mono">#0b0d12</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lok-bg-surface)"></div><div class="meta"><div class="name">bg-surface</div><div class="hex lok-mono">#101319</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lok-bg-raised)"></div><div class="meta"><div class="name">bg-raised</div><div class="hex lok-mono">#161a22</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lok-bg-overlay)"></div><div class="meta"><div class="name">bg-overlay</div><div class="hex lok-mono">#1d222c</div></div></div>
+      <div class="sw"><div class="chip" style="background:var(--lok-ink-300)"></div><div class="meta"><div class="name">divider/300</div><div class="hex lok-mono">#272d39</div></div></div>
+    </div>
+  </section>
+
+  <!-- COLORS: heat -->
+  <section class="sg-section">
+    <h2>The Heat ramp — the brand</h2>
+    <p>Cool magenta → hot amber. The signature diagonal gradient (135°) is the Send fill, active env, and progress. Used sparingly — it is the only true color on an otherwise cold UI.</p>
+    <div class="sg-grid" style="grid-template-columns:1fr;gap:var(--lok-space-4)">
+      <div class="heat-diag"><div class="glow"></div></div>
+      <div class="heat-strip"></div>
+      <div class="sw-grid">
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-200)"></div><div class="meta"><div class="name">heat-200</div><div class="hex lok-mono">#ffc4d6</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-300)"></div><div class="meta"><div class="name">heat-300</div><div class="hex lok-mono">#ff93b4</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-400)"></div><div class="meta"><div class="name">heat-400</div><div class="hex lok-mono">#ff5f8c</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-500)"></div><div class="meta"><div class="name">heat-500 ·brand</div><div class="hex lok-mono">#ff2d7a</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-600)"></div><div class="meta"><div class="name">heat-600</div><div class="hex lok-mono">#f01e64</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-700)"></div><div class="meta"><div class="name">heat-700</div><div class="hex lok-mono">#ff5236</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-800)"></div><div class="meta"><div class="name">heat-800</div><div class="hex lok-mono">#ff7a1f</div></div></div>
+        <div class="sw"><div class="chip" style="background:var(--lok-heat-900)"></div><div class="meta"><div class="name">heat-900 ·hot</div><div class="hex lok-mono">#ffa60a</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLORS: semantic + method -->
+  <section class="sg-section">
+    <h2>Semantic status &amp; HTTP methods</h2>
+    <p>Status hues are AA on dark (deepened on light). Method hues are fixed per verb. Never color-only — each pairs with an icon and a text label.</p>
+    <div class="sg-row" style="margin-bottom:var(--lok-space-5)">
+      <span class="badge success"><svg><use href="#i-check"/></svg>200 OK</span>
+      <span class="badge info"><svg><use href="#i-info"/></svg>302 Found</span>
+      <span class="badge warn"><svg><use href="#i-alert"/></svg>404 Not Found</span>
+      <span class="badge danger"><svg><use href="#i-x"/></svg>500 Error</span>
+      <span class="badge neutral">100 Continue</span>
+    </div>
+    <div class="sg-row">
+      <span class="method get">GET</span>
+      <span class="method post">POST</span>
+      <span class="method put">PUT</span>
+      <span class="method patch">PATCH</span>
+      <span class="method delete">DELETE</span>
+      <span class="method head">HEAD</span>
+      <span class="method options">OPTIONS</span>
+    </div>
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section class="sg-section">
+    <div class="sg-eyebrow">Typography</div>
+    <h2>Sans for chrome, mono for anything that is code or a number</h2>
+    <p>SF Pro / Inter for UI; SF Mono / JetBrains Mono for responses, headers, curl, and numbers. Tabular-nums everywhere digits align or change.</p>
+    <div class="sg-card">
+      <div class="type-row"><span class="tag">2xl / 32</span><span class="type-2xl">200 OK</span></div>
+      <div class="type-row"><span class="tag">xl / 24</span><span class="type-xl">No request yet</span></div>
+      <div class="type-row"><span class="tag">lg / 18</span><span class="type-lg">Request headers</span></div>
+      <div class="type-row"><span class="tag">md / 15</span><span class="type-md lok-mono">https://api.duotio.com/v1/users</span></div>
+      <div class="type-row"><span class="tag">sm / 13</span><span class="type-sm">Base UI text — dense macOS layout.</span></div>
+      <div class="type-row"><span class="tag">xs / 12</span><span class="type-xs">Secondary meta, table cells</span></div>
+      <div class="type-row"><span class="tag">2xs / 11</span><span class="type-2xs">Eyebrow label · caps</span></div>
+      <div class="type-row"><span class="tag">tnums</span><span class="type-md lok-mono lok-tnums">p50 12.4ms · p95 48.1ms · p99 91.7ms · 1,204 B</span></div>
+    </div>
+  </section>
+
+  <!-- CONTROLS -->
+  <section class="sg-section">
+    <div class="sg-eyebrow">Components</div>
+    <h2>Buttons &amp; inputs</h2>
+    <div class="sg-card sg-grid" style="gap:var(--lok-space-5)">
+      <div>
+        <div class="sg-label">Buttons</div>
+        <div class="sg-row">
+          <button class="btn-send"><svg><use href="#i-send"/></svg>Send</button>
+          <button class="btn"><svg><use href="#i-plus"/></svg>New request</button>
+          <button class="btn subtle">Save</button>
+          <button class="btn ghost"><svg><use href="#i-search"/></svg>Search</button>
+          <button class="btn danger"><svg><use href="#i-trash"/></svg>Delete</button>
+          <button class="btn" disabled>Disabled</button>
+        </div>
+      </div>
+      <div>
+        <div class="sg-label">Inputs</div>
+        <div class="sg-grid" style="gap:var(--lok-space-3);max-width:520px">
+          <input class="field" value="https://api.duotio.com/v1/users?limit=25">
+          <input class="field sans" placeholder="Search collections…  (⌘K)">
+        </div>
+      </div>
+      <div>
+        <div class="sg-label">Tabs</div>
+        <div class="tabs" style="max-width:520px">
+          <button class="tab active">Params <span class="count">3</span></button>
+          <button class="tab">Headers <span class="count">5</span></button>
+          <button class="tab">Body</button>
+          <button class="tab">Auth</button>
+          <button class="tab">cURL</button>
+        </div>
+      </div>
+      <div>
+        <div class="sg-label">Env pills</div>
+        <div class="sg-row">
+          <span class="env-pill local"><span class="dot"></span>local <svg class="chev"><use href="#i-chev"/></svg></span>
+          <span class="env-pill dev"><span class="dot"></span>dev <svg class="chev"><use href="#i-chev"/></svg></span>
+          <span class="env-pill staging"><span class="dot"></span>staging <svg class="chev"><use href="#i-chev"/></svg></span>
+          <span class="env-pill prod"><span class="dot"></span>prod <svg class="chev"><use href="#i-chev"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLE + POPOVER + TOAST -->
+  <section class="sg-section">
+    <h2>Table, popover &amp; toasts</h2>
+    <div class="sg-grid" style="grid-template-columns:1.4fr .9fr;gap:var(--lok-space-4);align-items:start">
+      <div class="sg-card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th style="width:34px"></th><th>Key</th><th>Value</th><th class="num">Size</th></tr></thead>
+          <tbody>
+            <tr><td><input type="checkbox" checked></td><td class="key">content-type</td><td>application/json</td><td class="num">16 B</td></tr>
+            <tr><td><input type="checkbox" checked></td><td class="key">authorization</td><td>Bearer ••••••••</td><td class="num">•••</td></tr>
+            <tr><td><input type="checkbox"></td><td class="key">x-request-id</td><td>{{$uuid}}</td><td class="num">36 B</td></tr>
+            <tr><td><input type="checkbox" checked></td><td class="key">accept-encoding</td><td>gzip, br</td><td class="num">8 B</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sg-grid" style="gap:var(--lok-space-4)">
+        <div class="popover">
+          <div class="item"><span class="dot" style="background:var(--lok-env-local)"></span>local<span class="kbd">⌘1</span></div>
+          <div class="item"><span class="dot" style="background:var(--lok-env-dev)"></span>dev<span class="kbd">⌘2</span></div>
+          <div class="item"><span class="dot" style="background:var(--lok-env-staging)"></span>staging<span class="kbd">⌘3</span></div>
+          <div class="sep"></div>
+          <div class="item" style="color:var(--lok-env-prod)"><span class="dot" style="background:var(--lok-env-prod)"></span>prod<span class="kbd">⌘4</span></div>
+        </div>
+        <div class="toast success"><svg class="ic"><use href="#i-check"/></svg><div class="txt"><strong>200 OK</strong> <span>· 148 ms · 1.2 KB</span></div></div>
+        <div class="toast danger"><svg class="ic"><use href="#i-x"/></svg><div class="txt"><strong>Connection refused</strong> <span>· prod · after 5s</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WATERFALL -->
+  <section class="sg-section">
+    <h2>Waterfall — proportional phase bars</h2>
+    <p>Setup phases stay cool; the phases you wait on (TTFB, download) glow with the brand heat. Bars fill left-to-right in phase order on response arrival.</p>
+    <div class="sg-card">
+      <div class="wf">
+        <div class="wf-row"><span class="lbl">DNS</span><div class="wf-track"><span class="wf-bar" style="left:0;width:8%;background:var(--lok-phase-dns)"></span></div><span class="ms">11 ms</span></div>
+        <div class="wf-row"><span class="lbl">Connect</span><div class="wf-track"><span class="wf-bar" style="left:8%;width:14%;background:var(--lok-phase-connect)"></span></div><span class="ms">19 ms</span></div>
+        <div class="wf-row"><span class="lbl">TLS</span><div class="wf-track"><span class="wf-bar" style="left:22%;width:20%;background:var(--lok-phase-tls)"></span></div><span class="ms">27 ms</span></div>
+        <div class="wf-row"><span class="lbl">Wait · TTFB</span><div class="wf-track"><span class="wf-bar" style="left:42%;width:44%;background:var(--lok-phase-ttfb)"></span></div><span class="ms">61 ms</span></div>
+        <div class="wf-row"><span class="lbl">Download</span><div class="wf-track"><span class="wf-bar" style="left:86%;width:14%;background:var(--lok-phase-download)"></span></div><span class="ms">19 ms</span></div>
+      </div>
+      <div class="wf-legend">
+        <span class="lg"><span class="sw2" style="background:var(--lok-phase-dns)"></span>DNS</span>
+        <span class="lg"><span class="sw2" style="background:var(--lok-phase-connect)"></span>Connect</span>
+        <span class="lg"><span class="sw2" style="background:var(--lok-phase-tls)"></span>TLS</span>
+        <span class="lg"><span class="sw2" style="background:var(--lok-phase-ttfb)"></span>Wait/TTFB</span>
+        <span class="lg"><span class="sw2" style="background:var(--lok-phase-download)"></span>Download</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMPTY STATE -->
+  <section class="sg-section">
+    <h2>Empty state</h2>
+    <div class="sg-card">
+      <div class="empty">
+        <div class="halo"><svg><use href="#i-inbox"/></svg></div>
+        <h3>No request yet</h3>
+        <p>Pick a request from the sidebar, or press <strong>⌘N</strong> to create one. Everything runs locally — libcurl under the hood.</p>
+        <button class="btn subtle"><svg><use href="#i-plus"/></svg>New request</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="sg-section" style="color:var(--lok-text-tertiary);font-size:var(--lok-fs-2xs);text-align:center">
+    Lokówka Design System v2 · tokens in <span class="lok-mono">src/styles/tokens.css</span> · see <span class="lok-mono">mock-request.html</span> &amp; <span class="lok-mono">mock-graphql.html</span>
+  </footer>
+</main>
+
+<script>
+  function setTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('t-dark').setAttribute('aria-pressed', String(t==='dark'));
+    document.getElementById('t-light').setAttribute('aria-pressed', String(t==='light'));
+  }
+</script>
+</body>
+</html>

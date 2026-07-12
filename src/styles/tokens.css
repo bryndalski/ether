@@ -21,65 +21,88 @@
      1. PRIMITIVES — raw values, never used directly by components
      ---------------------------------------------------------------------- */
 
-  /* Heat ramp — the brand. Rozgrzana lokówka: magenta/pink → orange.
-     Ordered coolest→hottest. Endpoints of the signature gradient are
-     --lok-heat-500 (magenta) and --lok-heat-900 (orange). */
-  --lok-heat-300: #ff8fb1; /* soft pink   — light accents, glows */
-  --lok-heat-400: #ff5c8a; /* pink        — hover on hot surfaces */
-  --lok-heat-500: #ff2e7e; /* magenta     — PRIMARY brand / gradient start */
-  --lok-heat-600: #ff2d6b; /* hot pink    — pressed brand */
-  --lok-heat-700: #ff5a3c; /* red-orange  — gradient mid */
-  --lok-heat-800: #ff7a2e; /* orange      — gradient near-end */
-  --lok-heat-900: #ff9d1e; /* amber-orange— gradient end / hottest */
+  /* Heat ramp — THE BRAND. A rozgrzana lokówka (heating curling iron):
+     the metal glows from cool magenta/pink up into orange/amber as it heats.
+     Ordered coolest→hottest. The signature diagonal gradient runs
+     --lok-heat-500 (magenta) → --lok-heat-700 (red-orange) → --lok-heat-900
+     (amber). Used OSZCZĘDNIE: Send, active/progress, waterfall wait+download,
+     the one thing on screen that is "on". Everything else stays neutral ink. */
+  --lok-heat-200: #ffc4d6; /* palest pink — text-gradient top, faint glows   */
+  --lok-heat-300: #ff93b4; /* soft pink   — links on dark, glow ring         */
+  --lok-heat-400: #ff5f8c; /* pink        — brand hover, hot-surface hover   */
+  --lok-heat-500: #ff2d7a; /* magenta     — PRIMARY brand / gradient start   */
+  --lok-heat-600: #f01e64; /* hot pink    — pressed brand                    */
+  --lok-heat-700: #ff5236; /* red-orange  — gradient mid                     */
+  --lok-heat-800: #ff7a1f; /* orange      — gradient near-end                */
+  --lok-heat-900: #ffa60a; /* amber       — gradient end / hottest           */
 
-  /* Neutral ink ramp — cool near-black to white. Slight violet tint keeps
-     the dark UI from looking muddy next to the warm accents. */
-  --lok-ink-0:   #0a0a0d; /* deepest — app backdrop */
-  --lok-ink-50:  #101015;
-  --lok-ink-100: #16161d;
-  --lok-ink-150: #1c1c24;
-  --lok-ink-200: #24242e;
-  --lok-ink-300: #2f2f3b;
-  --lok-ink-400: #3d3d4c;
-  --lok-ink-500: #55556a;
-  --lok-ink-600: #7a7a92;
-  --lok-ink-700: #9a9ab0;
-  --lok-ink-800: #c4c4d4;
-  --lok-ink-900: #e8e8f0;
-  --lok-ink-950: #f6f6fb;
+  /* Neutral ink ramp — OLED-deep, cool near-black to white with a faint
+     violet-blue tint (chroma ~0.006) so the warm heat accents read as the
+     only true color in the UI. We deliberately avoid pure #000 (OLED smear
+     + no elevation possible) but go deeper than the old ramp for that
+     "cinematic dark" premium floor. Each step is a real, hand-tuned surface
+     level — not an even math ramp — so back→front separation is legible on
+     OLED without borders. */
+  --lok-ink-0:   #060709; /* deepest — app backdrop (behind everything)  */
+  --lok-ink-50:  #0b0d12; /* sidebar / rails                              */
+  --lok-ink-100: #101319; /* editor & response panels                     */
+  --lok-ink-150: #161a22; /* cards, toolbars, tabs (raised)               */
+  --lok-ink-200: #1d222c; /* dropdowns, popovers (overlay)                */
+  --lok-ink-300: #272d39; /* hairline-strong dividers, pressed rows       */
+  --lok-ink-400: #363d4c; /* disabled fills, track backgrounds            */
+  --lok-ink-500: #5b6273; /* faint text / disabled / line-numbers (AA-L)  */
+  --lok-ink-600: #868d9c; /* tertiary text (meta, timestamps) — AA 4.5+   */
+  --lok-ink-700: #99a1b0; /* secondary text                               */
+  --lok-ink-800: #c3c9d4; /* strong secondary                             */
+  --lok-ink-900: #e5e8ee; /* primary text                                 */
+  --lok-ink-950: #f5f7fa; /* max-contrast headings / big status codes     */
   --lok-white:   #ffffff;
 
-  /* Status hues — used for HTTP status, assertions, connection health. */
-  --lok-c-success: #34d399; /* 2xx / pass / connected      */
-  --lok-c-info:    #60a5fa; /* 3xx / info                  */
-  --lok-c-warn:    #fbbf24; /* 4xx / warning / expiring     */
-  --lok-c-danger:  #f87171; /* 5xx / fail / error           */
-  --lok-c-neutral: #9a9ab0; /* 1xx / no-status / disabled   */
+  /* Status hues — HTTP status class, assertions, connection health.
+     Tuned for ≥4.5:1 (AA) as text on the deep dark surfaces. */
+  --lok-c-success: #3ddc97; /* 2xx / pass / connected       */
+  --lok-c-info:    #5aa8ff; /* 3xx / info / redirect        */
+  --lok-c-warn:    #ffbe3d; /* 4xx / warning / expiring     */
+  --lok-c-danger:  #ff6b6b; /* 5xx / fail / error           */
+  --lok-c-neutral: #8a90a0; /* 1xx / no-status / disabled   */
+
+  /* HTTP METHOD hues — each verb gets a fixed color chip so a method reads
+     at a glance in the collections tree, the toolbar, and curl logs.
+     Chosen to be mutually distinct AND AA on dark surfaces. */
+  --lok-m-get:    #3ddc97; /* GET    — green  (safe, read)   */
+  --lok-m-post:   #ffbe3d; /* POST   — amber  (create)       */
+  --lok-m-put:    #5aa8ff; /* PUT    — blue   (replace)       */
+  --lok-m-patch:  #a78bfa; /* PATCH  — violet (partial)       */
+  --lok-m-delete: #ff6b6b; /* DELETE — red    (destroy)       */
+  --lok-m-head:   #22d3ee; /* HEAD   — cyan                   */
+  --lok-m-options:#8a90a0; /* OPTIONS— neutral                */
 
   /* Timeline waterfall phase hues — each request phase gets a fixed color so
-     a bar's color instantly reads as its phase across the whole app. */
-  --lok-phase-dns:      #a78bfa; /* DNS lookup      — violet   */
-  --lok-phase-connect:  #60a5fa; /* TCP connect     — blue     */
-  --lok-phase-tls:      #22d3ee; /* TLS handshake   — cyan     */
-  --lok-phase-ttfb:     #ff2e7e; /* wait / TTFB     — magenta (heat) */
-  --lok-phase-download: #ff9d1e; /* content download— orange (heat) */
+     a bar's color instantly reads as its phase across the whole app. The two
+     phases the user actually waits on (TTFB, download) glow with the brand
+     heat; the network-setup phases stay cool. Ordered as they occur. */
+  --lok-phase-dns:      #a78bfa; /* DNS lookup       — violet         */
+  --lok-phase-connect:  #5aa8ff; /* TCP connect      — blue           */
+  --lok-phase-tls:      #22d3ee; /* TLS handshake    — cyan           */
+  --lok-phase-ttfb:     #ff2d7a; /* wait / TTFB      — magenta (heat) */
+  --lok-phase-download: #ffa60a; /* content download — amber   (heat) */
 
   /* Environment accent hues — the env-switcher pill and its live health dot
      take one of these; picked per environment. Semantic aliases below let a
      component say var(--lok-env-accent) without knowing which env is active. */
-  --lok-env-local:   #34d399; /* green   — safe local */
-  --lok-env-dev:     #60a5fa; /* blue    — dev        */
-  --lok-env-staging: #fbbf24; /* amber   — staging    */
-  --lok-env-prod:    #f87171; /* red     — production (danger, be careful) */
+  --lok-env-local:   #3ddc97; /* green   — safe local */
+  --lok-env-dev:     #5aa8ff; /* blue    — dev        */
+  --lok-env-staging: #ffbe3d; /* amber   — staging    */
+  --lok-env-prod:    #ff6b6b; /* red     — production (danger, be careful) */
   --lok-env-custom:  #a78bfa; /* violet  — user-defined */
 
   /* Syntax highlighting primitives (CodeMirror response/code panes) */
-  --lok-syn-key:     #ff8fb1; /* JSON keys        */
-  --lok-syn-string:  #34d399; /* strings          */
-  --lok-syn-number:  #ff9d1e; /* numbers          */
-  --lok-syn-bool:    #60a5fa; /* booleans / null  */
-  --lok-syn-punct:   #7a7a92; /* braces, commas   */
-  --lok-syn-comment: #55556a; /* comments         */
+  --lok-syn-key:     #ff93b4; /* JSON keys        */
+  --lok-syn-string:  #3ddc97; /* strings          */
+  --lok-syn-number:  #ffa60a; /* numbers          */
+  --lok-syn-bool:    #5aa8ff; /* booleans / null  */
+  --lok-syn-punct:   #6b7280; /* braces, commas   */
+  --lok-syn-comment: #4d5566; /* comments         */
   --lok-syn-gql:     #a78bfa; /* GraphQL keywords */
 
   /* ----------------------------------------------------------------------
@@ -175,10 +198,19 @@
   --lok-dur-slow: 340ms;     /* response arrival, HUD entrance */
   --lok-dur-slower: 520ms;   /* waterfall bars filling in sequence */
 
-  --lok-ease-standard: cubic-bezier(0.2, 0, 0, 1);      /* enter/most UI */
-  --lok-ease-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1); /* things arriving */
+  --lok-ease-standard: cubic-bezier(0.2, 0, 0, 1);      /* enter / most UI */
+  --lok-ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1); /* things arriving (cinematic expo.out) */
   --lok-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);    /* things leaving */
-  --lok-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* wow-moments, Send success */
+  --lok-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* wow-moments, Send success, response pop */
+
+  /* WOW-moment recipes (motion tokens for the 3 signature moments) —
+     consumed by JS (motion lib) or CSS keyframes; values here are the spec.
+       Send       : press scale 0.97 → 1.0 (dur-fast, spring), heat glow bloom
+       Response   : dock rises + fades in (dur-slow, decelerate), status pops
+       Env switch : accent color cross-fades + pill morphs (dur-base, standard),
+                    a single ambient sweep of the new env accent across topbar */
+  --lok-wow-press-scale: 0.97;
+  --lok-wow-pop-scale: 1.02;
 
   /* ----------------------------------------------------------------------
      8. SIGNATURE HEAT GRADIENTS (theme-agnostic — the brand reads on both)
@@ -207,8 +239,29 @@
   /* Text gradient (paint into text via background-clip). */
   --lok-gradient-heat-text: linear-gradient(
     100deg,
-    var(--lok-heat-400),
+    var(--lok-heat-300),
     var(--lok-heat-900)
+  );
+
+  /* Ambient app backdrop — a single, very low-opacity heat bloom anchored
+     top-right (where Send lives) over the OLED floor. This is the whole
+     "atmosphere" trick: no busy gradients, just one faint warm horizon so
+     the deep-dark UI never feels flat. Kept under 6% so it reads as light,
+     not color. */
+  --lok-gradient-ambient: radial-gradient(
+      120% 90% at 100% 0%,
+      rgba(255, 45, 122, 0.055) 0%,
+      rgba(255, 122, 31, 0.03) 30%,
+      transparent 60%
+    );
+  /* Method-row accent bar and pill fills read from --lok-m-*; a subtle
+     heat hairline used under active tabs. */
+  --lok-gradient-heat-line: linear-gradient(
+    90deg,
+    transparent,
+    var(--lok-heat-500),
+    var(--lok-heat-800),
+    transparent
   );
 
   /* ======================================================================
@@ -225,7 +278,7 @@
   --lok-bg-input-focus: var(--lok-ink-200);
   --lok-bg-hover: rgba(255, 255, 255, 0.04);
   --lok-bg-active: rgba(255, 255, 255, 0.07);
-  --lok-bg-selected: rgba(255, 46, 126, 0.12); /* heat-tinted selection */
+  --lok-bg-selected: rgba(255, 45, 122, 0.12); /* heat-tinted selection */
   --lok-bg-code: var(--lok-ink-50);      /* response/curl pane */
   --lok-scrim: rgba(6, 6, 10, 0.66);     /* modal/palette backdrop */
 
@@ -253,8 +306,8 @@
   --lok-brand: var(--lok-heat-500);
   --lok-brand-hover: var(--lok-heat-400);
   --lok-brand-active: var(--lok-heat-600);
-  --lok-brand-subtle: rgba(255, 46, 126, 0.14);
-  --lok-focus-ring: rgba(255, 46, 126, 0.55);
+  --lok-brand-subtle: rgba(255, 45, 122, 0.14);
+  --lok-focus-ring: rgba(255, 45, 122, 0.55);
 
   /* Status (semantic aliases of the status hues) */
   --lok-status-success: var(--lok-c-success);
@@ -262,10 +315,20 @@
   --lok-status-warn: var(--lok-c-warn);
   --lok-status-danger: var(--lok-c-danger);
   --lok-status-neutral: var(--lok-c-neutral);
-  --lok-status-success-bg: rgba(52, 211, 153, 0.14);
-  --lok-status-info-bg: rgba(96, 165, 250, 0.14);
-  --lok-status-warn-bg: rgba(251, 191, 36, 0.14);
-  --lok-status-danger-bg: rgba(248, 113, 113, 0.14);
+  --lok-status-success-bg: rgba(61, 220, 151, 0.14);
+  --lok-status-info-bg: rgba(90, 168, 255, 0.14);
+  --lok-status-warn-bg: rgba(255, 190, 61, 0.14);
+  --lok-status-danger-bg: rgba(255, 107, 107, 0.14);
+
+  /* HTTP method — semantic aliases (dark). Chip text uses the hue on a
+     10%-tint fill so it reads as a labeled badge, not a bare colored word. */
+  --lok-method-get: var(--lok-m-get);
+  --lok-method-post: var(--lok-m-post);
+  --lok-method-put: var(--lok-m-put);
+  --lok-method-patch: var(--lok-m-patch);
+  --lok-method-delete: var(--lok-m-delete);
+  --lok-method-head: var(--lok-m-head);
+  --lok-method-options: var(--lok-m-options);
 
   /* Environment accent — set by the app per active env; default = local.
      Components read --lok-env-accent; the app overrides it inline or via a
@@ -277,7 +340,7 @@
   --lok-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.45);
   --lok-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
   --lok-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
-  --lok-shadow-heat: 0 6px 22px rgba(255, 46, 126, 0.32); /* Send hover glow */
+  --lok-shadow-heat: 0 6px 22px rgba(255, 45, 122, 0.32); /* Send hover glow */
   --lok-shadow-focus: 0 0 0 3px var(--lok-focus-ring);
 
   /* Scrollbar */
@@ -301,7 +364,7 @@
   --lok-bg-input-focus: #ffffff;
   --lok-bg-hover: rgba(10, 10, 13, 0.04);
   --lok-bg-active: rgba(10, 10, 13, 0.07);
-  --lok-bg-selected: rgba(255, 46, 126, 0.10);
+  --lok-bg-selected: rgba(255, 45, 122, 0.10);
   --lok-bg-code: #fafafc;
   --lok-scrim: rgba(20, 20, 26, 0.42);
 
@@ -324,23 +387,41 @@
 
   /* Brand hover deepens on light for contrast; base magenta stays the brand. */
   --lok-brand-hover: #e01e6c;
-  --lok-brand-subtle: rgba(255, 46, 126, 0.10);
-  --lok-focus-ring: rgba(255, 46, 126, 0.45);
+  --lok-brand-subtle: rgba(255, 45, 122, 0.10);
+  --lok-focus-ring: rgba(255, 45, 122, 0.45);
 
   --lok-status-success: #0f9d63; /* AA-safe greens/blues on white */
   --lok-status-info: #2563eb;
   --lok-status-warn: #b45309;
   --lok-status-danger: #dc2626;
+  --lok-status-neutral: #6a6a7d;
   --lok-status-success-bg: rgba(15, 157, 99, 0.12);
   --lok-status-info-bg: rgba(37, 99, 235, 0.12);
   --lok-status-warn-bg: rgba(180, 83, 9, 0.12);
   --lok-status-danger-bg: rgba(220, 38, 38, 0.12);
 
+  /* HTTP method — light overrides (deepen for AA on white). */
+  --lok-method-get: #0f9d63;
+  --lok-method-post: #b45309;
+  --lok-method-put: #2563eb;
+  --lok-method-patch: #7c3aed;
+  --lok-method-delete: #dc2626;
+  --lok-method-head: #0e7490;
+  --lok-method-options: #6a6a7d;
+
+  /* Ambient bloom is lighter and cooler on white so it doesn't muddy. */
+  --lok-gradient-ambient: radial-gradient(
+      120% 90% at 100% 0%,
+      rgba(255, 45, 122, 0.05) 0%,
+      rgba(255, 122, 31, 0.028) 32%,
+      transparent 62%
+    );
+
   --lok-shadow-xs: 0 1px 2px rgba(20, 20, 26, 0.08);
   --lok-shadow-sm: 0 2px 8px rgba(20, 20, 26, 0.10);
   --lok-shadow-md: 0 8px 24px rgba(20, 20, 26, 0.12);
   --lok-shadow-lg: 0 20px 50px rgba(20, 20, 26, 0.18);
-  --lok-shadow-heat: 0 6px 20px rgba(255, 46, 126, 0.28);
+  --lok-shadow-heat: 0 6px 20px rgba(255, 45, 122, 0.28);
 
   --lok-scrollbar-thumb: rgba(10, 10, 13, 0.18);
   --lok-scrollbar-thumb-hover: rgba(10, 10, 13, 0.30);

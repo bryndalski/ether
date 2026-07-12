@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lokówka — GraphQL Explorer</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  html,body{overflow:hidden;height:100dvh}
+  body{background-image:var(--lok-gradient-ambient),none}
+  .app{display:grid;grid-template-rows:var(--lok-titlebar-h) var(--lok-toolbar-h) 1fr var(--lok-statusbar-h);height:100dvh}
+
+  .titlebar{display:flex;align-items:center;gap:var(--lok-space-4);padding:0 var(--lok-space-4);
+    background:var(--lok-bg-app);border-bottom:1px solid var(--lok-border-subtle)}
+  .traffic{display:flex;gap:8px;padding-right:var(--lok-space-3)}
+  .traffic i{width:12px;height:12px;border-radius:999px;display:block}
+  .traffic .r{background:#ff5f57} .traffic .y{background:#febc2e} .traffic .g{background:#28c840}
+  .titlebar .doc{display:flex;align-items:center;gap:8px;font-size:var(--lok-fs-xs);color:var(--lok-text-secondary)}
+  .titlebar .spacer{flex:1}
+  .gql-badge{font-family:var(--lok-font-mono);font-size:var(--lok-fs-2xs);font-weight:var(--lok-fw-bold);
+    color:var(--lok-syn-gql);background:color-mix(in srgb,var(--lok-syn-gql) 15%,transparent);padding:2px 7px;border-radius:var(--lok-radius-xs)}
+
+  /* toolbar */
+  .toolbar{display:flex;align-items:center;gap:var(--lok-space-2);padding:0 var(--lok-space-4);
+    border-bottom:1px solid var(--lok-border-subtle);background:var(--lok-bg-surface)}
+  .op-select{display:flex;align-items:center;gap:6px;height:32px;padding:0 var(--lok-space-3);border-radius:var(--lok-radius-sm);
+    background:var(--lok-bg-raised);border:1px solid var(--lok-border-default);cursor:pointer;font-size:var(--lok-fs-xs)}
+  .op-select .op{font-family:var(--lok-font-mono);font-weight:var(--lok-fw-semibold);color:var(--lok-syn-gql)}
+  .op-select svg{width:13px;height:13px;color:var(--lok-text-tertiary)}
+  .url-field{flex:1;height:32px;padding:0 var(--lok-space-3);border-radius:var(--lok-radius-sm);
+    background:var(--lok-bg-input);border:1px solid var(--lok-border-default);color:var(--lok-text-primary);
+    font-family:var(--lok-font-mono);font-size:var(--lok-fs-md);display:flex;align-items:center}
+
+  /* body: 3 columns — field tree | editor | docs */
+  .cols{display:grid;grid-template-columns:280px 1fr 260px;min-height:0}
+  .col{display:flex;flex-direction:column;min-height:0;min-width:0}
+  .col.tree-col{background:var(--lok-bg-sidebar);border-right:1px solid var(--lok-border-subtle)}
+  .col.docs-col{background:var(--lok-bg-sidebar);border-left:1px solid var(--lok-border-subtle)}
+  .col-head{display:flex;align-items:center;gap:var(--lok-space-2);padding:var(--lok-space-3) var(--lok-space-4);
+    font-size:var(--lok-fs-2xs);text-transform:uppercase;letter-spacing:var(--lok-tracking-caps);
+    color:var(--lok-text-tertiary);font-weight:var(--lok-fw-semibold);border-bottom:1px solid var(--lok-border-subtle)}
+  .col-head .spacer{flex:1}
+  .col-body{flex:1;overflow:auto;padding:var(--lok-space-2) var(--lok-space-3)}
+
+  /* field tree */
+  .f{display:flex;align-items:center;gap:8px;height:28px;padding:0 var(--lok-space-2);border-radius:var(--lok-radius-sm);
+    font-size:var(--lok-fs-xs);cursor:pointer;font-family:var(--lok-font-mono)}
+  .f:hover{background:var(--lok-bg-hover)}
+  .f input[type=checkbox]{accent-color:var(--lok-heat-500)}
+  .f .fname{color:var(--lok-text-secondary)}
+  .f.on .fname{color:var(--lok-heat-300)}
+  .f .ftype{margin-left:auto;color:var(--lok-syn-gql);font-size:var(--lok-fs-2xs);opacity:.85}
+  .f .chev{width:12px;height:12px;color:var(--lok-text-tertiary)}
+  .f.indent{padding-left:var(--lok-space-6)}
+  .f.indent2{padding-left:var(--lok-space-8)}
+  .f.field-type{color:var(--lok-syn-gql);font-weight:var(--lok-fw-semibold);height:24px}
+
+  /* editor middle */
+  .mid{display:flex;flex-direction:column;min-height:0;background:var(--lok-bg-surface)}
+  .editor-tabs{display:flex;gap:var(--lok-space-1);padding:0 var(--lok-space-4);height:var(--lok-tabbar-h);
+    align-items:stretch;border-bottom:1px solid var(--lok-border-subtle)}
+  .mid-split{flex:1;display:grid;grid-template-rows:1fr auto;min-height:0}
+  .query-pane{overflow:auto;padding:var(--lok-space-4)}
+  .query-pane pre{font-family:var(--lok-font-mono);font-size:var(--lok-fs-sm);line-height:var(--lok-lh-code);white-space:pre;tab-size:2}
+  .ln{color:var(--lok-text-disabled);user-select:none;display:inline-block;width:2em;text-align:right;margin-right:var(--lok-space-3)}
+  .vars-pane{border-top:1px solid var(--lok-border-subtle);background:var(--lok-bg-code)}
+  .vars-tabs{display:flex;gap:var(--lok-space-1);padding:0 var(--lok-space-4);height:30px;align-items:center;border-bottom:1px solid var(--lok-border-subtle)}
+  .vars-tabs .t{font-size:var(--lok-fs-2xs);text-transform:uppercase;letter-spacing:var(--lok-tracking-wide);color:var(--lok-text-tertiary);cursor:pointer}
+  .vars-tabs .t.active{color:var(--lok-text-primary)}
+  .vars-body{padding:var(--lok-space-3) var(--lok-space-4);font-family:var(--lok-font-mono);font-size:var(--lok-fs-xs);line-height:var(--lok-lh-code);white-space:pre;max-height:120px;overflow:auto}
+
+  /* docs explorer */
+  .doc-type{font-family:var(--lok-font-mono);font-size:var(--lok-fs-sm);color:var(--lok-syn-gql);font-weight:var(--lok-fw-semibold);padding:var(--lok-space-2) var(--lok-space-2)}
+  .doc-field{padding:var(--lok-space-2);border-radius:var(--lok-radius-sm)}
+  .doc-field:hover{background:var(--lok-bg-hover)}
+  .doc-field .name{font-family:var(--lok-font-mono);font-size:var(--lok-fs-xs)}
+  .doc-field .name .n{color:var(--lok-syn-key)} .doc-field .name .t{color:var(--lok-syn-gql)}
+  .doc-field .desc{font-size:var(--lok-fs-2xs);color:var(--lok-text-tertiary);margin-top:2px}
+
+  .statusbar{display:flex;align-items:center;gap:var(--lok-space-4);padding:0 var(--lok-space-4);
+    background:var(--lok-bg-sidebar);border-top:1px solid var(--lok-border-subtle);font-size:var(--lok-fs-2xs);color:var(--lok-text-tertiary)}
+  .statusbar .health{display:flex;align-items:center;gap:6px}
+  .statusbar .health .dot{width:6px;height:6px;border-radius:999px;background:var(--lok-status-success)}
+  .statusbar .spacer{flex:1}
+  .statusbar .mono{font-family:var(--lok-font-mono);font-variant-numeric:tabular-nums}
+  .btn.refresh svg{width:14px;height:14px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M6 4v16l14-8z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <!-- Titlebar -->
+  <div class="titlebar">
+    <div class="traffic"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="doc"><span class="gql-badge">GraphQL</span><span>Explorer · Duotio Schema</span></div>
+    <div class="spacer"></div>
+    <span class="env-pill dev"><span class="dot"></span>dev <svg class="chev"><use href="#i-chev"/></svg></span>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="op-select"><span class="op">query</span><svg><use href="#i-chev"/></svg></div>
+    <div class="url-field">https://api.duotio.com/graphql</div>
+    <button class="btn refresh"><svg><use href="#i-refresh"/></svg>Refresh schema</button>
+    <button class="btn-send"><svg style="width:13px;height:13px"><use href="#i-play"/></svg>Run</button>
+  </div>
+
+  <!-- Columns -->
+  <div class="cols">
+    <!-- Field tree with checkboxes -->
+    <div class="col tree-col">
+      <div class="col-head">Fields<span class="spacer"></span><svg style="width:13px;height:13px;color:var(--lok-syn-gql)"><use href="#i-book"/></svg></div>
+      <div class="col-body">
+        <div class="f field-type"><svg class="chev"><use href="#i-chev"/></svg>Query</div>
+        <div class="f indent on"><input type="checkbox" checked><span class="fname">user</span><span class="ftype">(id): User</span></div>
+        <div class="f indent2 on"><input type="checkbox" checked><span class="fname">id</span><span class="ftype">ID!</span></div>
+        <div class="f indent2 on"><input type="checkbox" checked><span class="fname">name</span><span class="ftype">String</span></div>
+        <div class="f indent2 on"><input type="checkbox" checked><span class="fname">email</span><span class="ftype">String</span></div>
+        <div class="f indent2"><input type="checkbox"><span class="fname">createdAt</span><span class="ftype">DateTime</span></div>
+        <div class="f indent2"><svg class="chevr" style="width:12px;height:12px;color:var(--lok-text-tertiary)"><use href="#i-chevr"/></svg><input type="checkbox"><span class="fname">roles</span><span class="ftype">[Role!]</span></div>
+        <div class="f indent"><svg class="chevr" style="width:12px;height:12px;color:var(--lok-text-tertiary)"><use href="#i-chevr"/></svg><input type="checkbox"><span class="fname">users</span><span class="ftype">(page): [User!]</span></div>
+        <div class="f indent"><svg class="chevr" style="width:12px;height:12px;color:var(--lok-text-tertiary)"><use href="#i-chevr"/></svg><input type="checkbox"><span class="fname">organization</span><span class="ftype">: Org</span></div>
+      </div>
+    </div>
+
+    <!-- Editor + variables -->
+    <div class="col mid">
+      <div class="editor-tabs">
+        <button class="tab active">Query</button>
+        <button class="tab">Variables</button>
+        <button class="tab">Headers <span class="count">2</span></button>
+      </div>
+      <div class="mid-split">
+        <div class="query-pane">
+          <pre><span class="tok-gql">query</span> <span class="tok-key">GetUser</span><span class="tok-punct">(</span><span class="tok-key">$id</span><span class="tok-punct">:</span> <span class="tok-gql">ID!</span><span class="tok-punct">) {</span>
+  <span class="ln">2</span><span class="tok-key">user</span><span class="tok-punct">(</span><span class="tok-key">id</span><span class="tok-punct">:</span> <span class="tok-key">$id</span><span class="tok-punct">) {</span>
+  <span class="ln">3</span>  <span class="tok-key">id</span>
+  <span class="ln">4</span>  <span class="tok-key">name</span>
+  <span class="ln">5</span>  <span class="tok-key">email</span>
+  <span class="ln">6</span><span class="tok-punct">  }</span>
+<span class="tok-punct">}</span></pre>
+        </div>
+        <div class="vars-pane">
+          <div class="vars-tabs"><span class="t active">Variables</span><span class="t">Headers</span></div>
+          <div class="vars-body"><span class="tok-punct">{</span> <span class="tok-key">"id"</span><span class="tok-punct">:</span> <span class="tok-str">"usr_8Fk2a"</span> <span class="tok-punct">}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Docs explorer -->
+    <div class="col docs-col">
+      <div class="col-head">Docs Explorer</div>
+      <div class="col-body">
+        <div class="doc-type">type User</div>
+        <div class="doc-field"><div class="name"><span class="n">id</span>: <span class="t">ID!</span></div><div class="desc">Stable unique identifier.</div></div>
+        <div class="doc-field"><div class="name"><span class="n">name</span>: <span class="t">String</span></div><div class="desc">Display name.</div></div>
+        <div class="doc-field"><div class="name"><span class="n">email</span>: <span class="t">String</span></div><div class="desc">Primary email, verified.</div></div>
+        <div class="doc-field"><div class="name"><span class="n">roles</span>: <span class="t">[Role!]</span></div><div class="desc">RBAC roles for this user.</div></div>
+        <div class="doc-field"><div class="name"><span class="n">createdAt</span>: <span class="t">DateTime</span></div><div class="desc">ISO-8601 creation timestamp.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span class="health"><span class="dot"></span>schema introspected · 142 types</span>
+    <span class="spacer"></span>
+    <span class="mono">query · 3 fields selected</span>
+    <span class="mono">last refresh 2 min ago</span>
+  </div>
+</div>
+</body>
+</html>
