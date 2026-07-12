@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Lokówka app icon">
+  <title>Lokówka — local API client for macOS</title>
+
+  <defs>
+    <!-- macOS squircle body: deep OLED floor with a faint cool tilt, so it never reads as flat #000 -->
+    <linearGradient id="bodyFloor" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#141824"/>
+      <stop offset="0.42" stop-color="#0b0e16"/>
+      <stop offset="1" stop-color="#05070b"/>
+    </linearGradient>
+
+    <!-- Ambient heat bloom, anchored top-right exactly like the app's Send corner. Kept quiet. -->
+    <radialGradient id="ambientBloom" cx="0.78" cy="0.22" r="0.9" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#ff2d7a" stop-opacity="0.30"/>
+      <stop offset="0.35" stop-color="#ff5236" stop-opacity="0.14"/>
+      <stop offset="0.7" stop-color="#ffa60a" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#ffa60a" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- The heat ramp painted ALONG the filament: cool magenta base -> hot amber curling tip -->
+    <linearGradient id="heatRamp" x1="300" y1="812" x2="712" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff2d7a"/>
+      <stop offset="0.34" stop-color="#ff3f63"/>
+      <stop offset="0.62" stop-color="#ff5f2c"/>
+      <stop offset="0.84" stop-color="#ff8a12"/>
+      <stop offset="1" stop-color="#ffb60a"/>
+    </linearGradient>
+
+    <!-- Hotter core drawn on top for the "incandescent filament" read -->
+    <linearGradient id="heatCore" x1="300" y1="812" x2="712" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff6aa0"/>
+      <stop offset="0.5" stop-color="#ff9166"/>
+      <stop offset="1" stop-color="#ffe0a0"/>
+    </linearGradient>
+
+    <!-- Glow around the whole mark -->
+    <radialGradient id="markGlow" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#ff5f5f" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#ff3a70" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#ff3a70" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Top-edge specular sheen typical of premium macOS icons -->
+    <linearGradient id="topSheen" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="26" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Apple-style squircle (superellipse) for a 1024 icon, corner continuity ~180 -->
+    <clipPath id="squircle">
+      <path d="M512 32
+        C 224 32, 128 32, 80 80
+        C 32 128, 32 224, 32 512
+        C 32 800, 32 896, 80 944
+        C 128 992, 224 992, 512 992
+        C 800 992, 896 992, 944 944
+        C 992 896, 992 800, 992 512
+        C 992 224, 992 128, 944 80
+        C 896 32, 800 32, 512 32 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- BODY -->
+  <g clip-path="url(#squircle)">
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#bodyFloor)"/>
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#ambientBloom)"/>
+
+    <!-- faint fine grid: reads as a "precision instrument" surface, near-invisible at 16px -->
+    <g stroke="#ffffff" stroke-opacity="0.028" stroke-width="1.4">
+      <path d="M256 0V1024 M512 0V1024 M768 0V1024 M0 256H1024 M0 512H1024 M0 768H1024"/>
+    </g>
+
+    <!-- glow behind mark -->
+    <circle cx="512" cy="512" r="360" fill="url(#markGlow)"/>
+
+    <!-- THE MARK: a heated curling-iron filament.
+         A confident vertical spine (the barrel) rising from a cool magenta base,
+         that coils into a single tight hot loop at the top — the curl.
+         Reads simultaneously as: a curl/lok, a Polish "ł" (spine + slash),
+         and a request/response arc. Instrument-precise, one deliberate stroke. -->
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <!-- outer heat body: cool barrel base rises, then coils into ONE tight hot curl -->
+      <path d="M368 812
+               C 360 704, 384 604, 470 556
+               C 590 490, 676 548, 668 636
+               C 662 712, 576 742, 512 700
+               C 456 664, 470 588, 552 576
+               C 648 562, 704 486, 690 388"
+            stroke="url(#heatRamp)" stroke-width="94" filter="url(#softGlow)"/>
+      <!-- incandescent inner core -->
+      <path d="M368 812
+               C 360 704, 384 604, 470 556
+               C 590 490, 676 548, 668 636
+               C 662 712, 576 742, 512 700
+               C 456 664, 470 588, 552 576
+               C 648 562, 704 486, 690 388"
+            stroke="url(#heatCore)" stroke-width="30" stroke-opacity="0.92" filter="url(#softGlow)"/>
+    </g>
+
+    <!-- the "ł" slash crossing the barrel base: nails the Polish ł, reads as a heat-mark -->
+    <path d="M328 660 L470 590" stroke="url(#heatCore)" stroke-width="30" stroke-linecap="round"
+          fill="none" opacity="0.95" filter="url(#softGlow)"/>
+
+    <!-- hot tip at the top of the coil — hottest point (amber-white) -->
+    <circle cx="690" cy="388" r="34" fill="#ffd489" filter="url(#softGlow)"/>
+    <circle cx="690" cy="388" r="16" fill="#fff6de"/>
+
+    <!-- top specular sheen -->
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#topSheen)"/>
+
+    <!-- inner hairline bevel for depth on OLED bodies -->
+    <path d="M512 40
+      C 226 40, 134 40, 86 88
+      C 40 134, 40 226, 40 512
+      C 40 798, 40 890, 86 938
+      C 134 984, 226 984, 512 984
+      C 798 984, 890 984, 938 938
+      C 984 890, 984 798, 984 512
+      C 984 226, 984 134, 938 88
+      C 890 40, 798 40, 512 40 Z"
+      fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  </g>
+</svg>

@@ -1,0 +1,75 @@
+{
+  "task": "Make Lokówka an installable macOS .dmg",
+  "date": "2026-07-13",
+  "branch": "feat/packaging-dmg",
+  "steps": {
+    "icons": {
+      "status": "done",
+      "command": "npm run tauri icon design-system/brand/icon-1024.png",
+      "generated": [
+        "src-tauri/icons/32x32.png",
+        "src-tauri/icons/64x64.png",
+        "src-tauri/icons/128x128.png",
+        "src-tauri/icons/128x128@2x.png",
+        "src-tauri/icons/icon.icns",
+        "src-tauri/icons/icon.ico",
+        "src-tauri/icons/icon.png",
+        "Square*Logo.png + StoreLogo.png (Windows)",
+        "src-tauri/icons/ios/* (24 icons)",
+        "src-tauri/icons/android/* (mipmaps)"
+      ],
+      "icon_icns_verified": "919283 bytes, Mac OS X icon (ic14)"
+    },
+    "bundle_config": {
+      "status": "done",
+      "productName": "Lokówka",
+      "version": "0.1.0",
+      "identifier": "com.bryndalski.lokowka",
+      "window_title": "Lokówka",
+      "category": "public.app-category.developer-tools",
+      "copyright": "© 2026 Jakub Bryndal",
+      "shortDescription": "Local-first API client with curl under the hood",
+      "minimumSystemVersion": "12.0",
+      "targets": ["dmg", "app"]
+    },
+    "release_workflow": {
+      "status": "done",
+      "file": ".github/workflows/release.yml",
+      "trigger": "push tag v*",
+      "runner": "macos-14",
+      "job": "release",
+      "steps": ["checkout", "setup-node@22 + npm ci", "rust stable toolchain", "npm run tauri build", "upload-artifact .dmg", "softprops/action-gh-release .dmg"]
+    },
+    "local_build": {
+      "status": "done",
+      "command": "npm run tauri build",
+      "exit_code": 0,
+      "rust_compile_time": "1m 23s",
+      "artifacts": {
+        "dmg": {
+          "path": "/private/tmp/lok-pkg/src-tauri/target/release/bundle/dmg/Lokówka_0.1.0_aarch64.dmg",
+          "size_bytes": 6103771,
+          "size_human": "5.8M",
+          "format": "UDZO (compressed disk image)"
+        },
+        "app": {
+          "path": "/private/tmp/lok-pkg/src-tauri/target/release/bundle/macos/Lokówka.app",
+          "size_human": "13M"
+        }
+      },
+      "info_plist_verified": {
+        "CFBundleName": "Lokówka",
+        "CFBundleIdentifier": "com.bryndalski.lokowka",
+        "LSMinimumSystemVersion": "12.0",
+        "LSApplicationCategoryType": "public.app-category.developer-tools",
+        "CFBundleIconFile": "icon.icns"
+      }
+    }
+  },
+  "notes": {
+    "arch": "Built on Apple Silicon runner → aarch64 .dmg. CI release.yml uses macos-14 (also arm64), so tags produce an aarch64 .dmg.",
+    "code_signing": "The .dmg and .app are UNSIGNED and UNNOTARIZED (no Apple Developer ID cert available in this environment). The app is fully installable via drag-to-Applications, but on first launch Gatekeeper will show 'unidentified developer' — user must right-click > Open, or run 'xattr -dr com.apple.quarantine /Applications/Lokówka.app'. To ship signed/notarized builds later, add APPLE_SIGNING_IDENTITY / APPLE_ID / APPLE_PASSWORD / APPLE_TEAM_ID secrets and Tauri's macOS signing config. This is an environment limitation, not a build failure — build succeeded with exit code 0.",
+    "target_not_committed": "src-tauri/target/ is gitignored; artifacts are not committed."
+  },
+  "result": "SUCCESS — installable unsigned .dmg produced locally"
+}
