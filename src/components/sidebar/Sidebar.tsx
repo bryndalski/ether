@@ -1,21 +1,27 @@
 import { useCollectionsStore } from "../../state/useCollectionsStore";
 import { useUiStore } from "../../state/useUiStore";
 import { useNewRequest } from "../../hooks/useNewRequest";
+import { useSidebarTree } from "../../hooks/useSidebarTree";
 import { EmptyState } from "../common/EmptyState";
+import { SidebarHeader } from "./SidebarHeader";
 import { CollectionTree } from "./CollectionTree";
+import "./sidebar.css";
 
-/** Collections rail (Zone 1). Search header + tree; shows a heat empty-state
- *  with a "New request" action when there is nothing to show (including the
- *  "not implemented" backend case). */
+/** Collections rail (Zone 1). Search header + functional tree; shows a heat
+ *  empty-state with a "New request" action when there is nothing to show
+ *  (including the "backend unavailable" case). */
 export function Sidebar() {
-  const collections = useCollectionsStore((state) => state.collections);
   const requests = useCollectionsStore((state) => state.requests);
+  const collections = useCollectionsStore((state) => state.collections);
   const activeRequestId = useCollectionsStore((state) => state.activeRequestId);
   const loading = useCollectionsStore((state) => state.loading);
+  const loadFailed = useCollectionsStore((state) => state.loadFailed);
   const sidebarWidth = useUiStore((state) => state.sidebarWidth);
   const newRequest = useNewRequest();
+  const view = useSidebarTree();
 
-  const isEmpty = !loading && requests.length === 0;
+  const isEmpty =
+    !loading && requests.length === 0 && collections.length === 0;
 
   return (
     <aside
@@ -28,40 +34,24 @@ export function Sidebar() {
         borderRight: "1px solid var(--lok-border-subtle)",
       }}
     >
-      <div
-        className="shrink-0 p-2"
-        style={{ borderBottom: "1px solid var(--lok-border-subtle)" }}
-      >
-        <input
-          type="search"
-          placeholder="Szukaj requestów…"
-          aria-label="Szukaj requestów"
-          className="w-full rounded-[var(--lok-radius-sm)] px-2 py-1.5"
-          style={{
-            backgroundColor: "var(--lok-bg-input)",
-            color: "var(--lok-text-primary)",
-            fontSize: "var(--lok-fs-sm)",
-            border: "1px solid var(--lok-border-default)",
-          }}
-        />
-      </div>
+      <SidebarHeader query={view.query} onQueryChange={view.setQuery} />
 
-      <div className="lok-scroll flex-1">
+      <div className="lok-scroll flex-1" style={{ minHeight: 0 }}>
         {isEmpty ? (
           <EmptyState
             headline="Rozgrzej pierwszą lokówkę"
-            hint="Nie masz jeszcze żadnych requestów. Zacznij od nowego."
+            hint={
+              loadFailed
+                ? "Backend niedostępny — pracujesz lokalnie."
+                : "Nie masz jeszcze żadnych requestów. Zacznij od nowego."
+            }
             actionLabel="Nowy request"
             shortcut="⌘N"
             onAction={newRequest}
             icon="🌀"
           />
         ) : (
-          <CollectionTree
-            collections={collections}
-            requests={requests}
-            activeRequestId={activeRequestId}
-          />
+          <CollectionTree view={view} activeRequestId={activeRequestId} />
         )}
       </div>
     </aside>

@@ -389,6 +389,32 @@
   height: 15px;
 }
 
+/* Save affordance: subtle raised button, disabled while the draft is clean. */
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-raised);
+  color: var(--lok-text-secondary);
+  cursor: pointer;
+  transition:
+    color var(--lok-dur-fast) var(--lok-ease-standard),
+    border-color var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.btn-save:hover:not(:disabled) {
+  color: var(--lok-heat-400);
+  border-color: var(--lok-border-focus);
+}
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* waterfall */
 .wf {
   display: grid;

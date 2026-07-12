@@ -9,6 +9,7 @@ interface UiState {
   responsePlacement: ResponseDockPlacement;
   responseSize: number;
   paletteOpen: boolean;
+  envManagerOpen: boolean;
 
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
@@ -18,6 +19,8 @@ interface UiState {
   openPalette: () => void;
   closePalette: () => void;
   togglePalette: () => void;
+  openEnvManager: () => void;
+  closeEnvManager: () => void;
 }
 
 const SIDEBAR_MIN = 200;
@@ -33,6 +36,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   responsePlacement: "bottom",
   responseSize: 42,
   paletteOpen: false,
+  envManagerOpen: false,
 
   setTheme: (theme) => set({ theme }),
   toggleTheme: () => set({ theme: get().theme === "dark" ? "light" : "dark" }),
@@ -42,4 +46,6 @@ export const useUiStore = create<UiState>((set, get) => ({
   openPalette: () => set({ paletteOpen: true }),
   closePalette: () => set({ paletteOpen: false }),
   togglePalette: () => set({ paletteOpen: !get().paletteOpen }),
+  openEnvManager: () => set({ envManagerOpen: true }),
+  closeEnvManager: () => set({ envManagerOpen: false }),
 }));

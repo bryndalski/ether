@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useCollectionsStore } from "../state/useCollectionsStore";
 import { useUiStore } from "../state/useUiStore";
 import type { RequestOptions, StoredRequest } from "../lib/types";
+import { makeId } from "../lib/ids";
 
 const DEFAULT_OPTIONS: RequestOptions = {
   follow_redirects: true,
@@ -13,12 +14,6 @@ const DEFAULT_OPTIONS: RequestOptions = {
   cookie_jar: null,
 };
 
-function makeId(): string {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `req-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
 /** Creates a fresh draft request in the local store and selects it. Persistence
  *  lands once the store backend is implemented; the shell stays usable now. */
 export function useNewRequest() {
@@ -27,7 +22,7 @@ export function useNewRequest() {
   return useCallback(() => {
     const store = useCollectionsStore.getState();
     const request: StoredRequest = {
-      id: makeId(),
+      id: makeId("req"),
       collection_id: store.collections[0]?.id ?? "",
       name: "Nowy request",
       method: "GET",

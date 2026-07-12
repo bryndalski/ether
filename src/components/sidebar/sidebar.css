@@ -1,0 +1,123 @@
+/* Collections sidebar — tree rows, context menu and drag & drop affordances.
+ * Colors come only from --lok-* semantic tokens; motion is gated by base.css's
+ * prefers-reduced-motion rule (transitions collapse to 0.01ms globally). */
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  width: 100%;
+  padding: 6px var(--lok-space-2);
+  text-align: left;
+  color: var(--lok-text-secondary);
+  font-size: var(--lok-fs-sm);
+  border-left: 2px solid transparent;
+  transition: background-color var(--lok-dur-fast) var(--lok-ease-out);
+}
+.tree-row:hover {
+  background: var(--lok-bg-hover);
+}
+.tree-row.active {
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-selected);
+  border-left-color: var(--lok-brand, var(--lok-heat-500));
+}
+
+.tree-chev {
+  width: 13px;
+  height: 13px;
+  color: var(--lok-text-tertiary);
+  transition: transform var(--lok-dur-fast) var(--lok-ease-out);
+  flex-shrink: 0;
+}
+.tree-chev.open {
+  transform: rotate(90deg);
+}
+
+.tree-folder {
+  color: var(--lok-text-tertiary);
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.tree-kebab {
+  margin-left: auto;
+  color: var(--lok-text-tertiary);
+  opacity: 0;
+  border-radius: var(--lok-radius-sm);
+  padding: 2px;
+  flex-shrink: 0;
+  transition: opacity var(--lok-dur-fast) var(--lok-ease-out);
+}
+.tree-row:hover .tree-kebab,
+.tree-row:focus-within .tree-kebab {
+  opacity: 1;
+}
+.tree-kebab:hover {
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-raised);
+}
+
+/* insertion line shown while a row is a drop target */
+.tree-row.drop-before {
+  box-shadow: inset 0 2px 0 0 var(--lok-heat-500);
+}
+.tree-row[aria-grabbed="true"] {
+  opacity: 0.5;
+}
+
+.row-menu {
+  position: fixed;
+  z-index: var(--lok-z-dropdown);
+  min-width: 190px;
+  padding: var(--lok-space-1);
+  background: var(--lok-bg-overlay);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-md);
+  box-shadow: var(--lok-shadow-md);
+}
+.row-menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  width: 100%;
+  padding: 6px var(--lok-space-2);
+  text-align: left;
+  color: var(--lok-text-secondary);
+  font-size: var(--lok-fs-sm);
+  border-radius: var(--lok-radius-sm);
+}
+.row-menu button:hover,
+.row-menu button:focus-visible {
+  background: var(--lok-bg-hover);
+  color: var(--lok-text-primary);
+}
+.row-menu button.danger {
+  color: var(--lok-status-danger);
+}
+.row-menu button.danger:hover {
+  background: var(--lok-status-danger-bg);
+}
+
+.tree-rename {
+  flex: 1;
+  min-width: 0;
+  background: var(--lok-bg-input);
+  color: var(--lok-text-primary);
+  border: 1px solid var(--lok-border-focus);
+  border-radius: var(--lok-radius-sm);
+  padding: 2px var(--lok-space-2);
+  font-size: var(--lok-fs-sm);
+}
+
+.tree-empty-row {
+  padding: 6px var(--lok-space-2);
+  color: var(--lok-text-tertiary);
+  font-size: var(--lok-fs-xs);
+  font-style: italic;
+  text-align: left;
+  width: 100%;
+}
+.tree-empty-row:hover {
+  color: var(--lok-text-secondary);
+}

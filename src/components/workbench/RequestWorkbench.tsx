@@ -4,6 +4,7 @@ import { useEnvStore } from "../../state/useEnvStore";
 import { useNewRequest } from "../../hooks/useNewRequest";
 import { useRequestDraft } from "../../hooks/useRequestDraft";
 import { useSendRequest } from "../../hooks/useSendRequest";
+import { isRequestDirty } from "../../lib/dirty";
 import { EmptyState } from "../common/EmptyState";
 import { ResponseDock } from "../response/ResponseDock";
 import { RequestBar } from "./RequestBar";
@@ -20,16 +21,23 @@ import { CurlTab } from "./CurlTab";
 export function RequestWorkbench() {
   const activeRequest = useCollectionsStore((state) => state.activeRequest());
   const activeEnvironmentId = useEnvStore((state) => state.activeEnvironmentId);
+  const saveRequest = useCollectionsStore((state) => state.saveRequest);
   const newRequest = useNewRequest();
 
   const { draft, dispatch, counts } = useRequestDraft(activeRequest);
   const { sendState, send, cancel } = useSendRequest();
   const [tab, setTab] = useState<RequestTabKey>("Params");
 
+  const dirty = isRequestDirty(draft, activeRequest);
+
   const onSend = useCallback(() => {
     if (draft.url.trim() === "") return;
     void send(draft, activeEnvironmentId);
   }, [draft, activeEnvironmentId, send]);
+
+  const onSave = useCallback(() => {
+    void saveRequest(draft);
+  }, [draft, saveRequest]);
 
   if (!activeRequest) {
     return (
@@ -54,6 +62,12 @@ export function RequestWorkbench() {
         if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
           event.preventDefault();
           onSend();
+        } else if (
+          event.key.toLowerCase() === "s" &&
+          (event.metaKey || event.ctrlKey)
+        ) {
+          event.preventDefault();
+          onSave();
         }
       }}
     >
@@ -64,6 +78,8 @@ export function RequestWorkbench() {
         sendState={sendState}
         onSend={onSend}
         onCancel={cancel}
+        onSave={onSave}
+        dirty={dirty}
       />
       <RequestTabs active={tab} onSelect={setTab} counts={counts} />
       {tab === "Params" && (

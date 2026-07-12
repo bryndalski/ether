@@ -1,5 +1,7 @@
-import type { CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import type { Environment } from "../../lib/types";
+import { useEnvStore } from "../../state/useEnvStore";
+import { mergedVars } from "../../lib/envMerge";
 
 interface EnvQuickLookProps {
   environment: Environment;
@@ -10,22 +12,19 @@ const surface: CSSProperties = {
   border: "1px solid var(--lok-border-default)",
   borderRadius: "var(--lok-radius-md)",
   boxShadow: "var(--lok-shadow-md)",
-  minWidth: 240,
+  minWidth: 260,
 };
 
-/** Hover popover listing env variables; secret values are always masked. */
+/** Hover popover listing the MERGED (base → sub) variables the request resolves
+ *  against. Secret values are always masked (they have no FE value anyway);
+ *  inherited-only rows are tagged so overrides are visible. Mirrors Rust's
+ *  child-overrides-parent precedence — display only, never a real send source. */
 export function EnvQuickLook({ environment }: EnvQuickLookProps) {
-  const secretSet = new Set(environment.secret_names);
-  const rows = [
-    ...environment.variables.map((variable) => ({
-      name: variable.name,
-      value: secretSet.has(variable.name) ? "••••••••" : variable.value,
-      secret: secretSet.has(variable.name),
-    })),
-    ...environment.secret_names
-      .filter((name) => !environment.variables.some((v) => v.name === name))
-      .map((name) => ({ name, value: "••••••••", secret: true })),
-  ];
+  const environments = useEnvStore((state) => state.environments);
+  const rows = useMemo(
+    () => mergedVars(environments, environment.id),
+    [environments, environment.id],
+  );
 
   return (
     <div
@@ -60,17 +59,34 @@ export function EnvQuickLook({ environment }: EnvQuickLookProps) {
             <li
               key={row.name}
               className="flex items-center justify-between gap-4 px-2 py-1"
-              style={{ fontSize: "var(--lok-fs-xs)" }}
+              style={{
+                fontSize: "var(--lok-fs-xs)",
+                opacity: row.source === "inherited" ? 0.7 : 1,
+              }}
             >
-              <span style={{ color: "var(--lok-syn-key)" }}>{row.name}</span>
+              <span className="flex items-center gap-1.5">
+                <span style={{ color: "var(--lok-syn-key)" }}>{row.name}</span>
+                {row.source === "inherited" && (
+                  <span
+                    className="uppercase"
+                    style={{
+                      color: "var(--lok-text-tertiary)",
+                      fontSize: "var(--lok-fs-2xs)",
+                      letterSpacing: "var(--lok-tracking-caps)",
+                    }}
+                  >
+                    dziedziczone
+                  </span>
+                )}
+              </span>
               <span
                 style={{
-                  color: row.secret
+                  color: row.isSecret
                     ? "var(--lok-text-tertiary)"
                     : "var(--lok-text-secondary)",
                 }}
               >
-                {row.value}
+                {row.isSecret ? "••••••••" : row.value}
               </span>
             </li>
           ))}

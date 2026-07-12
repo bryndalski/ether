@@ -5,6 +5,7 @@ import { Sidebar } from "./sidebar/Sidebar";
 import { RequestWorkbench } from "./workbench/RequestWorkbench";
 import { StatusBar } from "./statusbar/StatusBar";
 import { CommandPalette } from "./palette/CommandPalette";
+import { EnvironmentManager } from "./env/EnvironmentManager";
 import { IconSprite } from "./common/IconSprite";
 
 /** The three-zone app shell (titlebar · sidebar · editor+response · statusbar).
@@ -26,6 +27,7 @@ export function AppShell() {
       </div>
       <StatusBar />
       <CommandPalette />
+      <EnvironmentManager />
     </>
   );
 }

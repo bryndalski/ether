@@ -11,7 +11,16 @@ export type IconName =
   | "i-plus"
   | "i-folder"
   | "i-x"
-  | "i-copy";
+  | "i-copy"
+  | "i-more"
+  | "i-trash"
+  | "i-lock"
+  | "i-unlock"
+  | "i-shield"
+  | "i-settings"
+  | "i-save"
+  | "i-arrow-up"
+  | "i-arrow-down";
 
 interface IconProps {
   name: IconName;

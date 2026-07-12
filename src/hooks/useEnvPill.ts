@@ -31,6 +31,7 @@ export function useEnvPill() {
     dropdownOpen,
     quickLookOpen,
     toggleDropdown,
+    closeDropdown: () => setDropdownOpen(false),
     openQuickLook: () => setQuickLookOpen(true),
     closeQuickLook: () => setQuickLookOpen(false),
     select,

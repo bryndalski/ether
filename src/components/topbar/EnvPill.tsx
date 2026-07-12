@@ -1,4 +1,5 @@
 import { envKind } from "../../state/useEnvStore";
+import { useUiStore } from "../../state/useUiStore";
 import { useEnvPill } from "../../hooks/useEnvPill";
 import { HealthDot } from "../common/HealthDot";
 import { EnvDropdown } from "./EnvDropdown";
@@ -17,7 +18,9 @@ export function EnvPill() {
     openQuickLook,
     closeQuickLook,
     select,
+    closeDropdown,
   } = useEnvPill();
+  const openEnvManager = useUiStore((state) => state.openEnvManager);
 
   const kind = envKind(activeEnvironment);
   const label = activeEnvironment?.name ?? "Bez środowiska";
@@ -57,6 +60,10 @@ export function EnvPill() {
           environments={environments}
           activeId={activeEnvironmentId}
           onSelect={select}
+          onManage={() => {
+            closeDropdown();
+            openEnvManager();
+          }}
         />
       )}
     </div>
