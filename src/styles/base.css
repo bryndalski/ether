@@ -1,0 +1,318 @@
+/* ==========================================================================
+   Lokówka — Base styles (app-shell only)
+   --------------------------------------------------------------------------
+   Reset + shell-level styling. NO component styles live here — components
+   own their own CSS/utility classes and consume tokens from tokens.css.
+
+   Import order in the app entry (e.g. src/main.tsx):
+       import "./styles/tokens.css";  // 1. tokens first
+       import "./styles/base.css";    // 2. then base
+
+   The app-shell is a fixed, non-scrollable window: the OS window never
+   scrolls; only inner content regions do. This is a desktop app, not a page.
+   ========================================================================== */
+
+/* ----------------------------------------------------------------------
+   1. Modern reset
+   ---------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Non-scrollable OS window: shell is exactly one viewport tall (dvh handles
+   dynamic UI chrome). Scrolling happens inside content regions, never here. */
+html,
+body {
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--lok-font-sans);
+  font-size: var(--lok-fs-sm);
+  line-height: var(--lok-lh-base);
+  font-weight: var(--lok-fw-regular);
+  color: var(--lok-text-primary);
+  background-color: var(--lok-bg-app);
+  letter-spacing: var(--lok-tracking-normal);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  /* Desktop chrome: no native text selection or callout by default; opt back
+     in for content regions (see .lok-selectable / response panes). */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+
+  /* No rubber-band / drag of the whole window content. */
+  position: fixed;
+  inset: 0;
+}
+
+/* The app root is the shell grid host. It fills the window; children (sidebar,
+   editor, response dock) manage their own internal scroll. */
+#root {
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate; /* new stacking context so HUD/palette z-index behaves */
+}
+
+/* ----------------------------------------------------------------------
+   2. Typography defaults
+   ---------------------------------------------------------------------- */
+code,
+kbd,
+samp,
+pre,
+.lok-mono {
+  font-family: var(--lok-font-mono);
+  font-size: 0.95em;
+  line-height: var(--lok-lh-code);
+  font-variant-ligatures: none;
+  font-feature-settings: "tnum" 1; /* tabular figures for timings/status */
+}
+
+pre {
+  white-space: pre;
+}
+
+a {
+  color: var(--lok-text-link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Content that should allow native selection (response body, curl -v, code).
+   Also re-enable the OS text cursor and callout there. */
+.lok-selectable,
+.lok-selectable * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+  cursor: auto;
+}
+
+/* ----------------------------------------------------------------------
+   3. Form-control resets (inherit typography; components style the rest)
+   ---------------------------------------------------------------------- */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Text inputs / editable regions restore the caret + text selection. */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ----------------------------------------------------------------------
+   4. Selection & focus
+   ---------------------------------------------------------------------- */
+::selection {
+  background-color: var(--lok-brand-subtle);
+  color: var(--lok-text-primary);
+}
+
+/* Keyboard-only focus ring — the heat ring. Never shows on mouse click. */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: none;
+  box-shadow: var(--lok-shadow-focus);
+  border-radius: var(--lok-radius-sm);
+}
+
+/* ----------------------------------------------------------------------
+   5. Scrollbars — thin, overlay-style, tinted; only inner regions scroll
+   ---------------------------------------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--lok-scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--lok-scrollbar-thumb);
+  border-radius: var(--lok-radius-full);
+  border: 3px solid transparent; /* inset thumb via transparent border */
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--lok-scrollbar-thumb-hover);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Utility: a scroll region inside the shell. Apply to any content pane that
+   should scroll independently while the shell stays fixed. */
+.lok-scroll {
+  overflow: auto;
+  min-height: 0; /* lets flex/grid children actually shrink & scroll */
+  overscroll-behavior: contain;
+}
+
+/* ----------------------------------------------------------------------
+   6. Signature heat gradient utility classes
+   ---------------------------------------------------------------------- */
+
+/* Fill — the brand surface (Send button base, active env pill, progress). */
+.lok-heat-gradient {
+  background-image: var(--lok-gradient-heat);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
+  color: var(--lok-text-on-heat);
+}
+
+/* Animated heat — shifts the gradient slowly; used on the live "sending"
+   state of the Send button and the request progress bar. */
+.lok-heat-gradient--animated {
+  animation: lok-heat-shift 3.2s var(--lok-ease-standard) infinite alternate;
+}
+
+@keyframes lok-heat-shift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+/* Text painted with the heat gradient (brand wordmark, empty-state accent). */
+.lok-heat-text {
+  background-image: var(--lok-gradient-heat-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Radial glow layer — place behind a hero/logo/focused Send. */
+.lok-heat-glow {
+  background-image: var(--lok-gradient-heat-glow);
+  filter: blur(8px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Hairline heat border (focused input / active env card). */
+.lok-heat-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--lok-bg-surface), var(--lok-bg-surface)) padding-box,
+    var(--lok-gradient-heat) border-box;
+}
+
+/* ----------------------------------------------------------------------
+   7. Glass surface (⌘K palette, long-request HUD)
+   ---------------------------------------------------------------------- */
+.lok-glass {
+  background-color: var(--lok-glass-bg);
+  border: 1px solid var(--lok-glass-border);
+  -webkit-backdrop-filter: blur(var(--lok-glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--lok-glass-blur)) saturate(140%);
+  box-shadow: var(--lok-shadow-lg);
+  border-radius: var(--lok-radius-lg);
+}
+
+/* ----------------------------------------------------------------------
+   8. Environment accent wiring
+   The app sets [data-env] on the shell (or the env pill) to color the accent
+   without inline styles. Components then read var(--lok-env-accent).
+   ---------------------------------------------------------------------- */
+[data-env="local"] { --lok-env-accent: var(--lok-env-local); }
+[data-env="dev"] { --lok-env-accent: var(--lok-env-dev); }
+[data-env="staging"] { --lok-env-accent: var(--lok-env-staging); }
+[data-env="prod"] { --lok-env-accent: var(--lok-env-prod); }
+[data-env="custom"] { --lok-env-accent: var(--lok-env-custom); }
+
+/* ----------------------------------------------------------------------
+   9. Reduced motion — hard gate. Motion is delight, never a dependency.
+   ---------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .lok-heat-gradient--animated {
+    animation: none !important;
+    background-position: 50% 50% !important;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   10. Titlebar drag region (Tauri custom titlebar).
+   Marks an element as OS window-drag; interactive children opt out.
+   ---------------------------------------------------------------------- */
+.lok-drag-region {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+.lok-no-drag,
+.lok-drag-region button,
+.lok-drag-region input,
+.lok-drag-region a {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
