@@ -27,9 +27,10 @@ export function DocsExplorer({ schema, nav }: DocsExplorerProps) {
           <DocsTypePanel type={focused} onFocusType={nav.focusType} />
         ) : (
           <EmptyState
+            compact
             headline={t("graphql.pickTypeHeadline")}
             hint={t("graphql.docsHint")}
-            icon={<Icon name="i-book" size={28} />}
+            icon={<Icon name="i-book" size={18} />}
           />
         )}
       </div>

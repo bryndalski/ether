@@ -49,6 +49,7 @@ export function VariablesPanel({ value, onChange }: VariablesPanelProps) {
         theme="dark"
         extensions={extensions}
         basicSetup={{ lineNumbers: false, foldGutter: false }}
+        placeholder={'{ "id": "{{env.userId}}" }'}
         onChange={onChange}
       />
     </div>

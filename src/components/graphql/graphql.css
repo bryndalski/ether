@@ -335,9 +335,11 @@
 }
 .vars-body {
   padding: var(--lok-space-2) var(--lok-space-4);
-  max-height: 160px;
+  /* Real editing room: a one-line sliver read as broken. Still capped so the
+     query editor keeps the lion's share of the split. */
+  min-height: 96px;
+  max-height: 200px;
   overflow: auto;
-  min-height: 0;
 }
 .vars-body .cm-editor {
   background: transparent;

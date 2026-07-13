@@ -30,7 +30,9 @@ export interface VariableAutocompleteOptions {
 }
 
 const tokenMatcher = new MatchDecorator({
-  regexp: /\{\{[^}]*\}\}/g,
+  // At least one name char — a bare `{{}}` mid-typing must NOT light up as a
+  // hot token pill (it reads as an alarm in the URL bar).
+  regexp: /\{\{[^}]+\}\}/g,
   decoration: Decoration.mark({ class: "cm-lok-token" }),
 });
 

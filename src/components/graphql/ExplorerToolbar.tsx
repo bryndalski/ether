@@ -115,7 +115,12 @@ export function ExplorerToolbar({
     >
       {requestTypeToggle}
       <OperationPicker opType={opType} available={availableOps} onChange={onOpType} />
-      <UrlInput url={url} onChange={onUrl} onEnter={onRun} />
+      <UrlInput
+        url={url}
+        onChange={onUrl}
+        onEnter={onRun}
+        placeholder="https://api.example.com/graphql"
+      />
 
       {collapsed ? (
         <>
@@ -147,9 +152,9 @@ export function ExplorerToolbar({
           {onSave && (
             <button
               type="button"
-              className="lok-btn lok-btn--md lok-btn--neutral lok-btn--icon btn-save"
+              className="lok-btn lok-btn--md lok-btn--neutral lok-btn--icon btn-save lok-tip"
               aria-label={t("palette.saveRequest")}
-              title={t("workbench.saveRequestTitle")}
+              data-tip={t("workbench.saveRequestTitle")}
               disabled={!dirty}
               onClick={onSave}
             >
@@ -159,9 +164,9 @@ export function ExplorerToolbar({
           {onCopyCurl && (
             <button
               type="button"
-              className="lok-btn lok-btn--md lok-btn--neutral lok-btn--icon btn-save"
+              className="lok-btn lok-btn--md lok-btn--neutral lok-btn--icon btn-save lok-tip"
               aria-label={t("workbench.copyAsCurlAria")}
-              title={t("workbench.copyAsCurl")}
+              data-tip={t("workbench.copyAsCurl")}
               disabled={urlEmpty}
               onClick={onCopyCurl}
             >

@@ -171,6 +171,12 @@ svg {
   box-shadow: var(--lok-shadow-focus);
   border-radius: var(--lok-radius-sm);
 }
+/* Editors (CodeMirror contenteditable) signal focus via their CONTAINER's
+   border + soft ring and the caret; the heat ring on the inner content wraps
+   the whole field in an alarm-red box while you type. Keep them quiet. */
+.cm-content:focus-visible {
+  box-shadow: none;
+}
 
 /* ----------------------------------------------------------------------
    5. Scrollbars — thin, overlay-style, tinted; only inner regions scroll

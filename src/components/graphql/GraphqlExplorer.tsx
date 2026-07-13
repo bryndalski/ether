@@ -169,6 +169,7 @@ export function GraphqlExplorer({
             <div className="col-head">{t("graphql.fieldsColumn")}</div>
             <div className="col-body lok-scroll">
               <EmptyState
+                glow={schemaApi.state !== "introspecting"}
                 headline={
                   schemaApi.state === "introspecting"
                     ? t("graphql.introspecting")
@@ -176,6 +177,12 @@ export function GraphqlExplorer({
                 }
                 hint={t("graphql.noSchemaHint")}
                 icon={<Icon name="i-graph" size={28} />}
+                actionLabel={
+                  schemaApi.state === "introspecting"
+                    ? undefined
+                    : t("graphql.refreshSchema")
+                }
+                onAction={() => void schemaApi.refresh()}
               />
             </div>
           </div>
@@ -237,10 +244,13 @@ export function GraphqlExplorer({
           <div className="gql-col docs-col">
             <div className="col-head">{t("graphql.docsColumn")}</div>
             <div className="col-body lok-scroll">
+              {/* Secondary rail: one hero per screen — the schema CTA on the
+                  left owns it, so this stays compact and quiet. */}
               <EmptyState
+                compact
                 headline={t("graphql.docsAppearHeadline")}
                 hint={t("graphql.docsAppearHint")}
-                icon={<Icon name="i-book" size={28} />}
+                icon={<Icon name="i-book" size={18} />}
               />
             </div>
           </div>
@@ -249,12 +259,16 @@ export function GraphqlExplorer({
 
       {isSubscription && <SubscriptionStream stream={stream} />}
 
-      <ExplorerStatusBar
-        schemaState={schemaApi.state}
-        typeCount={schemaApi.typeCount}
-        selectedFieldCount={builder.selection.size}
-        lastRefreshLabel={relativeTimeLabel(schemaApi.lastRefreshedAt)}
-      />
+      {/* Meta strip only once it carries real information — with no schema it
+          was three stacked bars of noise under an empty screen. */}
+      {schemaApi.schema != null && (
+        <ExplorerStatusBar
+          schemaState={schemaApi.state}
+          typeCount={schemaApi.typeCount}
+          selectedFieldCount={builder.selection.size}
+          lastRefreshLabel={relativeTimeLabel(schemaApi.lastRefreshedAt)}
+        />
+      )}
     </div>
   );
 }
