@@ -21,12 +21,12 @@ export function RunButton({ sendState, disabled, onRun, onCancel }: RunButtonPro
     return (
       <button
         type="button"
-        className="btn-send lok-heat-gradient--animated"
+        className="lok-btn lok-btn--lg lok-btn--primary btn-send lok-heat-gradient--animated"
         aria-label={t("graphql.cancelOperation")}
         aria-busy={true}
         onClick={onCancel}
       >
-        <Icon name="i-x" size={15} />
+        <Icon name="i-x" size={17} />
         {t("graphql.running")}
       </button>
     );
@@ -35,12 +35,12 @@ export function RunButton({ sendState, disabled, onRun, onCancel }: RunButtonPro
   return (
     <button
       type="button"
-      className="btn-send"
+      className="lok-btn lok-btn--lg lok-btn--primary btn-send"
       aria-label={t("graphql.runOperation")}
       disabled={disabled}
       onClick={onRun}
     >
-      <Icon name="i-play" size={13} />
+      <Icon name="i-play" size={17} />
       {t("graphql.run")}
       <kbd className="kbd">⌘↵</kbd>
     </button>

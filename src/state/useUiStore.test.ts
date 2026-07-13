@@ -5,9 +5,9 @@ describe("useUiStore", () => {
   beforeEach(() => {
     useUiStore.setState({
       theme: "dark",
-      sidebarWidth: 260,
+      sidebarWidth: 280,
       responsePlacement: "bottom",
-      responseSize: 42,
+      responseSize: 45,
       paletteOpen: false,
     });
   });
@@ -35,6 +35,36 @@ describe("useUiStore", () => {
     expect(useUiStore.getState().sidebarWidth).toBe(420);
     useUiStore.getState().setSidebarWidth(300);
     expect(useUiStore.getState().sidebarWidth).toBe(300);
+  });
+
+  it("clamps response bottom-dock size to the 20–80% range", () => {
+    useUiStore.getState().setResponseSize(5);
+    expect(useUiStore.getState().responseSize).toBe(20);
+    useUiStore.getState().setResponseSize(95);
+    expect(useUiStore.getState().responseSize).toBe(80);
+    useUiStore.getState().setResponseSize(50);
+    expect(useUiStore.getState().responseSize).toBe(50);
+  });
+
+  it("clamps response right-dock width to the 320–900px range", () => {
+    useUiStore.getState().setResponseWidth(100);
+    expect(useUiStore.getState().responseWidth).toBe(320);
+    useUiStore.getState().setResponseWidth(2000);
+    expect(useUiStore.getState().responseWidth).toBe(900);
+    useUiStore.getState().setResponseWidth(600);
+    expect(useUiStore.getState().responseWidth).toBe(600);
+  });
+
+  it("resets layout dimensions to their defaults", () => {
+    useUiStore.getState().setSidebarWidth(300);
+    useUiStore.getState().setResponseSize(70);
+    useUiStore.getState().setResponseWidth(700);
+    useUiStore.getState().resetSidebarWidth();
+    useUiStore.getState().resetResponseSize();
+    useUiStore.getState().resetResponseWidth();
+    expect(useUiStore.getState().sidebarWidth).toBe(280);
+    expect(useUiStore.getState().responseSize).toBe(45);
+    expect(useUiStore.getState().responseWidth).toBe(480);
   });
 
   it("local AI is OFF by default with no model", () => {

@@ -21,8 +21,8 @@ import { TestsPanel } from "./tests/TestsPanel";
 import { ScriptsPanel } from "./scripts/ScriptsPanel";
 import { RequestTypeToggle } from "../graphql/RequestTypeToggle";
 import { EmptyState } from "../common/EmptyState";
+import { Icon } from "../common/Icon";
 import { ResponseDock } from "../response/ResponseDock";
-import { DevToolsDrawer } from "../devtools/DevToolsDrawer";
 import { HistoryDrawer } from "../history/HistoryDrawer";
 import { ReplayReconcileBanner } from "../history/ReplayReconcileBanner";
 import { GraphqlExplorer } from "../graphql/GraphqlExplorer";
@@ -228,7 +228,7 @@ export function RequestWorkbench() {
           actionLabel={t("palette.newRequest")}
           shortcut="⌘N"
           onAction={newRequest}
-          icon="~"
+          icon={<Icon name="i-send" size={32} />}
         />
         <HistoryDrawer activeRequestId={activeRequestId} onReplay={onReplay} />
       </section>
@@ -347,6 +347,7 @@ export function RequestWorkbench() {
       )}
       <ResponseDock
         sendState={sendState}
+        method={draft.method}
         snapshot={
           snapshotEntry
             ? {
@@ -377,7 +378,6 @@ export function RequestWorkbench() {
         }}
       />
       <HistoryDrawer activeRequestId={activeRequestId} onReplay={onReplay} />
-      <DevToolsDrawer />
     </section>
   );
 }

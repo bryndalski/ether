@@ -33,13 +33,9 @@
   background-color: var(--lok-bg-app);
 }
 
+/* Name input rides .lok-input; only the flex sizing + weight are toolbar-local. */
 .lok-wf-toolbar__name {
   flex: 0 1 260px;
-  padding: var(--lok-space-1) var(--lok-space-3);
-  border-radius: var(--lok-radius-md);
-  border: 1px solid var(--lok-border-subtle);
-  background-color: var(--lok-bg-raised);
-  color: var(--lok-text-primary);
   font-weight: 600;
 }
 
@@ -67,26 +63,8 @@
   color: var(--lok-status-danger);
 }
 
-.lok-wf-toolbar__save,
-.lok-wf-toolbar__run,
-.lok-wf-toolbar__stop {
-  padding: var(--lok-space-1) var(--lok-space-4);
-  border-radius: var(--lok-radius-md);
-  border: 1px solid var(--lok-border-subtle);
-  background-color: var(--lok-bg-raised);
-  color: var(--lok-text-primary);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color var(--lok-dur-fast) ease;
-}
-.lok-wf-toolbar__run {
-  border-color: var(--lok-status-success);
-  color: var(--lok-status-success);
-}
-.lok-wf-toolbar__stop {
-  border-color: var(--lok-status-danger);
-  color: var(--lok-status-danger);
-}
+/* Save / Run / Stop ride .lok-btn primitives (Run = heat lg — Run is a primary
+   action, consistent with Send). No bespoke sizing/color here. */
 
 /* ---- palette ---- */
 
@@ -393,4 +371,155 @@
 .lok-mode-tab:focus-visible {
   outline: none;
   box-shadow: var(--lok-shadow-focus);
+}
+
+/* ---- request node config (inspector) ---- */
+.lok-wf-request {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-2);
+}
+.lok-wf-modeswitch {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  overflow: hidden;
+}
+.lok-wf-modeswitch button {
+  padding: 4px var(--lok-space-3);
+  font-size: 0.72rem;
+  background: var(--lok-bg-raised);
+  color: var(--lok-text-tertiary);
+  border: none;
+  cursor: pointer;
+}
+.lok-wf-modeswitch button.on {
+  background: var(--lok-bg-active);
+  color: var(--lok-text-primary);
+}
+.lok-wf-modeswitch button:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: -2px;
+}
+.lok-wf-error {
+  color: var(--lok-status-danger);
+  font-size: 0.68rem;
+}
+.lok-wf-inline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-2);
+}
+.lok-wf-reqbar {
+  display: flex;
+  gap: var(--lok-space-1);
+  align-items: center;
+}
+.lok-wf-reqbar .url-field {
+  flex: 1;
+  min-width: 0;
+}
+.lok-wf-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--lok-text-secondary);
+  cursor: pointer;
+}
+.lok-wf-toggle input {
+  accent-color: var(--lok-syn-gql);
+}
+.lok-wf-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lok-wf-section-title {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: var(--lok-tracking-caps);
+  color: var(--lok-text-tertiary);
+}
+/* Give the reused CodeMirror editor in the inspector a bounded, compact height.
+   Scoped to its own class so it never collides with the top-level .lok-wf-editor
+   container (which must fill the view — a shared class collapsed the canvas). */
+.lok-wf-query-editor {
+  height: 160px;
+  border: 1px solid var(--lok-border-subtle);
+  border-radius: var(--lok-radius-sm);
+  overflow: hidden;
+  display: flex;
+  min-height: 0;
+}
+.lok-wf-query-editor .query-pane {
+  flex: 1;
+  min-height: 0;
+}
+
+/* invalid (unconfigured) request node marker on the canvas card */
+.lok-wf-node[data-invalid] {
+  border-color: var(--lok-status-danger);
+}
+.lok-wf-node__warn {
+  margin-top: 4px;
+  font-size: 0.64rem;
+  color: var(--lok-status-danger);
+  font-weight: 600;
+}
+
+/* ---- React-Flow (@xyflow/react) chrome, tokenized ----
+   The stock dist/style.css paints the Controls/MiniMap as a stark white strip on
+   our dark canvas (a P1 visual bug). Repaint them onto --lok-* so they read as
+   part of the app in BOTH themes. RF v12 exposes --xy-* custom props; we set them
+   on the flow root and back that up with direct selector overrides. */
+.lok-wf-canvas .react-flow {
+  --xy-controls-button-background-color: var(--lok-bg-raised);
+  --xy-controls-button-background-color-hover: var(--lok-bg-active);
+  --xy-controls-button-color: var(--lok-text-secondary);
+  --xy-controls-button-color-hover: var(--lok-text-primary);
+  --xy-controls-button-border-color: var(--lok-border-subtle);
+  --xy-background-color: transparent;
+  --xy-edge-stroke: var(--lok-border-strong);
+  --xy-edge-stroke-selected: var(--lok-heat-500);
+  --xy-connectionline-stroke: var(--lok-heat-500);
+  --xy-attribution-background-color: transparent;
+}
+.lok-wf-canvas .react-flow__controls {
+  box-shadow: var(--lok-shadow-sm);
+  border-radius: var(--lok-radius-md);
+  overflow: hidden;
+}
+.lok-wf-canvas .react-flow__controls-button {
+  background: var(--lok-bg-raised);
+  color: var(--lok-text-secondary);
+  border-bottom: 1px solid var(--lok-border-subtle);
+}
+.lok-wf-canvas .react-flow__controls-button:hover {
+  background: var(--lok-bg-active);
+  color: var(--lok-text-primary);
+}
+.lok-wf-canvas .react-flow__controls-button svg {
+  fill: currentColor;
+}
+.lok-wf-canvas .react-flow__background {
+  background: transparent;
+}
+/* Dots pattern lines pick up the subtle border tone so the grid is barely there
+   on both themes rather than a hard black/white. */
+.lok-wf-canvas .react-flow__background-pattern {
+  color: var(--lok-border-subtle);
+}
+.lok-wf-canvas .react-flow__minimap {
+  background: var(--lok-bg-raised);
+  border: 1px solid var(--lok-border-subtle);
+  border-radius: var(--lok-radius-md);
+}
+.lok-wf-canvas .react-flow__edge-path {
+  stroke: var(--lok-border-strong);
+}
+.lok-wf-canvas .react-flow__handle {
+  background: var(--lok-heat-500);
+  border-color: var(--lok-bg-raised);
 }

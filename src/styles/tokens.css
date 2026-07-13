@@ -43,19 +43,23 @@
      "cinematic dark" premium floor. Each step is a real, hand-tuned surface
      level — not an even math ramp — so back→front separation is legible on
      OLED without borders. */
-  --lok-ink-0:   #060709; /* deepest — app backdrop (behind everything)  */
-  --lok-ink-50:  #0b0d12; /* sidebar / rails                              */
-  --lok-ink-100: #101319; /* editor & response panels                     */
-  --lok-ink-150: #161a22; /* cards, toolbars, tabs (raised)               */
-  --lok-ink-200: #1d222c; /* dropdowns, popovers (overlay)                */
-  --lok-ink-300: #272d39; /* hairline-strong dividers, pressed rows       */
-  --lok-ink-400: #363d4c; /* disabled fills, track backgrounds            */
-  --lok-ink-500: #5b6273; /* faint text / disabled / line-numbers (AA-L)  */
-  --lok-ink-600: #868d9c; /* tertiary text (meta, timestamps) — AA 4.5+   */
-  --lok-ink-700: #99a1b0; /* secondary text                               */
-  --lok-ink-800: #c3c9d4; /* strong secondary                             */
-  --lok-ink-900: #e5e8ee; /* primary text                                 */
-  --lok-ink-950: #f5f7fa; /* max-contrast headings / big status codes     */
+  /* Lightened one ramp-step up from the old OLED-deep floor (user feedback:
+     "kolorystyka za ciemna") — surfaces read with clear back→front separation
+     without borders, while staying a true dark theme. Text steps 500–700 were
+     nudged up in L to hold AA (4.5:1) on the raised surfaces. */
+  --lok-ink-0:   #0d0f14; /* deepest — app backdrop (behind everything)  */
+  --lok-ink-50:  #14171e; /* sidebar / rails                              */
+  --lok-ink-100: #1a1e27; /* editor & response panels                     */
+  --lok-ink-150: #21262f; /* cards, toolbars, tabs (raised)               */
+  --lok-ink-200: #2a303b; /* dropdowns, popovers (overlay)                */
+  --lok-ink-300: #343b48; /* hairline-strong dividers, pressed rows       */
+  --lok-ink-400: #454d5e; /* disabled fills, track backgrounds            */
+  --lok-ink-500: #6b7284; /* faint text / disabled / line-numbers (AA-L)  */
+  --lok-ink-600: #949bab; /* tertiary text (meta, timestamps) — AA 4.5+   */
+  --lok-ink-700: #a6adbc; /* secondary text                               */
+  --lok-ink-800: #c9cfda; /* strong secondary                             */
+  --lok-ink-900: #e7eaf0; /* primary text                                 */
+  --lok-ink-950: #f6f8fb; /* max-contrast headings / big status codes     */
   --lok-white:   #ffffff;
 
   /* Status hues — HTTP status class, assertions, connection health.
@@ -168,14 +172,14 @@
   /* ----------------------------------------------------------------------
      5. LAYOUT DIMENSIONS
      ---------------------------------------------------------------------- */
-  --lok-sidebar-w: 260px;     /* collections sidebar (spec-mandated) */
+  --lok-sidebar-w: 280px;     /* collections sidebar (Postman-density default) */
   --lok-sidebar-w-min: 200px;
   --lok-sidebar-w-max: 420px;
   --lok-response-w: 480px;    /* response dock when placed on the right */
   --lok-response-h: 42%;      /* response dock when placed at the bottom */
   --lok-titlebar-h: 40px;     /* Tauri custom titlebar / traffic-light row */
-  --lok-toolbar-h: 44px;      /* request method+url+send row */
-  --lok-tabbar-h: 34px;       /* params/headers/body/auth tabs */
+  --lok-toolbar-h: 52px;      /* request method+url+send row */
+  --lok-tabbar-h: 38px;       /* params/headers/body/auth tabs */
   --lok-statusbar-h: 26px;    /* bottom env/health status strip */
 
   /* ----------------------------------------------------------------------
@@ -276,15 +280,15 @@
   --lok-bg-overlay: var(--lok-ink-200);  /* dropdowns, popovers */
   --lok-bg-input: var(--lok-ink-150);
   --lok-bg-input-focus: var(--lok-ink-200);
-  --lok-bg-hover: rgba(255, 255, 255, 0.04);
-  --lok-bg-active: rgba(255, 255, 255, 0.07);
+  --lok-bg-hover: rgba(255, 255, 255, 0.06);
+  --lok-bg-active: rgba(255, 255, 255, 0.10);
   --lok-bg-selected: rgba(255, 45, 122, 0.12); /* heat-tinted selection */
   --lok-bg-code: var(--lok-ink-50);      /* response/curl pane */
   --lok-scrim: rgba(6, 6, 10, 0.78);     /* modal/palette backdrop — deep enough to float overlays */
 
   /* Glass (HUD after long request, ⌘K palette) — blur + translucency */
-  --lok-glass-bg: rgba(22, 22, 29, 0.72);
-  --lok-glass-border: rgba(255, 255, 255, 0.09);
+  --lok-glass-bg: rgba(33, 38, 47, 0.74);
+  --lok-glass-border: rgba(255, 255, 255, 0.12);
   --lok-glass-blur: 22px;
 
   /* Text */
@@ -297,9 +301,9 @@
   --lok-text-link: var(--lok-heat-400);
 
   /* Borders & dividers */
-  --lok-border-subtle: rgba(255, 255, 255, 0.06);
-  --lok-border-default: rgba(255, 255, 255, 0.10);
-  --lok-border-strong: rgba(255, 255, 255, 0.16);
+  --lok-border-subtle: rgba(255, 255, 255, 0.10);
+  --lok-border-default: rgba(255, 255, 255, 0.16);
+  --lok-border-strong: rgba(255, 255, 255, 0.24);
   --lok-border-focus: var(--lok-heat-500);
 
   /* Brand / interactive */

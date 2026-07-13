@@ -8,6 +8,10 @@ import { EditorView, keymap } from "@codemirror/view";
 export interface SingleLineOptions {
   /** Called when Enter is pressed with no completion popup open. */
   onEnter?: () => void;
+  /** Soft-wrap long content onto multiple visual lines. Default true. When
+   *  false the line stays flat and scrolls horizontally (the URL-bar model —
+   *  the row height never grows, so it can't overlap the tabs below). */
+  wrap?: boolean;
 }
 
 /** Reject any transaction that would insert a newline, so the doc stays flat. */
@@ -27,8 +31,9 @@ const noNewlines = EditorState.transactionFilter.of((transaction) => {
  * Escape only blurs once the popup is closed.
  */
 export function singleLine(options: SingleLineOptions = {}): Extension {
+  const wrap = options.wrap ?? true;
   return [
-    EditorView.lineWrapping,
+    ...(wrap ? [EditorView.lineWrapping] : []),
     noNewlines,
     Prec.low(
       keymap.of([

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ImportApi } from "../../hooks/useImport";
 import type { RequestSpec } from "../../lib/types";
 import { EmptyState } from "../common/EmptyState";
+import { Icon } from "../common/Icon";
 import { ScanHistoryList } from "./ScanHistoryList";
 import { useT } from "../../i18n/useT";
 
@@ -60,7 +61,7 @@ export function ScanHistoryTab({
         <EmptyState
           headline={t("import.noCurlHeadline")}
           hint={t("import.noCurlInHistory")}
-          icon="~"
+          icon={<Icon name="i-history" size={28} />}
         />
       ) : (
         <ScanHistoryList commands={commands} onPick={(cmd) => void pick(cmd)} />

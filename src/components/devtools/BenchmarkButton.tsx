@@ -14,13 +14,13 @@ export function BenchmarkButton({ disabled, onClick }: BenchmarkButtonProps) {
   return (
     <button
       type="button"
-      className="dv-bench-btn"
+      className="lok-btn lok-btn--md lok-btn--neutral dv-bench-btn"
       aria-label={t("devtools.benchmarkOfRequest")}
       title={t("devtools.benchmarkTitle")}
       disabled={disabled}
       onClick={onClick}
     >
-      <Icon name="i-bar-chart" size={15} />
+      <Icon name="i-bar-chart" size={17} />
       <span>{t("devtools.benchmark")}</span>
     </button>
   );

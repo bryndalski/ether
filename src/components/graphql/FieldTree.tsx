@@ -1,29 +1,43 @@
 import type { GraphQLField, GraphQLObjectType } from "graphql";
 import { FieldTreeNode } from "./FieldTreeNode";
+import { OperationSections } from "./OperationSections";
 import { useFieldTreeExpansion } from "../../hooks/useFieldTreeExpansion";
 import {
   childFields,
   objectFields,
   isExpandable,
 } from "../../lib/graphqlSchemaTree";
-import { pathKey, type FieldPath } from "../../lib/graphqlSelection";
+import { pathKey, type FieldPath, type OperationType } from "../../lib/graphqlSelection";
+import { EmptyState } from "../common/EmptyState";
 import { Icon } from "../common/Icon";
 import { useT } from "../../i18n/useT";
 
 interface FieldTreeProps {
   rootType: GraphQLObjectType;
+  opType: OperationType;
+  availableOps: OperationType[];
+  rootFieldCounts: Record<OperationType, number>;
+  onOpType: (opType: OperationType) => void;
   isSelected: (path: FieldPath) => boolean;
   onToggle: (path: FieldPath, on: boolean) => void;
+  /** Root-level pick: generates a schema skeleton (args + first-level scalars). */
+  onPickRoot: (fieldName: string, on: boolean) => void;
   onFocusType: (typeName: string) => void;
 }
 
 /** The recursive checkbox field tree (mock's `.tree-col`). A real role="tree";
  *  children render lazily only when their parent is expanded, and a visited-type
- *  guard per branch stops runaway recursion on self-referential types. */
+ *  guard per branch stops runaway recursion on self-referential types. The
+ *  header carries the visible Query/Mutation/Subscription section switcher. */
 export function FieldTree({
   rootType,
+  opType,
+  availableOps,
+  rootFieldCounts,
+  onOpType,
   isSelected,
   onToggle,
+  onPickRoot,
   onFocusType,
 }: FieldTreeProps) {
   const t = useT();
@@ -41,6 +55,12 @@ export function FieldTree({
       const expanded = expansion.isExpanded(path);
       const typeName = field.type.toString().replace(/[[\]!]/g, "");
       const cycles = visited.has(typeName);
+      // Root-level checkboxes generate a runnable skeleton; nested ones use the
+      // plain path toggle (the parent already carries the selection context).
+      const handleToggle =
+        depth === 1
+          ? (p: FieldPath, on: boolean) => onPickRoot(p[p.length - 1]!, on)
+          : onToggle;
       return (
         <div key={pathKey(path)}>
           <FieldTreeNode
@@ -49,7 +69,7 @@ export function FieldTree({
             depth={depth}
             selected={isSelected(path)}
             expanded={expanded}
-            onToggle={onToggle}
+            onToggle={handleToggle}
             onExpand={expansion.toggleExpand}
             onFocusType={onFocusType}
           />
@@ -68,19 +88,38 @@ export function FieldTree({
     });
   }
 
+  const rootFields = objectFields(rootType);
+
   return (
     <div className="gql-col tree-col">
-      <div className="col-head">
-        Fields
-        <span className="spacer" />
-        <Icon name="i-book" size={13} />
-      </div>
+      <OperationSections
+        opType={opType}
+        available={availableOps}
+        counts={rootFieldCounts}
+        onChange={onOpType}
+      />
       <div className="col-body lok-scroll" role="tree" aria-label={t("graphql.schemaFields")}>
         <div className="f field-type" aria-hidden="true">
-          <Icon name="i-chev" size={12} />
           {rootType.name}
         </div>
-        {renderNodes(objectFields(rootType), [], 1, new Set([rootType.name]))}
+        {rootFields.length > 0 ? (
+          renderNodes(rootFields, [], 1, new Set([rootType.name]))
+        ) : (
+          <EmptyState
+            compact
+            headline={t("graphql.noOperationFields", {
+              op: t(
+                opType === "mutation"
+                  ? "graphql.opMutation"
+                  : opType === "subscription"
+                    ? "graphql.opSubscription"
+                    : "graphql.opQuery",
+              ),
+            })}
+            hint={t("graphql.noOperationFieldsHint")}
+            icon={<Icon name="i-graph" size={18} />}
+          />
+        )}
       </div>
     </div>
   );

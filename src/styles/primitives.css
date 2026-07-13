@@ -1,0 +1,210 @@
+/* ==========================================================================
+   Ether — Shared control primitives (.lok-btn / .lok-input)
+   --------------------------------------------------------------------------
+   The single control-sizing layer the whole app refactors onto, so buttons and
+   inputs stop being sized ad-hoc (the "przyciski za małe" problem). Postman/
+   Insomnia density: 13px base, 34px default rows, 40px for the primary action.
+
+   Sizes (height / pad-x / font):
+     .lok-btn--sm : 28px / 10px / 12px   dense table-row actions, chips
+     .lok-btn--md : 34px / 14px / 13px   DEFAULT — toolbar buttons, tabs, inputs
+     .lok-btn--lg : 40px / 20px / 14px   primary CTAs: Send, Run, empty-state
+
+   Variants: --primary (heat, one-per-screen), --neutral (raised+border),
+   --ghost (transparent, hover bg), --danger (status danger).
+   ========================================================================== */
+
+.lok-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lok-space-2);
+  height: 34px; /* md default */
+  padding: 0 14px;
+  font-family: var(--lok-font-sans);
+  font-size: var(--lok-fs-sm);
+  font-weight: var(--lok-fw-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: var(--lok-radius-sm);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--lok-dur-fast) var(--lok-ease-standard),
+    border-color var(--lok-dur-fast) var(--lok-ease-standard),
+    color var(--lok-dur-fast) var(--lok-ease-standard),
+    box-shadow var(--lok-dur-fast) var(--lok-ease-standard),
+    transform var(--lok-dur-fast) var(--lok-ease-spring);
+}
+.lok-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--lok-shadow-focus);
+}
+.lok-btn:active:not(:disabled) {
+  transform: scale(var(--lok-wow-press-scale));
+}
+.lok-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- sizes ---- */
+.lok-btn--sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: var(--lok-fs-xs);
+  gap: var(--lok-space-1);
+}
+.lok-btn--md {
+  height: 34px;
+  padding: 0 14px;
+  font-size: var(--lok-fs-sm);
+}
+.lok-btn--lg {
+  height: 40px;
+  padding: 0 20px;
+  font-size: var(--lok-fs-md);
+}
+
+/* Icon-only square: keep the height as the width so the target stays ≥28px. */
+.lok-btn--icon {
+  padding: 0;
+  aspect-ratio: 1;
+}
+
+/* ---- variants ---- */
+.lok-btn--primary {
+  background: var(--lok-gradient-heat);
+  color: var(--lok-text-on-heat);
+  box-shadow: var(--lok-shadow-heat);
+  text-shadow: 0 1px 1px rgba(120, 10, 40, 0.45);
+}
+.lok-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 8px 30px rgba(255, 45, 122, 0.45);
+}
+.lok-btn--primary:focus-visible {
+  box-shadow: var(--lok-shadow-focus), var(--lok-shadow-heat);
+}
+.lok-btn--primary:disabled {
+  background: var(--lok-bg-raised);
+  color: var(--lok-text-tertiary);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.lok-btn--neutral {
+  background: var(--lok-bg-raised);
+  border-color: var(--lok-border-default);
+  color: var(--lok-text-secondary);
+}
+.lok-btn--neutral:hover:not(:disabled) {
+  border-color: var(--lok-border-strong);
+  background: var(--lok-bg-active);
+  color: var(--lok-text-primary);
+}
+
+.lok-btn--ghost {
+  background: transparent;
+  color: var(--lok-text-secondary);
+}
+.lok-btn--ghost:hover:not(:disabled) {
+  background: var(--lok-bg-hover);
+  color: var(--lok-text-primary);
+}
+
+.lok-btn--danger {
+  background: var(--lok-status-danger-bg);
+  border-color: var(--lok-status-danger);
+  color: var(--lok-status-danger);
+}
+.lok-btn--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--lok-status-danger) 22%, transparent);
+}
+
+/* ==========================================================================
+   .lok-input — the shared text input surface (34px md, 40px for URL/palette).
+   ========================================================================== */
+.lok-input {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 var(--lok-space-3);
+  font-family: var(--lok-font-sans);
+  font-size: var(--lok-fs-sm);
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-input);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  transition:
+    border-color var(--lok-dur-fast) var(--lok-ease-standard),
+    box-shadow var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.lok-input::placeholder {
+  color: var(--lok-text-tertiary);
+}
+.lok-input:hover {
+  border-color: var(--lok-border-strong);
+}
+.lok-input:focus,
+.lok-input:focus-within {
+  outline: none;
+  border-color: var(--lok-border-focus);
+  box-shadow: 0 0 0 3px var(--lok-focus-ring);
+}
+.lok-input--lg {
+  height: 40px;
+  font-size: var(--lok-fs-md);
+}
+.lok-input--mono {
+  font-family: var(--lok-font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   .lok-tip — hover/focus tooltip surface for icon-only controls (P1-10).
+   Pure CSS via data-tip so no portal/JS; shows after a short intent delay on
+   hover AND on keyboard focus. Use INSTEAD of the native title attribute
+   (never both — double tooltips).
+   -------------------------------------------------------------------------- */
+.lok-tip {
+  position: relative;
+}
+.lok-tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  font-family: var(--lok-font-sans);
+  font-size: var(--lok-fs-2xs);
+  font-weight: var(--lok-fw-medium);
+  white-space: nowrap;
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-overlay);
+  border: 1px solid var(--lok-border-subtle);
+  border-radius: var(--lok-radius-sm);
+  box-shadow: var(--lok-shadow-md, 0 4px 12px rgb(0 0 0 / 0.35));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--lok-dur-fast) var(--lok-ease-standard) 350ms;
+  z-index: 60;
+}
+.lok-tip:hover::after,
+.lok-tip:focus-visible::after {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   .lok-kbd-chip — legible shortcut glyphs (P2-13). A subtle chip background
+   lifts ⌘N / ⌘↵ off both dim palette rows and the heat CTA gradient.
+   -------------------------------------------------------------------------- */
+.lok-kbd-chip {
+  padding: 1px 5px;
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  line-height: 1.4;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.28);
+  border: 1px solid rgb(255 255 255 / 0.12);
+}

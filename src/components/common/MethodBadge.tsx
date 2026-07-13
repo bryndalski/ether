@@ -10,6 +10,12 @@ const METHOD_HUE: Record<string, string> = {
   OPTIONS: "var(--lok-status-neutral)",
 };
 
+/** The method's hue as a CSS color expression — shared with the sidebar row's
+ *  selected-state accent bar so selection reads as "this GET", not an alarm. */
+export function methodHue(method: string): string {
+  return METHOD_HUE[method.toUpperCase()] ?? "var(--lok-text-secondary)";
+}
+
 interface MethodBadgeProps {
   method: string;
 }

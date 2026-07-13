@@ -37,7 +37,9 @@ export function PaletteItem({
         </span>
       )}
       <span>{label}</span>
-      {shortcut && <kbd className="lok-mono lok-palette-kbd">{shortcut}</kbd>}
+      {shortcut && (
+        <kbd className="lok-mono lok-palette-kbd lok-kbd-chip">{shortcut}</kbd>
+      )}
     </Command.Item>
   );
 }

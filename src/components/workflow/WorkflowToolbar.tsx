@@ -35,7 +35,7 @@ export function WorkflowToolbar({
   return (
     <div className="lok-wf-toolbar">
       <input
-        className="lok-wf-toolbar__name"
+        className="lok-input lok-wf-toolbar__name"
         type="text"
         value={name}
         placeholder={t("workflow.namePlaceholder")}
@@ -55,14 +55,18 @@ export function WorkflowToolbar({
         {runStateLabel[runState]}
       </span>
 
-      <button type="button" className="lok-wf-toolbar__save" onClick={onSave}>
+      <button
+        type="button"
+        className="lok-btn lok-btn--md lok-btn--neutral lok-wf-toolbar__save"
+        onClick={onSave}
+      >
         {dirty ? `${t("workflow.save")} *` : t("workflow.saved")}
       </button>
 
       {running ? (
         <button
           type="button"
-          className="lok-wf-toolbar__stop"
+          className="lok-btn lok-btn--md lok-btn--danger lok-wf-toolbar__stop"
           onClick={onStop}
         >
           {t("workflow.stop")}
@@ -70,7 +74,7 @@ export function WorkflowToolbar({
       ) : (
         <button
           type="button"
-          className="lok-wf-toolbar__run"
+          className="lok-btn lok-btn--lg lok-btn--primary lok-wf-toolbar__run"
           onClick={onRun}
         >
           {t("workflow.run")}

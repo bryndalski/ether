@@ -104,21 +104,35 @@
   padding: 0 2px;
 }
 
-/* Idle value cell (display span → editor on focus). */
+/* URL bar part highlighting — ALL neutral ink (heat is spent once per screen on
+   Send, never on the URL string). Host reads strongest, path a touch quieter,
+   query quieter still, so the parts separate by luminance alone. The only heat
+   in the field is the `{{token}}` pill above (a meaningful accent). */
+.cm-lok-url-host {
+  color: var(--lok-text-primary);
+  font-weight: var(--lok-fw-medium);
+}
+.cm-lok-url-path {
+  color: var(--lok-text-secondary);
+}
+.cm-lok-url-query {
+  color: var(--lok-text-tertiary);
+}
+
+/* Idle value cell (display span → editor on focus). Looks like the KEY input
+   even when idle (border/height come from .kv .kv-value-display in workbench.css)
+   so a value never reads as bare text; here we own only the text layout. */
 .kv-value-display {
-  display: block;
   width: 100%;
   text-align: left;
-  background: transparent;
-  border: none;
   color: var(--lok-text-primary);
   font-family: var(--lok-font-mono);
   font-size: var(--lok-fs-xs);
-  padding: var(--lok-space-1) var(--lok-space-2);
   cursor: text;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  line-height: 28px;
 }
 .kv-value-placeholder {
   color: var(--lok-text-disabled);

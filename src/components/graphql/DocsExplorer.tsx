@@ -3,6 +3,7 @@ import { DocsBreadcrumb } from "./DocsBreadcrumb";
 import { DocsTypePanel } from "./DocsTypePanel";
 import type { DocsNav } from "../../hooks/useDocsNav";
 import { EmptyState } from "../common/EmptyState";
+import { Icon } from "../common/Icon";
 import { useT } from "../../i18n/useT";
 
 interface DocsExplorerProps {
@@ -19,7 +20,7 @@ export function DocsExplorer({ schema, nav }: DocsExplorerProps) {
 
   return (
     <div className="gql-col docs-col">
-      <div className="col-head">Docs Explorer</div>
+      <div className="col-head">{t("graphql.docsColumn")}</div>
       <div className="col-body lok-scroll">
         <DocsBreadcrumb stack={nav.stack} onNavigate={nav.navigateTo} />
         {focused ? (
@@ -28,7 +29,7 @@ export function DocsExplorer({ schema, nav }: DocsExplorerProps) {
           <EmptyState
             headline={t("graphql.pickTypeHeadline")}
             hint={t("graphql.docsHint")}
-            icon="~"
+            icon={<Icon name="i-book" size={28} />}
           />
         )}
       </div>

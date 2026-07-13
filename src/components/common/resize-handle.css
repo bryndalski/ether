@@ -1,0 +1,56 @@
+/* Drag-resize dividers between the sidebar / editor / response dock. The handle
+   is a slim (6px) hit strip with a centered grip line that lights up on hover
+   and while dragging; the cursor signals the resize axis. */
+.lok-resize-handle {
+  position: relative;
+  flex-shrink: 0;
+  z-index: var(--lok-z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background var(--lok-dur-fast) var(--lok-ease-standard);
+  touch-action: none;
+}
+.lok-resize-handle--x {
+  width: 6px;
+  cursor: col-resize;
+  margin-inline: -3px; /* overlap the border so the strip straddles the seam */
+}
+.lok-resize-handle--y {
+  height: 6px;
+  cursor: row-resize;
+  margin-block: -3px;
+}
+
+.lok-resize-handle__grip {
+  background: var(--lok-border-default);
+  border-radius: var(--lok-radius-full);
+  transition:
+    background var(--lok-dur-fast) var(--lok-ease-standard),
+    transform var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.lok-resize-handle--x .lok-resize-handle__grip {
+  width: 2px;
+  height: 28px;
+}
+.lok-resize-handle--y .lok-resize-handle__grip {
+  height: 2px;
+  width: 28px;
+}
+
+.lok-resize-handle:hover .lok-resize-handle__grip,
+.lok-resize-handle:active .lok-resize-handle__grip,
+.lok-resize-handle:focus-visible .lok-resize-handle__grip {
+  background: var(--lok-brand);
+}
+.lok-resize-handle--x:hover .lok-resize-handle__grip {
+  transform: scaleX(1.5);
+}
+.lok-resize-handle--y:hover .lok-resize-handle__grip {
+  transform: scaleY(1.5);
+}
+.lok-resize-handle:focus-visible {
+  outline: none;
+  background: var(--lok-brand-subtle);
+}

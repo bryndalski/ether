@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useCollectionsStore } from "../../state/useCollectionsStore";
 import type { StoredRequest } from "../../lib/types";
-import { MethodBadge } from "../common/MethodBadge";
+import { MethodBadge, methodHue } from "../common/MethodBadge";
 import { Icon } from "../common/Icon";
 import { RowContextMenu, type MenuItem } from "./RowContextMenu";
 import { InlineRename } from "./InlineRename";
@@ -80,7 +80,12 @@ export function RequestRow({
         className={`tree-row${selected ? " active" : ""}${
           isDropTarget ? " drop-before" : ""
         }`}
-        style={{ paddingLeft: 8 + depth * 14 }}
+        style={
+          {
+            paddingLeft: 8 + depth * 14,
+            "--row-accent": methodHue(request.method),
+          } as CSSProperties
+        }
         draggable={!renaming}
         onClick={() => !renaming && onSelect(request.id)}
         onKeyDown={(event) => {

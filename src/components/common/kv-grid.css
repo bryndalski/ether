@@ -1,0 +1,110 @@
+/* Shared Postman/Insomnia-style key-value grid used by the environment
+   variables table and the workflow request-node headers. Dense ~34px rows,
+   identical monospace inline inputs for key AND value, checkbox on the left,
+   hover-revealed actions on the right, and a trailing ghost row. Semantic
+   --lok-* tokens only. */
+
+.kv-grid {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lok-border-subtle);
+  border-radius: var(--lok-radius-sm);
+  overflow: hidden;
+}
+
+.kv-row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 2fr) minmax(0, 3fr) auto;
+  align-items: center;
+  min-height: 34px;
+  border-bottom: 1px solid var(--lok-border-subtle);
+  background: var(--lok-bg-input);
+}
+.kv-row:last-child {
+  border-bottom: none;
+}
+.kv-row:hover {
+  background: var(--lok-bg-hover);
+}
+.kv-row.ghost {
+  background: transparent;
+}
+
+.kv-check {
+  justify-self: center;
+  accent-color: var(--lok-heat-500);
+}
+.kv-row.ghost .kv-check {
+  opacity: 0.35;
+}
+
+.kv-input {
+  height: 100%;
+  min-height: 34px;
+  background: transparent;
+  border: none;
+  padding: 0 var(--lok-space-2);
+  color: var(--lok-text-primary);
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-xs);
+}
+.kv-input.kv-key {
+  color: var(--lok-syn-key);
+  border-right: 1px solid var(--lok-border-subtle);
+}
+.kv-input::placeholder {
+  color: var(--lok-text-disabled);
+}
+.kv-input:focus {
+  outline: none;
+  background: var(--lok-bg-active);
+}
+
+.kv-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 4px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+.kv-usage {
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  background: var(--lok-bg-raised);
+  border-radius: var(--lok-radius-xs);
+  padding: 0 5px;
+  white-space: nowrap;
+}
+.kv-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: var(--lok-radius-xs);
+  color: var(--lok-text-tertiary);
+  /* Hidden until the row is hovered/focused, Postman-style, to keep rows quiet. */
+  opacity: 0;
+}
+.kv-row:hover .kv-iconbtn,
+.kv-row:focus-within .kv-iconbtn {
+  opacity: 1;
+}
+.kv-iconbtn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: 1px;
+}
+.kv-iconbtn:hover:not(:disabled) {
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-raised);
+}
+.kv-iconbtn:disabled {
+  opacity: 0;
+  cursor: default;
+}
+.kv-iconbtn.danger:hover:not(:disabled) {
+  color: var(--lok-status-danger);
+  background: var(--lok-status-danger-bg);
+}

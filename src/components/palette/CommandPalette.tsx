@@ -26,6 +26,9 @@ export function CommandPalette() {
   const setLocale = useUiStore((state) => state.setLocale);
   const openEnvManager = useUiStore((state) => state.openEnvManager);
   const openImport = useUiStore((state) => state.openImport);
+  const openDevTools = useUiStore((state) => state.openDevTools);
+  const sidebarCollapsed = useUiStore((state) => state.sidebarCollapsed);
+  const toggleSidebar = useUiStore((state) => state.toggleSidebarCollapsed);
   const openHistory = useHistoryStore((state) => state.open);
   const aiEnabled = useUiStore((state) => state.aiEnabled);
   const aiModel = useUiStore((state) => state.aiModel);
@@ -58,8 +61,11 @@ export function CommandPalette() {
     openEnvManager,
     openImport,
     openHistory,
+    openDevTools,
     runBenchmark: () => bus.benchmark?.(),
     toggleTheme,
+    toggleSidebar,
+    sidebarCollapsed,
     setLocale,
     aiEnabled,
     aiModel,
@@ -105,7 +111,9 @@ export function CommandPalette() {
             {actions.map((action) => (
               <PaletteItem
                 key={action.id}
-                value={action.id}
+                // cmdk matches on value+keywords only — the visible label MUST
+                // be part of the value, or typing it verbatim finds nothing.
+                value={`${action.label} ${action.id}`}
                 label={action.label}
                 shortcut={action.shortcut}
                 keywords={action.keywords}

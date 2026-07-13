@@ -42,9 +42,10 @@ export function SubscribeButton({
 }: SubscribeButtonProps) {
   const look = lookFor(connState);
   const onClick = look.primary ? onSubscribe : onUnsubscribe;
+  const base = "lok-btn lok-btn--lg lok-btn--primary btn-send";
   const className = look.animated
-    ? "btn-send lok-heat-gradient--animated"
-    : "btn-send";
+    ? `${base} lok-heat-gradient--animated`
+    : base;
   return (
     <button
       type="button"
@@ -54,7 +55,7 @@ export function SubscribeButton({
       disabled={disabled && look.primary}
       onClick={onClick}
     >
-      <Icon name={look.icon} size={13} />
+      <Icon name={look.icon} size={17} />
       {look.label}
     </button>
   );

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { parse, print } from "graphql";
+import { buildSchema, parse, print } from "graphql";
 import {
+  applyFieldSkeletonToQuery,
   applySelectionToQuery,
   defaultOperation,
   deriveSelection,
@@ -65,6 +66,57 @@ describe("deriveSelection (query -> checkboxes)", () => {
     expect(deriveSelection(doc, "query").has("a")).toBe(true);
     expect(deriveSelection(doc, "query").has("b")).toBe(false);
     expect(deriveSelection(doc, "mutation").has("b")).toBe(true);
+  });
+});
+
+describe("applyFieldSkeletonToQuery (schema-driven pick)", () => {
+  const schema = buildSchema(`
+    type User { id: ID! name: String friends: [User!] }
+    type Query { user(id: ID!, verbose: Boolean): User me: User }
+    type Mutation { createUser(name: String!): User! }
+  `);
+
+  it("adds required args as $var placeholders and first-level scalars", () => {
+    const out = applyFieldSkeletonToQuery(
+      defaultOperation("query"),
+      "query",
+      schema,
+      "user",
+    );
+    expect(() => parse(out)).not.toThrow();
+    // required arg -> variable placeholder + var definition in the header
+    expect(out).toContain("$id");
+    expect(out).toMatch(/query\s*\(\$id: ID!\)/);
+    // optional arg (verbose) is omitted
+    expect(out).not.toContain("verbose");
+    // first-level scalar leaves are seeded; nested object (friends) is not
+    const sel = deriveSelection(out, "query");
+    expect(sel.has("user.id")).toBe(true);
+    expect(sel.has("user.name")).toBe(true);
+    expect(sel.has("user.friends")).toBe(false);
+  });
+
+  it("mutations get the same skeleton treatment", () => {
+    const out = applyFieldSkeletonToQuery(
+      defaultOperation("mutation"),
+      "mutation",
+      schema,
+      "createUser",
+    );
+    expect(() => parse(out)).not.toThrow();
+    expect(out).toMatch(/mutation\s*\(\$name: String!\)/);
+    expect(deriveSelection(out, "mutation").has("createUser.id")).toBe(true);
+  });
+
+  it("is idempotent for an already-present field", () => {
+    const once = applyFieldSkeletonToQuery(
+      defaultOperation("query"),
+      "query",
+      schema,
+      "me",
+    );
+    const twice = applyFieldSkeletonToQuery(once, "query", schema, "me");
+    expect(twice).toBe(once);
   });
 });
 

@@ -10,12 +10,25 @@
 // ["user"], ["user", "id"]. Its join-key (dot-joined) is what the tree keys on.
 
 import type {
+  ArgumentNode,
   DocumentNode,
   FieldNode,
+  GraphQLArgument,
+  GraphQLField,
+  GraphQLObjectType,
+  GraphQLSchema,
   OperationDefinitionNode,
   SelectionSetNode,
 } from "graphql";
-import { Kind, OperationTypeNode, parse, print } from "graphql";
+import {
+  getNamedType,
+  isCompositeType,
+  isNonNullType,
+  Kind,
+  OperationTypeNode,
+  parse,
+  print,
+} from "graphql";
 
 export type OperationType = "query" | "mutation" | "subscription";
 export type FieldPath = string[];
@@ -226,4 +239,123 @@ export function sameOperation(a: string, b: string): boolean {
   } catch {
     return a === b;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Schema-aware skeleton insertion (picking a root field from the tree/picker).
+//
+// Picking a field via applySelectionToQuery only adds the bare field name. That
+// leaves an object field with an empty selection set (invalid) and skips its
+// required arguments. buildFieldSkeleton fills both: required (non-null) args as
+// `$var` placeholders wired into the operation's variable definitions, plus the
+// first level of scalar sub-fields so the result is immediately runnable.
+// ---------------------------------------------------------------------------
+
+/** Only NON-NULL (required) args become `$var` placeholders — optional args are
+ *  left out so the skeleton stays minimal and valid. */
+function requiredArgumentNodes(args: readonly GraphQLArgument[]): ArgumentNode[] {
+  return args
+    .filter((arg) => isNonNullType(arg.type))
+    .map((arg) => ({
+      kind: Kind.ARGUMENT,
+      name: { kind: Kind.NAME, value: arg.name },
+      value: { kind: Kind.VARIABLE, name: { kind: Kind.NAME, value: arg.name } },
+    }));
+}
+
+/** The first level of a composite type's scalar/enum leaves, as bare field
+ *  nodes. Object/interface children are omitted (the user drills further via the
+ *  tree) so we never generate an infinitely deep skeleton. */
+function firstLevelLeaves(type: GraphQLObjectType): FieldNode[] {
+  const leaves: FieldNode[] = [];
+  for (const field of Object.values(type.getFields())) {
+    const named = getNamedType(field.type);
+    if (!isCompositeType(named)) {
+      leaves.push(fieldNode(field.name, false));
+    }
+  }
+  return leaves;
+}
+
+/** Build the FieldNode for a picked root field, complete with required-arg
+ *  placeholders and (for object fields) a first level of scalar leaves. */
+function skeletonFieldNode(field: GraphQLField<unknown, unknown>): FieldNode {
+  const named = getNamedType(field.type);
+  const args = requiredArgumentNodes(field.args);
+  const isComposite = isCompositeType(named);
+  const leaves = isComposite ? firstLevelLeaves(named as GraphQLObjectType) : [];
+  return {
+    kind: Kind.FIELD,
+    name: { kind: Kind.NAME, value: field.name },
+    arguments: args.length > 0 ? args : undefined,
+    selectionSet:
+      isComposite
+        ? {
+            kind: Kind.SELECTION_SET,
+            selections: leaves.length > 0 ? leaves : [fieldNode("__typename", false)],
+          }
+        : undefined,
+  };
+}
+
+/** The `($a: T!, $b: T)` operation variable definitions for a field's required
+ *  args, printed as text so we can prepend them to the operation header. */
+function requiredVarDefs(field: GraphQLField<unknown, unknown>): string {
+  const defs = field.args
+    .filter((arg) => isNonNullType(arg.type))
+    .map((arg) => `$${arg.name}: ${arg.type.toString()}`);
+  return defs.length > 0 ? `(${defs.join(", ")})` : "";
+}
+
+/** Add a top-level root field WITH its skeleton (required args + first-level
+ *  scalars) to the current query and return the printed text. Schema-driven, so
+ *  it's a no-op-ish fallback (bare field) when the field can't be found. */
+export function applyFieldSkeletonToQuery(
+  query: string,
+  opType: OperationType,
+  schema: GraphQLSchema,
+  fieldName: string,
+): string {
+  const rootType =
+    opType === "mutation"
+      ? schema.getMutationType()
+      : opType === "subscription"
+        ? schema.getSubscriptionType()
+        : schema.getQueryType();
+  const field = rootType?.getFields()[fieldName];
+  if (!field) return applySelectionToQuery(query, opType, [fieldName], true);
+
+  const doc = parseOperation(query, opType);
+  const op = operationOfType(doc, opType);
+  const withoutSeed = op.selectionSet.selections.filter(
+    (sel) => !(sel.kind === Kind.FIELD && sel.name.value === "__typename"),
+  );
+  const alreadyThere = withoutSeed.some(
+    (sel) => sel.kind === Kind.FIELD && sel.name.value === fieldName,
+  );
+  if (alreadyThere) return query;
+
+  const nextSet: SelectionSetNode = {
+    kind: Kind.SELECTION_SET,
+    selections: [...withoutSeed, skeletonFieldNode(field)],
+  };
+  const nextOp: OperationDefinitionNode = { ...op, selectionSet: nextSet };
+  const hadOp = doc.definitions.includes(op);
+  const definitions = hadOp
+    ? doc.definitions.map((def) => (def === op ? nextOp : def))
+    : [...doc.definitions, nextOp];
+
+  const printed = print({ ...doc, definitions });
+  // graphql-js can't attach variable definitions we didn't parse, so splice the
+  // `($arg: T!)` header in textually. graphql-js prints a query with no vars as
+  // the anonymous shorthand `{ ... }` (no `query` keyword); to carry variable
+  // definitions we must name the operation, so add the keyword when missing.
+  const header = requiredVarDefs(field);
+  if (header === "") return printed;
+  const withKeyword = new RegExp(`^(${opType})(\\s*)\\{`);
+  if (withKeyword.test(printed)) {
+    return printed.replace(withKeyword, `$1 ${header} {`);
+  }
+  // anonymous shorthand `{ ... }` -> `query ($id: ID!) { ... }`
+  return printed.replace(/^\{/, `${opType} ${header} {`);
 }

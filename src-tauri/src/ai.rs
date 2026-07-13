@@ -202,13 +202,22 @@ fn redact_content(content: &str, secret_values: &[String]) -> String {
 }
 
 /// Redact the VALUE of a sensitive `Name: value` header line, keeping the name.
-/// `{{secret.*}}` is never expanded here — it is opaque text that stays verbatim
-/// unless it happens to be a sensitive header's value.
+/// Curl-verbose transcripts prefix header lines with `> ` / `< ` / `* ` — those
+/// prefixes are stripped for the match and preserved in the output, so a pasted
+/// Timeline log redacts the same as a bare header. `{{secret.*}}` is never
+/// expanded here — it is opaque text that stays verbatim unless it happens to
+/// be a sensitive header's value.
 fn redact_header_line(line: &str) -> String {
-    if let Some(colon) = line.find(':') {
-        let name = line[..colon].trim().to_ascii_lowercase();
+    let after_indent = line.trim_start();
+    let rest = match after_indent.as_bytes().first() {
+        Some(b'>' | b'<' | b'*') => after_indent[1..].trim_start(),
+        _ => after_indent,
+    };
+    if let Some(colon) = rest.find(':') {
+        let name = rest[..colon].trim().to_ascii_lowercase();
         if REDACTED_HEADER_NAMES.contains(&name.as_str()) {
-            return format!("{}: {REDACTED}", &line[..colon]);
+            let prefix = &line[..line.len() - rest.len()];
+            return format!("{prefix}{}: {REDACTED}", &rest[..colon]);
         }
     }
     line.to_string()
@@ -252,10 +261,33 @@ pub async fn ai_chat(request: AiChatRequest) -> Result<AiChatResult, String> {
 /// parse the model's structured `message.content` as JSON. A non-JSON reply is
 /// an error (surfaced as a toast; no artifact created).
 fn ai_chat_sync(request: AiChatRequest) -> Result<AiChatResult, String> {
-    let redacted = redact_for_model(request.messages, &request.secret_values);
+    let mut secret_values = request.secret_values;
+    secret_values.extend(known_secret_values());
+    let redacted = redact_for_model(request.messages, &secret_values);
     let body = build_chat_body(&request.model, &redacted, &request.schema);
     let bytes = post_json("/api/chat", body.as_bytes(), 60_000)?;
     parse_chat_result(&bytes, &request.model)
+}
+
+/// Gather every known secret VALUE (all environments' `secret_names` resolved
+/// through the Keychain) so the known-value scrub never depends on the caller
+/// remembering to pass them — the FE cannot read Keychain values by design, so
+/// this boundary is the only place that can build the scrub set. A store or
+/// Keychain failure degrades to fewer known values; the header scrub still runs.
+fn known_secret_values() -> Vec<String> {
+    let mut values = Vec::new();
+    if let Ok(envs) = crate::store::list_environments() {
+        for env in envs {
+            for name in &env.secret_names {
+                if let Ok(value) = crate::secrets::secret_get(name) {
+                    if !value.trim().is_empty() {
+                        values.push(value);
+                    }
+                }
+            }
+        }
+    }
+    values
 }
 
 /// Assemble the /api/chat request body. Exposed for the wire test so it can
@@ -321,6 +353,37 @@ mod tests {
         assert!(!joined.contains("k-secret"));
         assert!(joined.contains("Authorization: <REDACTED>"));
         assert!(joined.contains("x-api-key: <REDACTED>"));
+    }
+
+    #[test]
+    fn redacts_curl_verbose_prefixed_header_lines() {
+        // Pasted Timeline / `curl -v` transcripts prefix headers with `> ` (sent),
+        // `< ` (received) — the redaction must see through the prefix (issue #42).
+        let messages = vec![AiMessage {
+            role: "user".into(),
+            content: "> Authorization: Bearer sk-live-777\n< set-cookie: sid=opaque\n  > x-api-key: k-77\n* Cookie: a=b".into(),
+        }];
+        let out = redact_for_model(messages, &[]);
+        let content = &out[0].content;
+        assert!(!content.contains("sk-live-777"));
+        assert!(!content.contains("sid=opaque"));
+        assert!(!content.contains("k-77"));
+        assert!(!content.contains("a=b"));
+        // Prefixes and header names survive; only values collapse.
+        assert!(content.contains("> Authorization: <REDACTED>"));
+        assert!(content.contains("< set-cookie: <REDACTED>"));
+        assert!(content.contains("  > x-api-key: <REDACTED>"));
+        assert!(content.contains("* Cookie: <REDACTED>"));
+    }
+
+    #[test]
+    fn verbose_prefix_on_clean_lines_stays_verbatim() {
+        let messages = vec![AiMessage {
+            role: "user".into(),
+            content: "> GET /x HTTP/1.1\n< content-type: application/json".into(),
+        }];
+        let out = redact_for_model(messages.clone(), &[]);
+        assert_eq!(out[0].content, messages[0].content);
     }
 
     #[test]
@@ -393,11 +456,16 @@ mod tests {
         });
 
         // Redact first (as ai_chat_sync does), then POST to the canned server.
+        // Covers both header shapes: bare and curl-verbose-prefixed (issue #42).
         let messages = redact_for_model(
             vec![
                 AiMessage {
                     role: "user".into(),
                     content: "Authorization: Bearer sk-live-DEADBEEF".into(),
+                },
+                AiMessage {
+                    role: "user".into(),
+                    content: "> Authorization: Bearer sk-live-VERBOSE".into(),
                 },
                 AiMessage {
                     role: "user".into(),
@@ -424,6 +492,10 @@ mod tests {
         assert!(
             !received.contains("sk-live-DEADBEEF"),
             "bearer token leaked to the wire"
+        );
+        assert!(
+            !received.contains("sk-live-VERBOSE"),
+            "curl-verbose-prefixed bearer token leaked to the wire"
         );
         assert!(
             !received.contains("kc-plaintext-secret"),

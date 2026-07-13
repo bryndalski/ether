@@ -22,7 +22,7 @@ interface RequestBarProps {
   requestTypeToggle?: ReactNode;
 }
 
-/** The 44px toolbar row: request-type toggle + method select + URL + Save + Send.
+/** The toolbar row (--lok-toolbar-h): request-type toggle + method select + URL + Save + Send.
  *  For GraphQL the method select is hidden (GraphQL is always POST). */
 export function RequestBar({
   draft,
@@ -50,23 +50,23 @@ export function RequestBar({
       <UrlInput url={draft.url} onChange={onUrlChange} onEnter={onSend} />
       <button
         type="button"
-        className="btn-save"
+        className="lok-btn lok-btn--md lok-btn--neutral lok-btn--icon btn-save lok-tip"
         aria-label={t("palette.saveRequest")}
-        title={t("workbench.saveRequestTitle")}
+        data-tip={t("workbench.saveRequestTitle")}
         disabled={!dirty}
         onClick={onSave}
       >
-        <Icon name="i-save" size={15} />
+        <Icon name="i-save" size={17} />
       </button>
       <button
         type="button"
-        className="btn-save"
+        className="lok-btn lok-btn--md lok-btn--neutral lok-btn--icon btn-save lok-tip"
         aria-label={t("workbench.copyAsCurlAria")}
-        title={t("workbench.copyAsCurl")}
+        data-tip={t("workbench.copyAsCurl")}
         disabled={draft.url.trim() === ""}
         onClick={onCopyCurl}
       >
-        <Icon name="i-copy" size={15} />
+        <Icon name="i-copy" size={17} />
       </button>
       <BenchmarkButton
         disabled={draft.url.trim() === "" || inFlight}

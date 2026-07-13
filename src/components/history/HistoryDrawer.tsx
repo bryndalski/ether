@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHistoryStore } from "../../state/useHistoryStore";
 import type { HistoryScope } from "../../state/useHistoryStore";
 import { HistoryDrawerHeader } from "./HistoryDrawerHeader";
+import { HistoryFilterBar } from "./HistoryFilterBar";
 import { CompareBar } from "./CompareBar";
 import { HistoryList } from "./HistoryList";
 import { DiffPanel } from "./DiffPanel";
@@ -85,6 +86,7 @@ export function HistoryDrawer({ activeRequestId, onReplay }: HistoryDrawerProps)
           <DiffPanel a={a} b={b} now={now} onClose={closeDiff} />
         ) : (
           <>
+            <HistoryFilterBar />
             <CompareBar
               selectedCount={selectedIds.length}
               onCompare={openDiff}

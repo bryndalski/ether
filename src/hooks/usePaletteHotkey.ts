@@ -5,11 +5,13 @@ import { useWorkbenchActions } from "../state/useWorkbenchActions";
 import { useNewRequest } from "./useNewRequest";
 
 /** Global hotkeys the palette advertises, so its shortcut hints are truthful:
- *  ⌘K toggle palette · ⌘N new request · ⌘I import · ⌘Y history · ⌘⇧C copy cURL.
- *  ⌘S / ⌘Enter stay on the editor (they act on the live draft there). */
+ *  ⌘K toggle palette · ⌘N new request · ⌘I import · ⌘Y history · ⌘⇧C copy cURL ·
+ *  ⌘B collapse/expand sidebar. ⌘S / ⌘Enter stay on the editor (they act on the
+ *  live draft there). */
 export function usePaletteHotkey(): void {
   const togglePalette = useUiStore((state) => state.togglePalette);
   const openImport = useUiStore((state) => state.openImport);
+  const toggleSidebar = useUiStore((state) => state.toggleSidebarCollapsed);
   const openHistory = useHistoryStore((state) => state.open);
   const newRequest = useNewRequest();
 
@@ -31,6 +33,9 @@ export function usePaletteHotkey(): void {
       } else if (key === "y") {
         event.preventDefault();
         openHistory();
+      } else if (key === "b" && !event.shiftKey) {
+        event.preventDefault();
+        toggleSidebar();
       } else if (key === "c" && event.shiftKey) {
         const copyCurl = useWorkbenchActions.getState().copyCurl;
         if (copyCurl) {
@@ -41,5 +46,5 @@ export function usePaletteHotkey(): void {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [togglePalette, openImport, openHistory, newRequest]);
+  }, [togglePalette, openImport, openHistory, toggleSidebar, newRequest]);
 }

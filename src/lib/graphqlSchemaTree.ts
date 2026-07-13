@@ -71,6 +71,20 @@ export function objectFields(
   return Object.values(type.getFields());
 }
 
+/** Root-field count per operation type — drives the section badges so an empty
+ *  Mutation/Subscription reads "0" instead of silently vanishing. */
+export function rootFieldCounts(
+  schema: GraphQLSchema,
+): Record<OperationType, number> {
+  const count = (type: GraphQLObjectType | null) =>
+    type ? Object.keys(type.getFields()).length : 0;
+  return {
+    query: count(schema.getQueryType() ?? null),
+    mutation: count(schema.getMutationType() ?? null),
+    subscription: count(schema.getSubscriptionType() ?? null),
+  };
+}
+
 export type DocKind = "object" | "interface" | "enum" | "input" | "scalar" | "other";
 
 export function docKind(type: GraphQLNamedType): DocKind {

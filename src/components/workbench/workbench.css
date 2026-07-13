@@ -4,9 +4,11 @@
    .tab, .btn-send, .wf-*; this file adds the request/response-specific rows the
    mock defines inline. */
 
-/* Editor column */
+/* Editor column — fills the main region; without flex:1 the no-request hero
+   shrinks to content width and leaves a dead void on wide viewports (P2-16). */
 .editor {
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
@@ -24,20 +26,24 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: 34px;
   padding: 0 var(--lok-space-3);
   border-radius: var(--lok-radius-sm);
   background: var(--lok-bg-raised);
   border: 1px solid var(--lok-border-default);
   cursor: pointer;
   position: relative;
+  transition: border-color var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.method-select:hover {
+  border-color: var(--lok-border-strong);
 }
 .method-select .method {
-  font-size: var(--lok-fs-xs);
+  font-size: var(--lok-fs-sm);
 }
 .method-select svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   color: var(--lok-text-tertiary);
   pointer-events: none;
 }
@@ -49,21 +55,71 @@
   cursor: pointer;
   font-size: var(--lok-fs-xs);
 }
+/* Single flat line, fixed 36px height (never grows): a long URL scrolls
+   horizontally inside the field with a soft fade on the right edge — it can
+   never wrap and push into the tabs below. */
 .url-field {
   flex: 1;
-  height: 32px;
-  padding: 0 var(--lok-space-3);
+  min-width: 320px;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  overflow: hidden;
+  padding: 0 var(--lok-space-2);
   border-radius: var(--lok-radius-sm);
   background: var(--lok-bg-input);
   border: 1px solid var(--lok-border-default);
   color: var(--lok-text-primary);
   font-family: var(--lok-font-mono);
   font-size: var(--lok-fs-md);
+  transition: border-color var(--lok-dur-fast) var(--lok-ease-standard);
+  /* Fade the trailing edge so a clipped URL reads as "there's more" (removed on
+     focus, where the caret drives the horizontal scroll). */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
 }
-.url-field:focus {
+.url-field:focus-within {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.url-field:hover {
+  border-color: var(--lok-border-strong);
+}
+.url-field:focus,
+.url-field:focus-within {
   outline: none;
   border-color: var(--lok-border-focus);
   box-shadow: 0 0 0 3px var(--lok-focus-ring);
+}
+/* The inner CodeMirror fills the field on one flat line; its own scroller takes
+   the horizontal overflow so the row height stays fixed. */
+.url-field > .cm-editor {
+  width: 100%;
+  background: transparent;
+}
+.url-field .cm-editor,
+.url-field .cm-scroller,
+.url-field .cm-content {
+  height: 34px;
+}
+.url-field .cm-scroller {
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.url-field .cm-content {
+  display: flex;
+  align-items: center;
 }
 
 .req-tabs {
@@ -83,16 +139,27 @@
   padding: var(--lok-space-4);
 }
 
-/* KV editor rows */
+/* KV editor rows — Postman-style table: [checkbox 32][KEY 40%][VALUE 60%][rm 32],
+   36px rows with hairline separators. KEY and VALUE are IDENTICAL inline fields
+   so the value never looks like bare text; the ✕ only shows on row hover. */
+:root {
+  --lok-kv-grid: 32px minmax(0, 2fr) minmax(0, 3fr) 32px;
+}
 .kv {
   display: grid;
-  grid-template-columns: 26px 1fr 1fr 28px;
+  grid-template-columns: var(--lok-kv-grid);
   gap: var(--lok-space-2);
   align-items: center;
-  padding: 2px 0;
+  min-height: 36px;
+  border-bottom: 1px solid var(--lok-border-subtle);
 }
-.kv input[type="text"] {
-  height: 28px;
+.kv input[type="checkbox"] {
+  justify-self: center;
+}
+.kv input[type="text"],
+.kv .kv-value-display,
+.kv .kv-value-editor {
+  height: 30px;
   padding: 0 var(--lok-space-2);
   border-radius: var(--lok-radius-sm);
   background: var(--lok-bg-input);
@@ -101,18 +168,35 @@
   font-family: var(--lok-font-mono);
   font-size: var(--lok-fs-xs);
   min-width: 0;
+  transition: border-color var(--lok-dur-fast) var(--lok-ease-standard);
 }
-.kv input[type="text"]:focus {
+.kv input[type="text"],
+.kv .kv-value-editor {
+  display: flex;
+  align-items: center;
+}
+.kv input[type="text"]:hover,
+.kv .kv-value-display:hover,
+.kv .kv-value-editor:hover {
+  border-color: var(--lok-border-default);
+}
+.kv input[type="text"]:focus,
+.kv .kv-value-display:focus,
+.kv .kv-value-editor:focus-within {
   outline: none;
   border-color: var(--lok-border-focus);
   box-shadow: 0 0 0 2px var(--lok-focus-ring);
+}
+.kv .kv-value-editor > .cm-editor {
+  width: 100%;
+  background: transparent;
 }
 .kv input.k {
   color: var(--lok-syn-key);
 }
 .kv .rm {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border-radius: var(--lok-radius-sm);
@@ -120,6 +204,11 @@
   cursor: pointer;
   background: transparent;
   border: none;
+  opacity: 0;
+  transition: opacity var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.kv:hover .rm {
+  opacity: 1;
 }
 .kv .rm:hover {
   color: var(--lok-status-danger);
@@ -127,7 +216,7 @@
 }
 .kv-head {
   display: grid;
-  grid-template-columns: 26px 1fr 1fr 28px;
+  grid-template-columns: var(--lok-kv-grid);
   gap: var(--lok-space-2);
   font-size: var(--lok-fs-2xs);
   text-transform: uppercase;
@@ -135,7 +224,13 @@
   color: var(--lok-text-tertiary);
   padding-bottom: var(--lok-space-2);
   margin-bottom: var(--lok-space-1);
-  border-bottom: 1px solid var(--lok-border-subtle);
+  border-bottom: 1px solid var(--lok-border-default);
+}
+/* Align the KEY/VALUE header labels with their input columns (inputs have a
+   space-2 inset, so nudge the labels to match). */
+.kv-head > span:nth-child(2),
+.kv-head > span:nth-child(3) {
+  padding-left: var(--lok-space-2);
 }
 
 /* Response dock */
@@ -145,6 +240,72 @@
   flex-direction: column;
   min-height: 0;
   animation: dock-rise var(--lok-dur-slow) var(--lok-ease-decelerate) both;
+}
+
+/* Idle "Ready" strip — a thin 44px status bar shown before the first-ever
+   response, so the request editor owns the screen (Postman-style). No hero,
+   no glow, no dock-rise; it expands into the full split on the first Send. */
+.resp-idle-strip {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--lok-space-3);
+  height: 44px;
+  flex-shrink: 0;
+  padding: 0 var(--lok-space-4);
+  background: var(--lok-bg-surface);
+  animation: none;
+  font-size: var(--lok-fs-xs);
+}
+.resp-idle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--lok-radius-full);
+  background: var(--lok-status-success);
+  flex-shrink: 0;
+}
+.resp-idle-status {
+  font-weight: var(--lok-fw-semibold);
+  color: var(--lok-text-secondary);
+}
+.resp-idle-meta {
+  font-family: var(--lok-font-mono);
+  color: var(--lok-text-tertiary);
+}
+.resp-idle-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  margin-left: auto;
+  color: var(--lok-text-tertiary);
+}
+.resp-idle-hint kbd {
+  font-size: var(--lok-fs-2xs);
+  padding: 1px 5px;
+  border-radius: var(--lok-radius-xs);
+  background: var(--lok-bg-active);
+  color: var(--lok-text-tertiary);
+}
+/* A resizable dock hosts its drag handle absolutely on the edge it grows from:
+   the top edge when docked at the bottom, the left edge when docked on the
+   right. The handle straddles the divider so it's grabbable from both panels. */
+.response--resizable {
+  position: relative;
+}
+.response--resizable > .lok-resize-handle--y {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin-block: 0;
+  transform: translateY(-3px);
+}
+.response--resizable > .lok-resize-handle--x {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  margin-inline: 0;
+  transform: translateX(-3px);
 }
 @keyframes dock-rise {
   from {
@@ -223,6 +384,57 @@
   line-height: var(--lok-lh-code);
   white-space: pre;
   tab-size: 2;
+}
+
+/* HTML body view: Raw/Pretty/Preview switch above a source editor or the
+   sandboxed preview iframe (which fills the remaining panel height). */
+.resp-html {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-3);
+  min-height: 100%;
+}
+.resp-view-toggle {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-raised);
+  border: 1px solid var(--lok-border-default);
+}
+.resp-view-btn {
+  padding: 4px var(--lok-space-3);
+  min-height: 28px;
+  border-radius: var(--lok-radius-xs);
+  font-size: var(--lok-fs-xs);
+  font-weight: var(--lok-fw-medium);
+  color: var(--lok-text-tertiary);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color var(--lok-dur-fast) var(--lok-ease-standard),
+    background var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.resp-view-btn:hover {
+  color: var(--lok-text-secondary);
+  background: var(--lok-bg-hover);
+}
+.resp-view-btn.active {
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-active);
+}
+.resp-view-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--lok-focus-ring);
+}
+.resp-html-preview {
+  flex: 1;
+  width: 100%;
+  min-height: 320px;
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  background: #ffffff;
 }
 
 /* curl -v / preview log */
@@ -323,16 +535,20 @@
   gap: 6px;
   padding: 0 var(--lok-space-3);
   height: 100%;
-  font-size: var(--lok-fs-xs);
+  font-size: var(--lok-fs-sm);
   font-weight: var(--lok-fw-medium);
   color: var(--lok-text-tertiary);
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: color var(--lok-dur-fast) var(--lok-ease-standard);
+  transition:
+    color var(--lok-dur-fast) var(--lok-ease-standard),
+    background var(--lok-dur-fast) var(--lok-ease-standard);
+  border-radius: var(--lok-radius-sm) var(--lok-radius-sm) 0 0;
 }
 .tab:hover {
   color: var(--lok-text-secondary);
+  background: var(--lok-bg-hover);
 }
 .tab.active {
   color: var(--lok-text-primary);
@@ -356,63 +572,26 @@
   border-radius: var(--lok-radius-full);
 }
 
-/* Send button */
+/* Send button — the primary action. Base look comes from .lok-btn--lg--primary
+   (40px heat); this only adds the min-width, position context and the ⌘↵ kbd. */
 .btn-send {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--lok-space-2);
-  font-weight: var(--lok-fw-semibold);
-  font-size: var(--lok-fs-sm);
-  padding: 0 var(--lok-space-5);
-  height: 32px;
-  border: none;
-  border-radius: var(--lok-radius-sm);
-  background: var(--lok-gradient-heat);
-  color: var(--lok-text-on-heat);
-  cursor: pointer;
-  box-shadow: var(--lok-shadow-heat);
+  min-width: 96px;
   position: relative;
-  white-space: nowrap;
-  text-shadow: 0 1px 1px rgba(120, 10, 40, 0.45);
-  transition:
-    transform var(--lok-dur-fast) var(--lok-ease-spring),
-    box-shadow var(--lok-dur-fast) var(--lok-ease-standard);
-}
-.btn-send:hover:not(:disabled) {
-  box-shadow: 0 8px 30px rgba(255, 45, 122, 0.45);
-}
-.btn-send:active:not(:disabled) {
-  transform: scale(0.97);
 }
 .btn-send svg {
-  width: 15px;
-  height: 15px;
+  width: 17px;
+  height: 17px;
 }
 
-/* Save affordance: subtle raised button, disabled while the draft is clean. */
-.btn-save {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  width: 32px;
-  flex-shrink: 0;
-  border: 1px solid var(--lok-border-default);
-  border-radius: var(--lok-radius-sm);
-  background: var(--lok-bg-raised);
-  color: var(--lok-text-secondary);
-  cursor: pointer;
-  transition:
-    color var(--lok-dur-fast) var(--lok-ease-standard),
-    border-color var(--lok-dur-fast) var(--lok-ease-standard);
-}
-.btn-save:hover:not(:disabled) {
+/* Save / Copy toolbar affordances now ride .lok-btn--md--neutral--icon (34px).
+   Only the hover heat-tint on save stays bespoke. */
+.btn-save.lok-btn--icon:hover:not(:disabled) {
   color: var(--lok-heat-400);
   border-color: var(--lok-border-focus);
 }
-.btn-save:disabled {
-  opacity: 0.5;
-  cursor: default;
+.btn-save svg {
+  width: 17px;
+  height: 17px;
 }
 
 /* waterfall */

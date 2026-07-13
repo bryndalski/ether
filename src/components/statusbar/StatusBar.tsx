@@ -1,6 +1,7 @@
 import { useEnvStore } from "../../state/useEnvStore";
 import { HealthDot } from "../common/HealthDot";
 import { HistoryTrigger } from "./HistoryTrigger";
+import { DevToolsTrigger } from "./DevToolsTrigger";
 import { useT } from "../../i18n/useT";
 
 /** Bottom status strip (26px): active env, connection meta, version. */
@@ -23,9 +24,8 @@ export function StatusBar() {
         <HealthDot health={activeEnvironment ? "up" : "none"} />
         {activeEnvironment?.name ?? t("statusbar.noEnv")}
       </span>
-      <span className="lok-mono">HTTP/2</span>
-      <span className="lok-mono">— ms</span>
       <HistoryTrigger />
+      <DevToolsTrigger />
       <span className="lok-mono ml-auto">v0.1.0</span>
     </footer>
   );

@@ -57,6 +57,40 @@ describe("draftReducer", () => {
     expect(twice.url).toBe(once.url);
   });
 
+  it("round-trips URL <-> Params both ways, preserving {{tokens}}", () => {
+    // URL -> Params: editing the query captures the params table.
+    const afterUrl = draftReducer(seed(), {
+      kind: "setUrl",
+      url: "https://api/x?limit=25&host={{env.host}}",
+    });
+    expect(afterUrl.query_params).toEqual([
+      { name: "limit", value: "25", enabled: true },
+      { name: "host", value: "{{env.host}}", enabled: true },
+    ]);
+
+    // Params -> URL: adding a row rebuilds the query, keeping the token verbatim.
+    const afterParam = draftReducer(afterUrl, {
+      kind: "setParams",
+      params: [
+        ...afterUrl.query_params,
+        { name: "sort", value: "asc", enabled: true },
+      ],
+    });
+    expect(afterParam.url).toBe(
+      "https://api/x?limit=25&host={{env.host}}&sort=asc",
+    );
+
+    // Disabling a param drops it from the URL but keeps it in the table.
+    const afterDisable = draftReducer(afterParam, {
+      kind: "setParams",
+      params: afterParam.query_params.map((p) =>
+        p.name === "limit" ? { ...p, enabled: false } : p,
+      ),
+    });
+    expect(afterDisable.url).toBe("https://api/x?host={{env.host}}&sort=asc");
+    expect(afterDisable.query_params).toHaveLength(3);
+  });
+
   it("preserves raw text across content-type flips", () => {
     const asJson = draftReducer(seed(), {
       kind: "setBody",

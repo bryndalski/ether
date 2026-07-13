@@ -1,8 +1,9 @@
 import type { Environment, KeyValue } from "../../lib/types";
 import { secretDelete } from "../../lib/ipc";
 import { EnvMeta } from "./EnvMeta";
-import { VariablesTable } from "./VariablesTable";
+import { EnvVariablesTable } from "./EnvVariablesTable";
 import { SecretNamesList } from "./SecretNamesList";
+import { useT } from "../../i18n/useT";
 
 interface EnvEditorProps {
   environment: Environment;
@@ -17,6 +18,7 @@ export function EnvEditor({
   environments,
   onPatch,
 }: EnvEditorProps) {
+  const t = useT();
   const baseEnvironments = environments.filter((e) => e.parent_id === null);
 
   function setVariables(variables: KeyValue[]) {
@@ -37,9 +39,9 @@ export function EnvEditor({
 
       <div>
         <p className="env-section-title" style={{ marginBottom: 6 }}>
-          Zmienne publiczne
+          {t("env.publicVariables")}
         </p>
-        <VariablesTable
+        <EnvVariablesTable
           variables={environment.variables}
           onChange={setVariables}
         />
@@ -47,7 +49,7 @@ export function EnvEditor({
 
       <div>
         <p className="env-section-title" style={{ marginBottom: 6 }}>
-          Sekrety
+          {t("env.secretsSection")}
         </p>
         <SecretNamesList
           names={environment.secret_names}

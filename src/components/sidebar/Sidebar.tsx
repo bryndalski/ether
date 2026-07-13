@@ -4,8 +4,11 @@ import { useNewRequest } from "../../hooks/useNewRequest";
 import { useSidebarTree } from "../../hooks/useSidebarTree";
 import { useT } from "../../i18n/useT";
 import { EmptyState } from "../common/EmptyState";
+import { Icon } from "../common/Icon";
 import { SidebarHeader } from "./SidebarHeader";
+import { SidebarFilterBar } from "./SidebarFilterBar";
 import { CollectionTree } from "./CollectionTree";
+import { SidebarRail } from "./SidebarRail";
 import "./sidebar.css";
 
 /** Collections rail (Zone 1). Search header + functional tree; shows a heat
@@ -18,12 +21,15 @@ export function Sidebar() {
   const loading = useCollectionsStore((state) => state.loading);
   const loadFailed = useCollectionsStore((state) => state.loadFailed);
   const sidebarWidth = useUiStore((state) => state.sidebarWidth);
+  const collapsed = useUiStore((state) => state.sidebarCollapsed);
   const newRequest = useNewRequest();
   const view = useSidebarTree();
   const t = useT();
 
   const isEmpty =
     !loading && requests.length === 0 && collections.length === 0;
+
+  if (collapsed) return <SidebarRail />;
 
   return (
     <aside
@@ -37,6 +43,7 @@ export function Sidebar() {
       }}
     >
       <SidebarHeader query={view.query} onQueryChange={view.setQuery} />
+      {!isEmpty && <SidebarFilterBar view={view} />}
 
       <div className="lok-scroll flex-1" style={{ minHeight: 0 }}>
         {isEmpty ? (
@@ -51,7 +58,7 @@ export function Sidebar() {
             actionLabel={t("palette.newRequest")}
             shortcut="⌘N"
             onAction={newRequest}
-            icon="🌀"
+            icon={<Icon name="i-folder" size={18} />}
           />
         ) : (
           <CollectionTree view={view} activeRequestId={activeRequestId} />

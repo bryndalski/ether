@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCollectionsStore } from "../../state/useCollectionsStore";
+import { useUiStore } from "../../state/useUiStore";
 import { useT } from "../../i18n/useT";
 import { Icon } from "../common/Icon";
 import { RowContextMenu, type MenuItem } from "./RowContextMenu";
@@ -17,6 +18,7 @@ export function SidebarHeader({ query, onQueryChange }: SidebarHeaderProps) {
   );
   const createRequest = useCollectionsStore((state) => state.createRequest);
   const collections = useCollectionsStore((state) => state.collections);
+  const collapse = useUiStore((state) => state.toggleSidebarCollapsed);
   const t = useT();
 
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -68,6 +70,17 @@ export function SidebarHeader({ query, onQueryChange }: SidebarHeaderProps) {
       {menu && (
         <RowContextMenu items={items} anchor={menu} onClose={() => setMenu(null)} />
       )}
+      <button
+        type="button"
+        aria-label={t("common.collapseSidebar")}
+        title={`${t("common.collapseSidebar")} · ⌘B`}
+        aria-expanded={true}
+        className="flex shrink-0 items-center justify-center rounded-[var(--lok-radius-sm)] p-1.5 transition-colors hover:bg-[var(--lok-bg-hover)]"
+        style={{ color: "var(--lok-text-secondary)" }}
+        onClick={collapse}
+      >
+        <Icon name="i-panel-left" size={16} />
+      </button>
     </div>
   );
 }

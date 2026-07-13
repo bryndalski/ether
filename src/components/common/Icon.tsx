@@ -13,6 +13,7 @@ export type IconName =
   | "i-x"
   | "i-copy"
   | "i-more"
+  | "i-panel-left"
   | "i-trash"
   | "i-lock"
   | "i-unlock"
@@ -32,7 +33,8 @@ export type IconName =
   | "i-bar-chart"
   | "i-key"
   | "i-clock"
-  | "i-alert";
+  | "i-alert"
+  | "i-globe";
 
 interface IconProps {
   name: IconName;

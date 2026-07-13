@@ -43,34 +43,38 @@ export function SecretNamesList({
         <span>{t("secrets.livesInKeychain")}</span>
       </div>
 
-      {names.length === 0 && (
+      {names.length === 0 ? (
         <p style={{ color: "var(--lok-text-tertiary)", fontSize: "var(--lok-fs-xs)" }}>
           {t("secrets.noSecrets")}
         </p>
-      )}
-
-      {names.map((name) => (
-        <div className="secret-row" key={name}>
-          <span className="secret-name">{name}</span>
-          <SecretStatusBadge status={secrets.statusOf(name)} />
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label={t("secrets.setValue", { name })}
-            onClick={() => setSettingFor(name)}
-          >
-            <Icon name="i-lock" size={14} />
-          </button>
-          <button
-            type="button"
-            className="icon-btn danger"
-            aria-label={t("secrets.deleteSecret", { name })}
-            onClick={() => void removeName(name)}
-          >
-            <Icon name="i-trash" size={14} />
-          </button>
+      ) : (
+        <div className="kv-grid secret-grid">
+          {names.map((name) => (
+            <div className="kv-row" key={name}>
+              <span className="secret-name">{name}</span>
+              <SecretStatusBadge status={secrets.statusOf(name)} />
+              <span className="kv-actions">
+                <button
+                  type="button"
+                  className="kv-iconbtn"
+                  aria-label={t("secrets.setValue", { name })}
+                  onClick={() => setSettingFor(name)}
+                >
+                  <Icon name="i-lock" size={13} />
+                </button>
+                <button
+                  type="button"
+                  className="kv-iconbtn danger"
+                  aria-label={t("secrets.deleteSecret", { name })}
+                  onClick={() => void removeName(name)}
+                >
+                  <Icon name="i-trash" size={13} />
+                </button>
+              </span>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
 
       <div className="secret-add">
         <input

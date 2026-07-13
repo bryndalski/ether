@@ -25,12 +25,12 @@ export function SendButton({
     return (
       <button
         type="button"
-        className="btn-send lok-heat-gradient--animated"
+        className="lok-btn lok-btn--lg lok-btn--primary btn-send lok-heat-gradient--animated"
         aria-label={t("workbench.cancelRequest")}
         aria-busy={true}
         onClick={onCancel}
       >
-        <Icon name="i-x" size={15} />
+        <Icon name="i-x" size={17} />
         {t("workbench.sending")}
       </button>
     );
@@ -39,14 +39,14 @@ export function SendButton({
   return (
     <button
       type="button"
-      className="btn-send"
+      className="lok-btn lok-btn--lg lok-btn--primary btn-send"
       aria-label={t("workbench.sendAria")}
       disabled={disabled}
       onClick={onSend}
     >
-      <Icon name="i-send" size={15} />
+      <Icon name="i-send" size={17} />
       {t("workbench.send")}
-      <kbd className="kbd">⌘↵</kbd>
+      <kbd className="kbd lok-kbd-chip">⌘↵</kbd>
     </button>
   );
 }

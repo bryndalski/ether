@@ -7,9 +7,11 @@ interface EmptyStateProps {
   onAction?: () => void;
   shortcut?: string;
   icon?: ReactNode;
-  /** Render the heat-glow bloom behind the icon. Only ONE empty region per
-   *  screen may set this (the primary editor/response hero); secondary panes
-   *  stay quiet and glow-less. Default false. */
+  /** Render the heat-glow bloom behind the icon AND paint the headline with the
+   *  heat gradient. Only ONE empty region per screen may set this (the primary
+   *  editor/response hero); secondary panes stay quiet and glow-less. When false
+   *  the headline is solid `--lok-text-primary` (the "one hot thing" rule — heat
+   *  is spent on Send/Run, not on every empty headline). Default false. */
   glow?: boolean;
   /** Compact variant for secondary rails (e.g. the sidebar): small icon, one
    *  line, a quiet ghost action — never a competing hero. Default false. */
@@ -61,11 +63,8 @@ export function EmptyState({
             {actionLabel}
             {shortcut && (
               <kbd
-                className="lok-mono"
-                style={{
-                  fontSize: "var(--lok-fs-2xs)",
-                  color: "var(--lok-text-tertiary)",
-                }}
+                className="lok-mono lok-kbd-chip"
+                style={{ color: "var(--lok-text-secondary)" }}
               >
                 {shortcut}
               </kbd>
@@ -95,11 +94,12 @@ export function EmptyState({
         </span>
       </div>
       <h2
-        className="lok-heat-text"
+        className={glow ? "lok-heat-text" : undefined}
         style={{
           fontSize: "var(--lok-fs-xl)",
           fontWeight: "var(--lok-fw-bold)",
           lineHeight: "var(--lok-lh-tight)",
+          color: glow ? undefined : "var(--lok-text-primary)",
         }}
       >
         {headline}
@@ -126,13 +126,7 @@ export function EmptyState({
         >
           {actionLabel}
           {shortcut && (
-            <kbd
-              className="lok-mono"
-              style={{
-                fontSize: "var(--lok-fs-2xs)",
-                opacity: 0.85,
-              }}
-            >
+            <kbd className="lok-mono lok-kbd-chip" style={{ color: "inherit" }}>
               {shortcut}
             </kbd>
           )}

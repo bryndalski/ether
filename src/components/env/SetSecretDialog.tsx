@@ -55,6 +55,12 @@ export function SetSecretDialog({ name, onSubmit, onDone }: SetSecretDialogProps
           aria-label={t("secrets.secretValue", { name })}
           value={value}
           onChange={(event) => setValue(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !saving && value !== "") {
+              event.preventDefault();
+              void handleSave();
+            }
+          }}
           className="env-field"
           style={{
             background: "var(--lok-bg-input)",

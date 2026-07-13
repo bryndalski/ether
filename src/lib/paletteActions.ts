@@ -38,8 +38,11 @@ export interface PaletteContext {
   openEnvManager: () => void;
   openImport: () => void;
   openHistory: () => void;
+  openDevTools: () => void;
   runBenchmark: () => void;
   toggleTheme: () => void;
+  toggleSidebar: () => void;
+  sidebarCollapsed: boolean;
   setLocale: (locale: Locale) => void;
 
   // Local AI. The five ai-* actions are built ONLY when aiEnabled && aiModel is
@@ -182,11 +185,28 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
       run: ctx.runBenchmark,
     },
     {
+      id: "open-devtools",
+      group: "Tools",
+      label: t("devtools.openDevTools"),
+      keywords: ["devtools", "dev tools", "jwt", "decoder", "narzędzia"],
+      run: ctx.openDevTools,
+    },
+    {
       id: "toggle-theme",
       group: "View",
       label: t("palette.toggleTheme"),
       keywords: ["theme", "motyw", "dark", "light"],
       run: ctx.toggleTheme,
+    },
+    {
+      id: "toggle-sidebar",
+      group: "View",
+      label: ctx.sidebarCollapsed
+        ? t("palette.expandSidebar")
+        : t("palette.collapseSidebar"),
+      shortcut: "⌘B",
+      keywords: ["sidebar", "panel", "collapse", "zwiń", "rozwiń", "boczny"],
+      run: ctx.toggleSidebar,
     },
     {
       id: "language-en",

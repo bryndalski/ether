@@ -42,6 +42,12 @@
 .lok-palette-input::placeholder {
   color: var(--lok-text-tertiary);
 }
+/* P2-11: the input is focused for the dialog's whole life — the global heat
+   focus ring would be a permanent alarm. The dialog frame already signals
+   focus; the input stays quiet. */
+.lok-palette-input:focus-visible {
+  box-shadow: none;
+}
 
 .lok-palette-list {
   max-height: 320px;
@@ -92,8 +98,10 @@
   margin-right: auto;
 }
 
+/* P2-13: chip background comes from .lok-kbd-chip; the color is lifted from
+   tertiary to secondary so the glyph clears 4.5:1 on the overlay surface. */
 .lok-palette-kbd {
-  color: var(--lok-text-tertiary);
+  color: var(--lok-text-secondary);
   font-size: var(--lok-fs-2xs);
 }
 

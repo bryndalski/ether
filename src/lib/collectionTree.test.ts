@@ -119,6 +119,42 @@ describe("filterTree", () => {
   });
 });
 
+describe("filterTree facets", () => {
+  const tree = buildTree(
+    [col("api", "API")],
+    [
+      req("r1", "api", "List", "GET", "https://api/users"),
+      req("r2", "api", "Create", "POST", "https://api/users"),
+      {
+        ...req("r3", "api", "GqlOp", "POST", "https://api/graphql"),
+        graphql: { operation_type: "query", query: "query { me }", variables_json: "{}" },
+      },
+    ],
+  );
+
+  it("filters by method (multi)", () => {
+    const out = filterTree(tree, "", { methods: ["GET"], type: "all" });
+    expect(out.roots[0].requests.map((r) => r.id)).toEqual(["r1"]);
+  });
+
+  it("filters by type rest vs graphql", () => {
+    const rest = filterTree(tree, "", { methods: [], type: "rest" });
+    expect(rest.roots[0].requests.map((r) => r.id).sort()).toEqual(["r1", "r2"]);
+    const gql = filterTree(tree, "", { methods: [], type: "graphql" });
+    expect(gql.roots[0].requests.map((r) => r.id)).toEqual(["r3"]);
+  });
+
+  it("combines facets with the text query", () => {
+    const out = filterTree(tree, "users", { methods: ["POST"], type: "rest" });
+    expect(out.roots[0].requests.map((r) => r.id)).toEqual(["r2"]);
+  });
+
+  it("drops a folder whose requests are all filtered out (no name-only rescue)", () => {
+    const out = filterTree(tree, "", { methods: ["PUT"], type: "all" });
+    expect(out.roots).toEqual([]);
+  });
+});
+
 describe("descendantCollectionIds", () => {
   it("returns the full subtree inclusive", () => {
     const collections = [

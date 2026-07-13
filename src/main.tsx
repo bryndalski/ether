@@ -3,9 +3,11 @@ import ReactDOM from "react-dom/client";
 
 import "./styles/tokens.css";
 import "./styles/base.css";
+import "./styles/primitives.css";
 import "./styles/completion.css";
 import "./styles/tailwind.css";
 import "./components/palette/palette.css";
+import "./components/common/kv-grid.css";
 import "./components/workbench/workbench.css";
 import "./components/workbench/tests/testing.css";
 import "./components/workbench/scripts/scripts.css";

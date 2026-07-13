@@ -4,6 +4,9 @@ import { json } from "@codemirror/lang-json";
 import { EditorView } from "@codemirror/view";
 import { humanBytes } from "../../lib/format";
 import { useT } from "../../i18n/useT";
+import { isHtmlBody } from "../../lib/htmlDetect";
+import { HtmlPreview } from "./HtmlPreview";
+import { BodyViewToggle, type BodyViewMode } from "./BodyViewToggle";
 
 interface ResponseBodyProps {
   body: string;
@@ -55,6 +58,13 @@ export function ResponseBody({
   const t = useT();
   const isLarge = sizeBytes > LARGE_BODY_BYTES;
   const [forceShow, setForceShow] = useState(false);
+  const isHtml = useMemo(
+    () => !isBase64 && isHtmlBody(body, contentType),
+    [isBase64, body, contentType],
+  );
+  // HTML bodies get a Raw / Pretty / Preview switch (default Preview); everything
+  // else keeps the existing Pretty-JSON-or-raw single view.
+  const [htmlView, setHtmlView] = useState<BodyViewMode>("preview");
   const { text, isJson } = useMemo(
     () => prettify(body, contentType),
     [body, contentType],
@@ -90,20 +100,40 @@ export function ResponseBody({
     );
   }
 
+  const truncatedNotice = truncatedAt != null && (
+    <p className="wb-label" style={{ color: "var(--lok-status-warn)" }}>
+      {t("response.truncatedPreview", { size: humanBytes(truncatedAt) })}
+    </p>
+  );
+
+  const sourceView = (
+    <CodeMirror
+      value={htmlView === "raw" ? body : text}
+      theme="dark"
+      editable={false}
+      extensions={extensions}
+      basicSetup={{ lineNumbers: true, foldGutter: true }}
+    />
+  );
+
+  if (isHtml) {
+    return (
+      <div className="resp-html">
+        <BodyViewToggle mode={htmlView} onChange={setHtmlView} />
+        {truncatedNotice}
+        {htmlView === "preview" ? (
+          <HtmlPreview html={body} />
+        ) : (
+          <div className="lok-selectable">{sourceView}</div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="lok-selectable">
-      {truncatedAt != null && (
-        <p className="wb-label" style={{ color: "var(--lok-status-warn)" }}>
-          {t("response.truncatedPreview", { size: humanBytes(truncatedAt) })}
-        </p>
-      )}
-      <CodeMirror
-        value={text}
-        theme="dark"
-        editable={false}
-        extensions={extensions}
-        basicSetup={{ lineNumbers: true, foldGutter: true }}
-      />
+      {truncatedNotice}
+      {sourceView}
     </div>
   );
 }

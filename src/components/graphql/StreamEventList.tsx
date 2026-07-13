@@ -1,6 +1,7 @@
 import type { StreamEvent, SubConnState } from "../../hooks/useSubscription";
 import { StreamEventRow } from "./StreamEventRow";
 import { EmptyState } from "../common/EmptyState";
+import { Icon } from "../common/Icon";
 import { useT } from "../../i18n/useT";
 
 interface StreamEventListProps {
@@ -23,7 +24,7 @@ export function StreamEventList({ events, connState }: StreamEventListProps) {
               : t("stream.waitingForEvents")
           }
           hint={t("stream.eventsHint")}
-          icon="~"
+          icon={<Icon name="i-flame" size={28} />}
         />
       </div>
     );

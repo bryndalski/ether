@@ -8,6 +8,7 @@ import { useCallback, useMemo, useRef } from "react";
 import type { GraphQLSchema } from "graphql";
 import type { DraftAction, RequestDraft } from "./useRequestDraft";
 import {
+  applyFieldSkeletonToQuery,
   applySelectionToQuery,
   deriveSelection,
   pathKey,
@@ -23,6 +24,10 @@ export interface GraphqlBuilderApi {
   selection: Set<string>;
   isSelected: (path: FieldPath) => boolean;
   toggleField: (path: FieldPath, on: boolean) => void;
+  /** Turn a ROOT field on WITH a schema-driven skeleton (required args as `$var`
+   *  placeholders + first-level scalar sub-fields), falling back to a bare
+   *  toggle when no schema is available. */
+  pickRootField: (fieldName: string, on: boolean) => void;
   setOpType: (opType: OperationType) => void;
   setQuery: (query: string) => void;
   setVariables: (variablesJson: string) => void;
@@ -30,7 +35,7 @@ export interface GraphqlBuilderApi {
 
 export function useGraphqlBuilder(
   draft: RequestDraft,
-  _schema: GraphQLSchema | null,
+  schema: GraphQLSchema | null,
   dispatch: React.Dispatch<DraftAction>,
 ): GraphqlBuilderApi {
   const opType = (draft.graphql?.operation_type ?? "query") as OperationType;
@@ -70,6 +75,20 @@ export function useGraphqlBuilder(
     [dispatch, query, opType],
   );
 
+  const pickRootField = useCallback(
+    (fieldName: string, on: boolean) => {
+      // Only the "on" path gets the schema skeleton; turning a field off is the
+      // ordinary prune via applySelectionToQuery.
+      const nextQuery =
+        on && schema
+          ? applyFieldSkeletonToQuery(query, opType, schema, fieldName)
+          : applySelectionToQuery(query, opType, [fieldName], on);
+      if (sameOperation(nextQuery, query)) return;
+      dispatch({ kind: "setGraphql", graphql: { query: nextQuery } });
+    },
+    [dispatch, query, opType, schema],
+  );
+
   const setOpType = useCallback(
     (nextOpType: OperationType) => {
       dispatch({ kind: "setGraphql", graphql: { operation_type: nextOpType } });
@@ -91,6 +110,7 @@ export function useGraphqlBuilder(
     selection,
     isSelected,
     toggleField,
+    pickRootField,
     setOpType,
     setQuery,
     setVariables,

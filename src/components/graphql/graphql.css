@@ -21,19 +21,28 @@
   background: var(--lok-bg-surface);
   flex: 0 0 auto;
 }
+/* Only the URL field flexes; every other toolbar control keeps its size so the
+   URL absorbs the squeeze and the Run/Subscribe primary action never shrinks. */
+.gql-explorer .toolbar > * {
+  flex-shrink: 0;
+}
+.gql-explorer .toolbar > .url-field {
+  flex: 1 1 auto;
+}
 
 .op-select {
   position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: 34px;
+  flex-shrink: 0;
   padding: 0 var(--lok-space-3);
   border-radius: var(--lok-radius-sm);
   background: var(--lok-bg-raised);
   border: 1px solid var(--lok-border-default);
   cursor: pointer;
-  font-size: var(--lok-fs-xs);
+  font-size: var(--lok-fs-sm);
   color: var(--lok-text-primary);
   font-family: var(--lok-font-mono);
   font-weight: var(--lok-fw-semibold);
@@ -50,13 +59,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: 34px;
+  flex-shrink: 0;
   padding: 0 var(--lok-space-3);
   border-radius: var(--lok-radius-sm);
   background: var(--lok-bg-raised);
   border: 1px solid var(--lok-border-default);
   color: var(--lok-text-secondary);
-  font-size: var(--lok-fs-xs);
+  font-size: var(--lok-fs-sm);
   cursor: pointer;
 }
 .btn.refresh:hover:not(:disabled) {
@@ -84,12 +94,26 @@
   }
 }
 
-/* 3-column body: field tree | editor | docs */
+/* 3-column body: field tree | (handle) | editor | (handle) | docs.
+   The side columns are draggable (persisted --gql-tree-w / --gql-docs-w); the
+   editor keeps the remaining 1fr. The 0-width handle tracks straddle the grid
+   lines so the divider is grabbable from both panels. */
 .gql-cols {
   display: grid;
-  grid-template-columns: 280px 1fr 260px;
+  grid-template-columns:
+    var(--gql-tree-w, 280px)
+    0
+    minmax(0, 1fr)
+    0
+    var(--gql-docs-w, 260px);
   min-height: 0;
   flex: 1;
+}
+/* The handle lives in a 0-width grid track; its 6px strip straddles the seam via
+   the default negative inline margin (resize-handle.css), overlaying both panels
+   without stealing layout width. */
+.gql-cols > .lok-resize-handle--x {
+  justify-self: center;
 }
 .gql-col {
   display: flex;
@@ -129,6 +153,74 @@
   overflow: auto;
   min-height: 0;
   padding: var(--lok-space-2) var(--lok-space-3);
+}
+
+/* Operation sections (Query / Mutation / Subscription) above the field tree */
+.gql-op-sections {
+  display: flex;
+  gap: var(--lok-space-1);
+  padding: var(--lok-space-2);
+  border-bottom: 1px solid var(--lok-border-subtle);
+  flex: 0 0 auto;
+}
+.gql-op-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 var(--lok-space-2);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-raised);
+  border: 1px solid var(--lok-border-default);
+  color: var(--lok-text-tertiary);
+  font-size: var(--lok-fs-2xs);
+  font-family: var(--lok-font-mono);
+  font-weight: var(--lok-fw-semibold);
+  cursor: pointer;
+}
+.gql-op-tab:hover:not(:disabled) {
+  background: var(--lok-bg-hover);
+}
+.gql-op-tab:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.gql-op-tab.active {
+  background: var(--lok-bg-active);
+  color: var(--lok-text-primary);
+  border-color: var(--op-hue);
+}
+.gql-op-tab:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: 1px;
+}
+.gql-op-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--op-hue);
+  flex: 0 0 auto;
+}
+.gql-op-tab:disabled .gql-op-dot {
+  background: var(--lok-text-disabled);
+}
+.gql-op-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gql-op-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--lok-text-tertiary);
+  background: color-mix(in srgb, var(--op-hue) 16%, transparent);
+  border-radius: var(--lok-radius-xs);
+  padding: 0 5px;
+  min-width: 16px;
+  text-align: center;
+}
+.gql-op-tab.active .gql-op-count {
+  color: var(--lok-text-secondary);
 }
 
 /* Field tree */

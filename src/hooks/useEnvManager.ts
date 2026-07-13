@@ -28,6 +28,14 @@ export function useEnvManager(): EnvManagerApi {
     () => environments[0]?.id ?? null,
   );
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The store optimistically merges each patch immediately (so the UI is
+  // instant), but the WRITE is debounced. We accumulate the pending fields here
+  // so editing several fields inside the debounce window persists ALL of them —
+  // a bare setTimeout that only carried the latest `partial` silently dropped
+  // the earlier fields (the perceived "changes don't stick" bug).
+  const pendingRef = useRef<{ id: string; partial: Partial<Environment> } | null>(
+    null,
+  );
 
   // Keep a valid selection as the list changes.
   useEffect(() => {
@@ -37,22 +45,38 @@ export function useEnvManager(): EnvManagerApi {
     setSelectedEnvId(environments[0]?.id ?? null);
   }, [environments, selectedEnvId]);
 
+  const flush = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    if (pending) void patchEnvironment(pending.id, pending.partial);
+  }, [patchEnvironment]);
+
+  // Flush any pending write on unmount so closing the modal never loses an
+  // in-flight edit.
   useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
+    return () => flush();
+  }, [flush]);
 
   const patch = useCallback(
     (partial: Partial<Environment>) => {
       if (!selectedEnvId) return;
-      const id = selectedEnvId;
+      // A selection change while a write is pending must not merge fields across
+      // two different environments — flush first.
+      if (pendingRef.current && pendingRef.current.id !== selectedEnvId) {
+        flush();
+      }
+      pendingRef.current = {
+        id: selectedEnvId,
+        partial: { ...(pendingRef.current?.partial ?? {}), ...partial },
+      };
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        void patchEnvironment(id, partial);
-      }, PATCH_DEBOUNCE_MS);
+      timerRef.current = setTimeout(flush, PATCH_DEBOUNCE_MS);
     },
-    [selectedEnvId, patchEnvironment],
+    [selectedEnvId, flush],
   );
 
   const selectedEnv =

@@ -16,7 +16,11 @@
   display: flex;
   flex-direction: column;
   width: min(720px, 96vw);
-  height: min(560px, 90dvh);
+  /* Content-driven height: the modal hugs the active tab and only grows to the
+     cap, at which point the body (and each tab's tree/scan list) scrolls
+     internally — no permanent empty lower half. */
+  height: auto;
+  max-height: min(640px, 90dvh);
   min-height: 0;
   background: var(--lok-bg-surface);
   border: 1px solid var(--lok-border-default);

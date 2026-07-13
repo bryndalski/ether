@@ -12,7 +12,7 @@ export function DevToolsDrawerHeader({ onClose }: DevToolsDrawerHeaderProps) {
     <div className="dv-drawer-head">
       <h2 id="dv-drawer-title" className="dv-drawer-title">
         <Icon name="i-key" size={15} />
-        Dev-Tools
+        {t("devtools.title")}
       </h2>
       <button
         type="button"

@@ -7,6 +7,7 @@ import { EnvList } from "./EnvList";
 import { EnvEditor } from "./EnvEditor";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyState } from "../common/EmptyState";
+import { ResizeHandle } from "../common/ResizeHandle";
 import { useT } from "../../i18n/useT";
 import "./env.css";
 
@@ -16,6 +17,9 @@ import "./env.css";
 export function EnvironmentManager() {
   const open = useUiStore((state) => state.envManagerOpen);
   const close = useUiStore((state) => state.closeEnvManager);
+  const listWidth = useUiStore((state) => state.envListWidth);
+  const setListWidth = useUiStore((state) => state.setEnvListWidth);
+  const resetListWidth = useUiStore((state) => state.resetEnvListWidth);
   const manager = useEnvManager();
   const t = useT();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -54,7 +58,10 @@ export function EnvironmentManager() {
           </button>
         </div>
 
-        <div className="env-modal-body">
+        <div
+          className="env-modal-body"
+          style={{ "--env-list-w": `${listWidth}px` } as React.CSSProperties}
+        >
           <EnvList
             environments={manager.environments}
             selectedEnvId={manager.selectedEnvId}
@@ -62,15 +69,23 @@ export function EnvironmentManager() {
             onCreate={manager.createEnvironment}
             onRequestDelete={setDeleteId}
           />
+          <ResizeHandle
+            axis="x"
+            value={listWidth}
+            toValue={(start, delta) => start + delta}
+            onChange={setListWidth}
+            onReset={resetListWidth}
+            ariaLabel={t("common.resizeColumn")}
+          />
           {manager.environments.length === 0 ? (
+            // The footer "＋ New environment" in EnvList is the single, always-
+            // visible CTA — this hero stays quiet (no duplicate action button).
             <div className="env-editor" style={{ justifyContent: "center" }}>
               <EmptyState
                 glow
                 headline={t("env.noEnvironments")}
-                hint={t("env.pickOrCreate")}
-                actionLabel={t("env.newEnvironment")}
-                onAction={() => void manager.createEnvironment(null)}
-                icon="🌐"
+                hint={t("env.createFirstHint")}
+                icon={<Icon name="i-globe" size={32} />}
               />
             </div>
           ) : manager.selectedEnv ? (

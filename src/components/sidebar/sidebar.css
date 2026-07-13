@@ -17,10 +17,13 @@
 .tree-row:hover {
   background: var(--lok-bg-hover);
 }
+/* P2-12: selection reads as an instrument, not an alarm — the accent bar takes
+ * the row's METHOD color (--row-accent, set inline by RequestRow) and the tint
+ * is dialed down from the raw selected token. */
 .tree-row.active {
   color: var(--lok-text-primary);
-  background: var(--lok-bg-selected);
-  border-left-color: var(--lok-brand, var(--lok-heat-500));
+  background: color-mix(in srgb, var(--lok-bg-selected) 70%, transparent);
+  border-left-color: var(--row-accent, var(--lok-brand, var(--lok-heat-500)));
 }
 
 .tree-chev {
@@ -152,4 +155,193 @@
 .sidebar-search-input::-webkit-search-results-decoration {
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Filter bar (method chips + REST/GraphQL type toggle) under the search.
+   --------------------------------------------------------------------------- */
+.sidebar-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-2);
+  border-bottom: 1px solid var(--lok-border-subtle);
+}
+.sidebar-filter-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sidebar-chip {
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  font-weight: var(--lok-fw-bold);
+  letter-spacing: var(--lok-tracking-wide);
+  padding: 2px 6px;
+  border-radius: var(--lok-radius-xs);
+  border: 1px solid var(--lok-border-default);
+  background: var(--lok-bg-raised);
+  color: var(--lok-text-tertiary);
+  cursor: pointer;
+}
+.sidebar-chip:hover {
+  background: var(--lok-bg-hover);
+}
+.sidebar-chip.on {
+  color: var(--lok-text-on-heat);
+  border-color: transparent;
+}
+.sidebar-chip.method-get.on {
+  background: var(--lok-status-success);
+  color: var(--lok-bg-base);
+}
+.sidebar-chip.method-post.on {
+  background: var(--lok-status-warn);
+  color: var(--lok-bg-base);
+}
+.sidebar-chip.method-put.on {
+  background: var(--lok-status-info);
+  color: var(--lok-bg-base);
+}
+.sidebar-chip.method-patch.on {
+  background: var(--lok-heat-500);
+  color: var(--lok-text-on-heat);
+}
+.sidebar-chip.method-delete.on {
+  background: var(--lok-status-danger);
+  color: #fff;
+}
+.sidebar-chip:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: 1px;
+}
+
+.sidebar-filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  justify-content: space-between;
+}
+.sidebar-type-toggle {
+  display: inline-flex;
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+  overflow: hidden;
+}
+.sidebar-type-toggle button {
+  padding: 3px var(--lok-space-2);
+  font-size: var(--lok-fs-2xs);
+  background: var(--lok-bg-raised);
+  color: var(--lok-text-tertiary);
+  border: none;
+  cursor: pointer;
+}
+.sidebar-type-toggle button.on {
+  background: var(--lok-bg-active);
+  color: var(--lok-text-primary);
+}
+.sidebar-type-toggle button:focus-visible {
+  outline: 2px solid var(--lok-heat-500);
+  outline-offset: -2px;
+}
+
+.sidebar-filter-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sidebar-result-count {
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sidebar-clear-filters {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: var(--lok-radius-xs);
+  color: var(--lok-text-tertiary);
+}
+.sidebar-clear-filters:hover {
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-hover);
+}
+
+/* Collapsed collections rail: a narrow icon-only strip (⌘B toggles it back).
+   Method-badge chips carry the request name in their tooltip so nothing is
+   color-only, and the active request keeps a heat left-border like the tree. */
+.sidebar-rail {
+  width: 48px;
+  flex-shrink: 0;
+  background: var(--lok-bg-sidebar);
+  border-right: 1px solid var(--lok-border-subtle);
+  padding: var(--lok-space-2) 0;
+  gap: 2px;
+}
+.sidebar-rail-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--lok-radius-sm);
+  color: var(--lok-text-secondary);
+  transition: background var(--lok-dur-fast) var(--lok-ease-standard),
+    color var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.sidebar-rail-btn:hover {
+  background: var(--lok-bg-hover);
+  color: var(--lok-text-primary);
+}
+.sidebar-rail-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--lok-shadow-focus);
+}
+.sidebar-rail-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: var(--lok-space-2);
+  padding-top: var(--lok-space-2);
+  width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--lok-border-subtle);
+}
+.sidebar-rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 30px;
+  border-radius: var(--lok-radius-sm);
+  font-family: var(--lok-font-mono);
+  font-size: var(--lok-fs-2xs);
+  font-weight: var(--lok-fw-bold);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.sidebar-rail-item:hover {
+  background: var(--lok-bg-hover);
+}
+.sidebar-rail-item.selected {
+  background: var(--lok-bg-selected);
+}
+.sidebar-rail-item.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--lok-gradient-heat-x);
+}
+.sidebar-rail-item:focus-visible {
+  outline: none;
+  box-shadow: var(--lok-shadow-focus);
 }

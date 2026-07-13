@@ -44,6 +44,10 @@ export interface AiChatRequest {
   messages: AiMessage[];
   schema: unknown;
   action: AiActionKind;
+  /** Extra known secret VALUES to scrub. Optional — the FE cannot read Keychain
+   *  values by design, so Rust gathers the authoritative scrub set itself
+   *  (every environment's secret_names resolved via Keychain) and merges this in. */
+  secret_values?: string[];
 }
 
 /** The model's structured (schema-constrained) output plus local timing. */

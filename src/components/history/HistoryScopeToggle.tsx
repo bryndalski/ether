@@ -1,4 +1,5 @@
 import type { HistoryScope } from "../../state/useHistoryStore";
+import { useT } from "../../i18n/useT";
 
 interface HistoryScopeToggleProps {
   scope: HistoryScope;
@@ -13,14 +14,15 @@ export function HistoryScopeToggle({
   disabled,
   onChange,
 }: HistoryScopeToggleProps) {
+  const t = useT();
   return (
-    <div className="hist-scope" role="group" aria-label="Zakres historii">
+    <div className="hist-scope" role="group" aria-label={t("history.scopeAria")}>
       <button
         type="button"
         aria-pressed={scope === "all"}
         onClick={() => onChange("all")}
       >
-        Wszystkie
+        {t("history.scopeAll")}
       </button>
       <button
         type="button"
@@ -28,7 +30,7 @@ export function HistoryScopeToggle({
         disabled={disabled}
         onClick={() => onChange("request")}
       >
-        Ten request
+        {t("history.scopeThisRequest")}
       </button>
     </div>
   );

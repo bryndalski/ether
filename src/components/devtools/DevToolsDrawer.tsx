@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useUiStore } from "../../state/useUiStore";
+import { useT } from "../../i18n/useT";
 import { DevToolsDrawerHeader } from "./DevToolsDrawerHeader";
 import { JwtPasteDecoder } from "./JwtPasteDecoder";
 import "./devtools.css";
@@ -10,6 +11,7 @@ import "./devtools.css";
 export function DevToolsDrawer() {
   const open = useUiStore((state) => state.devToolsOpen);
   const close = useUiStore((state) => state.closeDevTools);
+  const t = useT();
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export function DevToolsDrawer() {
         <DevToolsDrawerHeader onClose={close} />
         <div className="dv-drawer-body lok-scroll">
           <section className="dv-drawer-section">
-            <h3 className="dv-drawer-subtitle">JWT decoder</h3>
+            <h3 className="dv-drawer-subtitle">{t("devtools.jwtDecoder")}</h3>
             <JwtPasteDecoder />
           </section>
         </div>

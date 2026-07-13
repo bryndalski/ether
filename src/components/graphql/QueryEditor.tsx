@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import CodeMirror from "@uiw/react-codemirror";
+import type { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { EditorView } from "@codemirror/view";
-import { graphql } from "cm6-graphql";
+import { graphql, updateSchema } from "cm6-graphql";
 import type { GraphQLSchema } from "graphql";
 import { useT } from "../../i18n/useT";
 import { useVariableCandidates } from "../../hooks/useVariableCandidates";
@@ -29,31 +30,47 @@ const editorTheme = EditorView.theme({
   ".cm-content": { fontFamily: "var(--lok-font-mono)" },
 });
 
-/** The centerpiece editor. With a schema, cm6-graphql gives autocomplete, lint,
- *  and hover/type-info; without one it degrades to syntax-only parsing. `{{...}}`
- *  templates are opaque string content, so linting is unaffected. */
+/** The centerpiece editor. With a schema, cm6-graphql gives full autocomplete of
+ *  fields inside a selection-set, arguments, and variable types, plus validation
+ *  lint; without one it degrades to syntax-only parsing. The schema is installed
+ *  ONCE (stable extension) and refreshed imperatively via `updateSchema`, so a
+ *  schema that arrives after the editor mounts — or after a Refresh — starts
+ *  driving completion without remounting the editor. `{{...}}` templates are
+ *  opaque string content, so linting is unaffected. */
 export function QueryEditor({ query, schema, onChange }: QueryEditorProps) {
   const t = useT();
   const getCandidates = useVariableCandidates();
-  // cm6-graphql owns schema completion; our `{{...}}` source returns null unless
-  // inside an open `{{`, so the two completion sources coexist without conflict.
+  const cmRef = useRef<ReactCodeMirrorRef>(null);
+
+  // cm6-graphql owns schema completion/lint; our `{{...}}` source returns null
+  // unless inside an open `{{`, so the two completion sources coexist. The
+  // graphql extension is created ONCE (schema omitted) and fed via updateSchema.
   const extensions = useMemo(
     () => [
-      graphql(schema ?? undefined),
+      graphql(),
       variableAutocomplete({ getCandidates }),
       editorTheme,
     ],
-    [schema, getCandidates],
+    [getCandidates],
   );
+
+  // Push the schema into the running editor whenever it (re)loads.
+  useEffect(() => {
+    const view = cmRef.current?.view;
+    if (view) updateSchema(view, schema ?? undefined);
+  }, [schema]);
 
   return (
     <div className="query-pane lok-scroll" aria-label={t("graphql.queryEditorAria")}>
       <CodeMirror
+        ref={cmRef}
         value={query}
         theme="dark"
         extensions={extensions}
         basicSetup={{ lineNumbers: true, foldGutter: false }}
+        placeholder={t("graphql.queryPlaceholder")}
         onChange={onChange}
+        onCreateEditor={(view) => updateSchema(view, schema ?? undefined)}
       />
     </div>
   );

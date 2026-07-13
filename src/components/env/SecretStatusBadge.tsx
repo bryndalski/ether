@@ -11,6 +11,7 @@ const LABEL_KEY: Record<SecretStatus, TKey> = {
   set: "secrets.statusSet",
   empty: "secrets.statusEmpty",
   checking: "secrets.statusChecking",
+  saving: "secrets.statusSaving",
 };
 
 /** Never color-only: a dot + icon + text label for the secret's Keychain

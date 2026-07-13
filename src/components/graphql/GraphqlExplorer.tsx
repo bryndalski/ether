@@ -8,9 +8,11 @@ import { useDocsNav } from "../../hooks/useDocsNav";
 import { useSubscription } from "../../hooks/useSubscription";
 import {
   availableOperations,
+  rootFieldCounts,
   rootTypeFor,
 } from "../../lib/graphqlSchemaTree";
 import { relativeTimeLabel } from "../../lib/relativeTime";
+import { useT } from "../../i18n/useT";
 import type { StoredRequest } from "../../lib/types";
 import { ExplorerToolbar } from "./ExplorerToolbar";
 import { FieldTree } from "./FieldTree";
@@ -22,6 +24,9 @@ import { SdlFallbackPanel } from "./SdlFallbackPanel";
 import { SubscribeButton } from "./SubscribeButton";
 import { SubscriptionStream } from "./SubscriptionStream";
 import { EmptyState } from "../common/EmptyState";
+import { Icon } from "../common/Icon";
+import { ResizeHandle } from "../common/ResizeHandle";
+import { useUiStore } from "../../state/useUiStore";
 
 interface GraphqlExplorerProps {
   draft: RequestDraft;
@@ -55,9 +60,19 @@ export function GraphqlExplorer({
   onCopyCurl,
   dirty,
 }: GraphqlExplorerProps) {
+  const t = useT();
   const schemaApi = useGraphqlSchema(draft);
   const builder = useGraphqlBuilder(draft, schemaApi.schema, dispatch);
   const stream = useSubscription();
+
+  // Draggable column widths (persisted). The middle editor keeps the remaining
+  // 1fr; dragging the left handle grows the tree, the right handle grows docs.
+  const treeWidth = useUiStore((state) => state.gqlTreeWidth);
+  const docsWidth = useUiStore((state) => state.gqlDocsWidth);
+  const setTreeWidth = useUiStore((state) => state.setGqlTreeWidth);
+  const setDocsWidth = useUiStore((state) => state.setGqlDocsWidth);
+  const resetTreeWidth = useUiStore((state) => state.resetGqlTreeWidth);
+  const resetDocsWidth = useUiStore((state) => state.resetGqlDocsWidth);
 
   const availableOps = useMemo(
     () => (schemaApi.schema ? availableOperations(schemaApi.schema) : ["query" as const]),
@@ -66,6 +81,13 @@ export function GraphqlExplorer({
   const rootType = useMemo(
     () => (schemaApi.schema ? rootTypeFor(schemaApi.schema, builder.opType) : null),
     [schemaApi.schema, builder.opType],
+  );
+  const opCounts = useMemo(
+    () =>
+      schemaApi.schema
+        ? rootFieldCounts(schemaApi.schema)
+        : { query: 0, mutation: 0, subscription: 0 },
+    [schemaApi.schema],
   );
   const docsNav = useDocsNav(rootType?.name ?? null);
 
@@ -121,30 +143,52 @@ export function GraphqlExplorer({
         dirty={dirty}
       />
 
-      <div className="gql-cols">
+      <div
+        className="gql-cols"
+        style={
+          {
+            "--gql-tree-w": `${treeWidth}px`,
+            "--gql-docs-w": `${docsWidth}px`,
+          } as React.CSSProperties
+        }
+      >
         {schemaApi.schema && rootType ? (
           <FieldTree
             rootType={rootType}
+            opType={builder.opType}
+            availableOps={availableOps}
+            rootFieldCounts={opCounts}
+            onOpType={builder.setOpType}
             isSelected={builder.isSelected}
             onToggle={builder.toggleField}
+            onPickRoot={builder.pickRootField}
             onFocusType={docsNav.focusType}
           />
         ) : (
           <div className="gql-col tree-col">
-            <div className="col-head">Fields</div>
+            <div className="col-head">{t("graphql.fieldsColumn")}</div>
             <div className="col-body lok-scroll">
               <EmptyState
                 headline={
                   schemaApi.state === "introspecting"
-                    ? "Introspecting…"
-                    : "No schema yet"
+                    ? t("graphql.introspecting")
+                    : t("graphql.noSchemaYet")
                 }
-                hint="Refresh schema to introspect this endpoint, or paste SDL."
-                icon="~"
+                hint={t("graphql.noSchemaHint")}
+                icon={<Icon name="i-graph" size={28} />}
               />
             </div>
           </div>
         )}
+
+        <ResizeHandle
+          axis="x"
+          value={treeWidth}
+          toValue={(start, delta) => start + delta}
+          onChange={setTreeWidth}
+          onReset={resetTreeWidth}
+          ariaLabel={t("common.resizeColumn")}
+        />
 
         <div className="gql-col mid">
           {schemaApi.state === "sdl-fallback" && !schemaApi.schema ? (
@@ -178,16 +222,25 @@ export function GraphqlExplorer({
           )}
         </div>
 
+        <ResizeHandle
+          axis="x"
+          value={docsWidth}
+          toValue={(start, delta) => start - delta}
+          onChange={setDocsWidth}
+          onReset={resetDocsWidth}
+          ariaLabel={t("common.resizeColumn")}
+        />
+
         {schemaApi.schema ? (
           <DocsExplorer schema={schemaApi.schema} nav={docsNav} />
         ) : (
           <div className="gql-col docs-col">
-            <div className="col-head">Docs Explorer</div>
+            <div className="col-head">{t("graphql.docsColumn")}</div>
             <div className="col-body lok-scroll">
               <EmptyState
-                headline="Docs appear here"
-                hint="Once a schema is loaded, drill into types."
-                icon="~"
+                headline={t("graphql.docsAppearHeadline")}
+                hint={t("graphql.docsAppearHint")}
+                icon={<Icon name="i-book" size={28} />}
               />
             </div>
           </div>

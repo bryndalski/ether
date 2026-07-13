@@ -1,5 +1,6 @@
 import { useT } from "../../i18n/useT";
 import type { ConditionExpr, WorkflowNode } from "../../lib/workflow";
+import { RequestNodeConfig } from "./RequestNodeConfig";
 
 /** Right-rail editor for the selected node's fields. Emits a whole updated node
  *  (immutable) so the graph hook can swap it in; the container owns persistence.
@@ -36,16 +37,8 @@ export function NodeInspector({
         </button>
       </div>
 
-      {node.kind === "request" && "request_ref" in node && (
-        <label className="lok-wf-field">
-          <span>{t("workflow.requestRef")}</span>
-          <input
-            type="text"
-            value={node.request_ref}
-            placeholder={t("workflow.requestRefPlaceholder")}
-            onChange={(e) => onChange({ ...node, request_ref: e.target.value })}
-          />
-        </label>
+      {node.kind === "request" && (
+        <RequestNodeConfig node={node} onChange={onChange} />
       )}
 
       {node.kind === "extract" && (

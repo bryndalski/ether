@@ -12,14 +12,22 @@ interface HistoryListProps {
 /** The only scrolling region in the drawer. Renders loading / empty / error /
  *  rows from the store. */
 export function HistoryList({ now, onReplay }: HistoryListProps) {
-  const entries = useHistoryStore((state) => state.entries);
+  const allEntries = useHistoryStore((state) => state.entries);
+  const filters = useHistoryStore((state) => state.filters);
   const loading = useHistoryStore((state) => state.loading);
   const error = useHistoryStore((state) => state.error);
   const openedId = useHistoryStore((state) => state.openedId);
   const selectedIds = useHistoryStore((state) => state.selectedIds);
   const openEntry = useHistoryStore((state) => state.openEntry);
   const toggleSelect = useHistoryStore((state) => state.toggleSelect);
+  const clearFilters = useHistoryStore((state) => state.clearFilters);
+  const visibleEntries = useHistoryStore((state) => state.visibleEntries);
+  const filtersActive = useHistoryStore((state) => state.filtersActive);
   const t = useT();
+  // Subscribe to entries + filters so this recomputes on either change.
+  void allEntries;
+  void filters;
+  const entries = visibleEntries();
 
   if (error) {
     return (
@@ -44,11 +52,19 @@ export function HistoryList({ now, onReplay }: HistoryListProps) {
   }
 
   if (entries.length === 0) {
+    // Distinguish "nothing recorded" from "filters hid everything" so the user
+    // gets a clear-filters escape hatch instead of a dead end.
+    const filtered = filtersActive() && allEntries.length > 0;
     return (
       <div className="hist-list">
         <EmptyState
-          headline={t("history.emptyHeadline")}
-          hint={t("history.emptyHint")}
+          compact={filtered}
+          headline={
+            filtered ? t("history.noMatchHeadline") : t("history.emptyHeadline")
+          }
+          hint={filtered ? t("history.noMatchHint") : t("history.emptyHint")}
+          actionLabel={filtered ? t("history.clearFilters") : undefined}
+          onAction={filtered ? clearFilters : undefined}
           icon={<Icon name="i-history" size={28} />}
         />
       </div>

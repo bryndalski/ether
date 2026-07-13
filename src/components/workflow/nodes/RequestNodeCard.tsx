@@ -12,7 +12,13 @@ export function RequestNodeCard({ id, data }: NodeProps<WorkflowRFNode>) {
   const node = data.node;
   if (node.kind !== "request") return null;
 
-  const label = "request_ref" in node ? node.request_ref : node.request.name;
+  const isRef = "request_ref" in node;
+  const label = isRef ? node.request_ref : node.request.name;
+  // A node is "unconfigured" when a saved ref is empty or an inline request has
+  // no URL — surface it on the card so a broken step is visible before a run.
+  const invalid = isRef
+    ? node.request_ref.trim() === ""
+    : node.request.url.trim() === "";
 
   return (
     <div
@@ -21,6 +27,7 @@ export function RequestNodeCard({ id, data }: NodeProps<WorkflowRFNode>) {
       aria-label={`${t("workflow.nodeRequest")}: ${label || t("workflow.requestRefPlaceholder")}`}
       tabIndex={0}
       data-status={status}
+      data-invalid={invalid || undefined}
     >
       <Handle type="target" position={Position.Left} />
       <div className="lok-wf-node__head">
@@ -32,6 +39,11 @@ export function RequestNodeCard({ id, data }: NodeProps<WorkflowRFNode>) {
       <div className="lok-wf-node__title">
         {label || t("workflow.requestRefPlaceholder")}
       </div>
+      {invalid && (
+        <div className="lok-wf-node__warn" title={t("workflow.nodeNotConfigured")}>
+          {t("workflow.nodeNotConfigured")}
+        </div>
+      )}
       <Handle type="source" position={Position.Right} />
     </div>
   );

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUiStore } from "../../state/useUiStore";
 import { useT } from "../../i18n/useT";
+import { ResizeHandle } from "../common/ResizeHandle";
 import type { SendState } from "../../hooks/useSendRequest";
 import type { BenchConfig, BenchState } from "../../hooks/useBenchmark";
 import type { UseWatchMode } from "../../hooks/useWatchMode";
@@ -14,6 +15,7 @@ import { summarize, evalAssertions } from "../../lib/assertions";
 import { relativeTimeLabel } from "../../lib/relativeTime";
 import { detectJwtCandidates } from "../../lib/jwt";
 import { EmptyState } from "../common/EmptyState";
+import { Icon } from "../common/Icon";
 import { StatusBadge } from "./StatusBadge";
 import { ResponseMeta } from "./ResponseMeta";
 import { ResponseBody } from "./ResponseBody";
@@ -63,6 +65,8 @@ interface ResponseDockProps {
   snapshot?: ResponseSnapshot | null;
   devTools?: DevToolsProps;
   testing?: TestingProps;
+  /** The active request method, shown in the idle "Ready" strip. */
+  method?: string;
 }
 
 function contentType(headers: { name: string; value: string }[]): string | undefined {
@@ -71,20 +75,65 @@ function contentType(headers: { name: string; value: string }[]): string | undef
 
 /** Response dock (Zone 3). Empty until the first Send; then status + meta + tabs
  *  + the active tab body. Errors/cancels show a banner instead of a response. */
-export function ResponseDock({ sendState, snapshot, devTools, testing }: ResponseDockProps) {
+export function ResponseDock({ sendState, snapshot, devTools, testing, method }: ResponseDockProps) {
   const placement = useUiStore((state) => state.responsePlacement);
   const responseSize = useUiStore((state) => state.responseSize);
+  const responseWidth = useUiStore((state) => state.responseWidth);
+  const setResponseSize = useUiStore((state) => state.setResponseSize);
+  const setResponseWidth = useUiStore((state) => state.setResponseWidth);
+  const resetResponseSize = useUiStore((state) => state.resetResponseSize);
+  const resetResponseWidth = useUiStore((state) => state.resetResponseWidth);
+  const responseSeen = useUiStore((state) => state.responseSeen);
+  const markResponseSeen = useUiStore((state) => state.markResponseSeen);
   const t = useT();
-  const [tab, setTab] = useState<ResponseTabKey>("Body");
 
-  const sizeStyle =
-    placement === "bottom"
-      ? { height: `${responseSize}%`, minHeight: 220 }
-      : { width: "var(--lok-response-w, 42%)" };
-  const borderStyle =
-    placement === "bottom"
-      ? { borderTop: "1px solid var(--lok-border-default)" }
-      : { borderLeft: "1px solid var(--lok-border-default)" };
+  // Once any response (or error) has ever arrived, remember it so the idle dock
+  // stays the full split. Before that, idle = a thin strip.
+  useEffect(() => {
+    if (
+      sendState.phase === "success" ||
+      sendState.phase === "error" ||
+      snapshot != null
+    ) {
+      markResponseSeen();
+    }
+  }, [sendState.phase, snapshot, markResponseSeen]);
+  const [tab, setTab] = useState<ResponseTabKey>("Body");
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const isBottom = placement === "bottom";
+  const sizeStyle = isBottom
+    ? { height: `${responseSize}%`, minHeight: 220 }
+    : { width: responseWidth, flexShrink: 0 };
+  const borderStyle = isBottom
+    ? { borderTop: "1px solid var(--lok-border-default)" }
+    : { borderLeft: "1px solid var(--lok-border-default)" };
+
+  // Bottom dock grows as its top edge is dragged UP (delta<0 => taller): convert
+  // the pixel delta to a percent of the editor column so both stay in the same
+  // unit the CSS reads. Right dock grows as its left edge is dragged LEFT.
+  const onDragBottom = useCallback(
+    (start: number, deltaPx: number) => {
+      const editorHeight = sectionRef.current?.parentElement?.clientHeight ?? 1;
+      return start - (deltaPx / editorHeight) * 100;
+    },
+    [],
+  );
+  const onDragRight = useCallback(
+    (start: number, deltaPx: number) => start - deltaPx,
+    [],
+  );
+
+  const resizeHandle = (
+    <ResizeHandle
+      axis={isBottom ? "y" : "x"}
+      value={isBottom ? responseSize : responseWidth}
+      toValue={isBottom ? onDragBottom : onDragRight}
+      onChange={isBottom ? setResponseSize : setResponseWidth}
+      onReset={isBottom ? resetResponseSize : resetResponseWidth}
+      ariaLabel={t("common.resizeResponse")}
+    />
+  );
 
   // Snapshot mode: render stored bytes read-only, ignoring the live sendState.
   // Benchmark is live-only, so a snapshot never gets a Bench tab.
@@ -99,29 +148,59 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
       snapshot.executedAt,
       undefined,
       undefined,
+      resizeHandle,
+      sectionRef,
     );
   }
 
   const { phase, response, error } = sendState;
 
-  if (phase === "idle" || phase === "interpolating" || phase === "in-flight") {
+  const isInFlight = phase === "in-flight";
+  const isIdlePhase =
+    phase === "idle" || phase === "interpolating" || isInFlight;
+
+  // Before the first-ever response, an idle/interpolating dock is a thin 44px
+  // "Ready" strip so the request editor owns the screen (Postman-style). An
+  // in-flight send always expands into the full dock (there's live progress to
+  // show), and once a response has ever been seen the dock stays the full split.
+  if (isIdlePhase && !responseSeen && !isInFlight) {
     return (
       <section
         aria-label={t("response.title")}
-        className="response"
+        className="response resp-idle-strip"
+        style={borderStyle}
+      >
+        <span className="resp-idle-dot" aria-hidden />
+        <span className="resp-idle-status">{t("response.ready")}</span>
+        <span className="resp-idle-meta">
+          {t("response.idleStrip", { method: method ?? "GET" })}
+        </span>
+        <span className="resp-idle-hint">
+          {t("response.sendToSee")}
+          <kbd className="lok-mono">⌘↵</kbd>
+        </span>
+      </section>
+    );
+  }
+
+  if (isIdlePhase) {
+    return (
+      <section
+        ref={sectionRef}
+        aria-label={t("response.title")}
+        className="response response--resizable"
         style={{ ...sizeStyle, ...borderStyle }}
       >
+        {resizeHandle}
         <div className="lok-scroll lok-selectable" style={{ flex: 1 }}>
           <EmptyState
             glow
             headline={
-              phase === "in-flight"
-                ? t("response.sending")
-                : t("response.pressSend")
+              isInFlight ? t("response.sending") : t("response.pressSend")
             }
             hint={t("response.emptyHint")}
             shortcut="⌘↵"
-            icon="~"
+            icon={<Icon name="i-send" size={28} />}
           />
         </div>
       </section>
@@ -132,10 +211,12 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
     const isError = phase === "error";
     return (
       <section
+        ref={sectionRef}
         aria-label={t("response.title")}
-        className="response"
+        className="response response--resizable"
         style={{ ...sizeStyle, ...borderStyle }}
       >
+        {resizeHandle}
         <div className="resp-body">
           <div
             role={isError ? "alert" : undefined}
@@ -172,6 +253,8 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
     null,
     devTools,
     testing,
+    resizeHandle,
+    sectionRef,
   );
 }
 
@@ -188,6 +271,8 @@ function renderResponse(
   executedAt: string | null,
   devTools: DevToolsProps | undefined,
   testing: TestingProps | undefined,
+  resizeHandle: React.ReactNode,
+  sectionRef: React.RefObject<HTMLElement | null>,
 ) {
   const headerContentType = contentType(response.headers);
   function copyBody() {
@@ -212,10 +297,12 @@ function renderResponse(
 
   return (
     <section
+      ref={sectionRef}
       aria-label={t("response.title")}
-      className="response"
+      className="response response--resizable"
       style={{ ...sizeStyle, ...borderStyle }}
     >
+      {resizeHandle}
       <div className="resp-head">
         <StatusBadge status={response.status} httpVersion={response.http_version} />
         <ResponseMeta
