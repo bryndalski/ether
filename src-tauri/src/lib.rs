@@ -1,9 +1,12 @@
+pub mod assert;
+pub mod cli;
 pub mod curlgen;
 pub mod engine;
 pub mod importers;
 pub mod interp;
 pub mod json_path;
 pub mod models;
+pub mod report;
 pub mod resolve;
 pub mod secrets;
 pub mod sigv4;

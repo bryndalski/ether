@@ -44,8 +44,21 @@ pub fn init(app: &AppHandle) -> Result<(), String> {
         .app_data_dir()
         .map_err(|e| format!("app_data_dir: {e}"))?;
     std::fs::create_dir_all(&dir).map_err(|e| format!("create app dir: {e}"))?;
-    let db_path = dir.join("ether.db");
-    let conn = Connection::open(&db_path).map_err(sql_err)?;
+    init_path(&dir.join("ether.db"))
+}
+
+/// Open (or create) the store at an explicit path and run migrations. Tauri-free
+/// entry point for the `lok` CLI: the desktop app derives its path from the app
+/// handle, the CLI supplies one directly (`--db`/`ETHER_DATA_DIR`/default). A
+/// second call errors like `init` ("store already initialised"), so the CLI
+/// calls it exactly once at startup.
+pub fn init_path(db_path: &std::path::Path) -> Result<(), String> {
+    if let Some(dir) = db_path.parent() {
+        if !dir.as_os_str().is_empty() {
+            std::fs::create_dir_all(dir).map_err(|e| format!("create db dir: {e}"))?;
+        }
+    }
+    let conn = Connection::open(db_path).map_err(sql_err)?;
     conn.pragma_update(None, "journal_mode", "WAL")
         .map_err(sql_err)?;
     conn.pragma_update(None, "foreign_keys", "ON")
@@ -902,7 +915,7 @@ pub fn workflow_delete(id: String) -> Result<(), String> {
 
 /// Fetch one saved request by id (used by the workflow executor to resolve a
 /// `request_ref`). Returns `None` when the id is unknown (dangling ref).
-pub(crate) fn get_request(id: &str) -> Result<Option<StoredRequest>, String> {
+pub fn get_request(id: &str) -> Result<Option<StoredRequest>, String> {
     let guard = connection()?
         .lock()
         .map_err(|_| "lock poisoned".to_string())?;

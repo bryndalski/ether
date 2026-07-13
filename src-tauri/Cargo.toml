@@ -9,6 +9,13 @@ edition = "2021"
 name = "lokowka_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+# Headless CI runner. A second binary in the same crate; the desktop entry
+# (`src/main.rs` → `lokowka_lib::run()`) is untouched. `cargo build --bin lok`
+# does not link the Tauri window path.
+[[bin]]
+name = "lok"
+path = "src/bin/lok.rs"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -40,6 +47,8 @@ futures-util = "0.3"
 # subscription task needs a graceful stop channel (`sync`) and an ack timeout
 # (`time`). We spawn through `tauri::async_runtime`, not a second runtime.
 tokio = { version = "1", features = ["sync", "time", "macros"] }
+# The only dependency `lok` adds: declarative arg parsing for the CLI tree.
+clap = { version = "4", features = ["derive"] }
 
 [dev-dependencies]
 # The subscription tests spin a real loopback WS server: `net` to bind/accept,

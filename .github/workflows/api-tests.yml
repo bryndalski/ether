@@ -1,0 +1,61 @@
+# API contract tests via the Ether `lok` headless runner.
+#
+# Real CI for this account is billing-blocked, so this is a USAGE TEMPLATE:
+# committed as documentation of the intended pipeline, gated behind
+# `workflow_dispatch` (manual) so it never runs unattended. Flip the
+# push/schedule triggers on once billing is enabled.
+name: API Tests (lok)
+
+on:
+  workflow_dispatch: # manual — billing-safe
+  # push: { branches: [main] }
+  # schedule: [{ cron: "0 6 * * *" }]   # nightly contract check
+
+jobs:
+  api-tests:
+    name: lok run — API contract
+    runs-on: macos-14 # libcurl + keyring native path matches the dev/build target
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build lok
+        run: cargo build --release --bin lok
+        working-directory: src-tauri
+
+      - name: Run API tests (JUnit)
+        env:
+          # Isolated DB dir so the runner reads a CI-scoped ether.db, not a dev one.
+          ETHER_DATA_DIR: ${{ github.workspace }}/.ether-ci
+          # Secrets referenced by {{secret.*}} have no Keychain on headless CI —
+          # expose them as {{env.*}} through a CI environment sourced from GH secrets.
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: |
+          ./src-tauri/target/release/lok run smoke-collection \
+            --env ci \
+            --reporter junit --out results.xml
+        # exit 0 = all green; 1 = assertion failed; 2 = usage/lookup; 3 = transport.
+        # Any non-zero fails the job.
+
+      - name: Publish test report
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: results.xml
+
+      - name: Upload HTML report
+        if: always()
+        env:
+          ETHER_DATA_DIR: ${{ github.workspace }}/.ether-ci
+        run: |
+          ./src-tauri/target/release/lok run smoke-collection \
+            --env ci --reporter html --out report.html || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lok-report
+          path: report.html

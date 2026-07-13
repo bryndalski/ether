@@ -50,6 +50,13 @@ pub async fn execute_request(spec: RequestSpec) -> Result<ResponseData, String> 
         .map_err(|join_error| format!("engine task panicked: {join_error}"))?
 }
 
+/// Synchronous request execution for non-Tauri callers (the `lok` CLI). Same
+/// transfer + history-write as the async command, minus the `spawn_blocking`
+/// hop — a single headless request needs no async runtime.
+pub fn execute_sync(spec: RequestSpec) -> Result<ResponseData, String> {
+    run(spec)
+}
+
 /// Cancel an in-flight request by its correlation id.
 #[tauri::command]
 pub fn cancel_request(request_id: String) -> Result<bool, String> {
