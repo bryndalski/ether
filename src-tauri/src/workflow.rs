@@ -631,6 +631,8 @@ mod tests {
             docs_md: None,
             graphql: None,
             assertions: vec![],
+            pre_script: None,
+            post_script: None,
         }
     }
 

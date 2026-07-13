@@ -78,7 +78,12 @@ pub struct RunReport {
 
 impl RunReport {
     /// Build a report from executed cases, computing the summary in one place.
-    pub fn new(target: RunTarget, started_at: String, cases: Vec<RunCase>, duration_ms: f64) -> Self {
+    pub fn new(
+        target: RunTarget,
+        started_at: String,
+        cases: Vec<RunCase>,
+        duration_ms: f64,
+    ) -> Self {
         let summary = summarize_cases(&cases, duration_ms);
         Self {
             target,
@@ -163,9 +168,18 @@ pub fn junit_report(report: &RunReport) -> String {
     let time = s.duration_ms / 1000.0;
 
     // Count JUnit-level testcases: one per assertion + one per transport error.
-    let tests = s.assertions_total + report.cases.iter().filter(|c| c.transport_error.is_some()).count();
+    let tests = s.assertions_total
+        + report
+            .cases
+            .iter()
+            .filter(|c| c.transport_error.is_some())
+            .count();
     let failures = s.assertions_failed;
-    let errors = report.cases.iter().filter(|c| c.transport_error.is_some()).count();
+    let errors = report
+        .cases
+        .iter()
+        .filter(|c| c.transport_error.is_some())
+        .count();
 
     let mut xml = String::new();
     xml.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -188,10 +202,7 @@ pub fn junit_report(report: &RunReport) -> String {
                 "    <testcase classname=\"{classname}\" name=\"{}\" time=\"{case_time:.3}\">\n",
                 escape(&format!("{} {}", case.method, case.url))
             ));
-            xml.push_str(&format!(
-                "      <error message=\"{}\"/>\n",
-                escape(err)
-            ));
+            xml.push_str(&format!("      <error message=\"{}\"/>\n", escape(err)));
             xml.push_str("    </testcase>\n");
             continue;
         }
@@ -249,7 +260,9 @@ pub fn html_report(report: &RunReport) -> String {
     html.push_str(".banner h1{margin:0 0 4px;font-size:20px}\n");
     html.push_str(".wrap{padding:20px 28px}\n");
     html.push_str("table{border-collapse:collapse;width:100%;background:#fff;margin-bottom:20px;box-shadow:0 1px 2px rgba(0,0,0,.06)}\n");
-    html.push_str("th,td{text-align:left;padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:14px}\n");
+    html.push_str(
+        "th,td{text-align:left;padding:8px 12px;border-bottom:1px solid #e2e8f0;font-size:14px}\n",
+    );
     html.push_str(".pass{color:#4f46e5}.fail{color:#dc2626}.skip{color:#94a3b8}\n");
     html.push_str("</style></head><body>\n");
 
@@ -346,7 +359,12 @@ mod tests {
                 )],
             },
         ];
-        RunReport::new(RunTarget::Collection("smoke".into()), "2026-07-13T00:00:00Z".into(), cases, 42.0)
+        RunReport::new(
+            RunTarget::Collection("smoke".into()),
+            "2026-07-13T00:00:00Z".into(),
+            cases,
+            42.0,
+        )
     }
 
     #[test]

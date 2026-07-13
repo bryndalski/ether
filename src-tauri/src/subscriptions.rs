@@ -659,6 +659,8 @@ mod tests {
                 variables_json: "{}".into(),
             }),
             assertions: vec![],
+            pre_script: None,
+            post_script: None,
         }
     }
 

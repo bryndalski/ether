@@ -541,3 +541,17 @@ Add to `store.rs`'s `#[cfg(test)] mod tests` (extend the `sample_request` builde
 8. **Gate:** `npm run typecheck` + `npm run test:unit` + `cargo test` + `cargo clippy --all-targets -- -D warnings` all green; visual parity (both themes); no scrollable window; i18n-free copy stays PL like the rest of the app; **watch never overlaps runs and always stops on unmount/request-switch**; `•••`-free (assertions/snapshots persist non-secret data — a baseline `ResponseData` is a real response body, so document that snapshots may contain response payloads and are stored locally in SQLite, same trust boundary as history).
 
 **Definition of done:** typecheck clean; Rust + FE unit tests green; `clippy -D warnings` clean; the migration is additive and back-compatible (old rows read `assertions == []`); assertions round-trip through `upsert_request`/`list_requests`; snapshot CRUD works and cascades on request delete; `evalAssertions` covers all 9 types purely (no throws on bad input); scrubbing removes non-deterministic fields before an otherwise-`jsonDiff` compare so only real changes fail; Save/Accept/Delete snapshot works; watch re-runs the **real** request on interval/debounced-draft, shows green/red verdicts, caps recent runs, warns loudly, confirms on non-GET, and **always** stops on unmount/request-switch with no zombie timers; every verdict is sigil + text (never color-only); a11y + reduced-motion + tabular-nums satisfied; `100dvh`, no scrollable window.
+
+---
+
+## 9. Related: pre/post-request scripts
+
+Beyond the 9 scriptless assertion types documented above, a request may also carry
+sandboxed **pre/post-request scripts** (QuickJS via rquickjs — see
+`docs/architecture/quickjs-scripts.md`). A **post-script**'s `lok.expect(...)` /
+`lok.test(...)` results are `ScriptTest { name, passed }` values that join the SAME
+pass/fail verdict as the scriptless `AssertOutcome`s: a request's overall result =
+(scriptless assertions) ∪ (script tests). The two mechanisms are complementary —
+scriptless assertions cover the fixed, closed set of checks with zero code; scripts
+are the escape hatch for computed/derived checks (decode a JWT, reshape a payload,
+assert on an extracted value). Both are surfaced together in the Tests summary.

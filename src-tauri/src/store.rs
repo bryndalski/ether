@@ -187,6 +187,16 @@ fn migrate(conn: &Connection) -> Result<(), String> {
         conn.execute("UPDATE schema_version SET version = 3", [])
             .map_err(sql_err)?;
     }
+
+    // v4: pre/post request scripts. Two additive nullable columns on `requests`
+    // (same pattern as the v2 assertions column). An old row reads NULL → None.
+    // The `let _ =` swallows "duplicate column" so the migration is idempotent.
+    if version < 4 {
+        let _ = conn.execute("ALTER TABLE requests ADD COLUMN pre_script TEXT", []);
+        let _ = conn.execute("ALTER TABLE requests ADD COLUMN post_script TEXT", []);
+        conn.execute("UPDATE schema_version SET version = 4", [])
+            .map_err(sql_err)?;
+    }
     Ok(())
 }
 
@@ -296,6 +306,15 @@ fn row_to_request(row: &Row) -> Result<StoredRequest, String> {
         Some(raw) if !raw.is_empty() => serde_json::from_str(&raw).map_err(json_err)?,
         _ => Vec::new(),
     };
+    // v4 columns: pre/post scripts. NULL (pre-v4 rows) or "" → None.
+    let pre_script = row
+        .get::<_, Option<String>>(14)
+        .map_err(sql_err)?
+        .filter(|raw| !raw.is_empty());
+    let post_script = row
+        .get::<_, Option<String>>(15)
+        .map_err(sql_err)?
+        .filter(|raw| !raw.is_empty());
     Ok(StoredRequest {
         id: row.get(0).map_err(sql_err)?,
         collection_id: row.get(1).map_err(sql_err)?,
@@ -311,6 +330,8 @@ fn row_to_request(row: &Row) -> Result<StoredRequest, String> {
         docs_md: row.get(11).map_err(sql_err)?,
         graphql,
         assertions,
+        pre_script,
+        post_script,
     })
 }
 
@@ -325,7 +346,7 @@ pub fn list_requests(collection_id: Option<String>) -> Result<Vec<StoredRequest>
             .prepare(
                 "SELECT id, collection_id, name, method, url, headers_json, query_params_json, \
                  body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
-                 assertions_json \
+                 assertions_json, pre_script, post_script \
                  FROM requests WHERE collection_id = ?1 ORDER BY sort_order, name",
             )
             .map_err(sql_err)?;
@@ -338,7 +359,7 @@ pub fn list_requests(collection_id: Option<String>) -> Result<Vec<StoredRequest>
             .prepare(
                 "SELECT id, collection_id, name, method, url, headers_json, query_params_json, \
                  body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
-                 assertions_json \
+                 assertions_json, pre_script, post_script \
                  FROM requests ORDER BY sort_order, name",
             )
             .map_err(sql_err)?;
@@ -373,8 +394,8 @@ pub fn upsert_request(request: StoredRequest) -> Result<StoredRequest, String> {
         .execute(
             "INSERT INTO requests (id, collection_id, name, method, url, headers_json, \
              query_params_json, body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
-             assertions_json) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) \
+             assertions_json, pre_script, post_script) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16) \
              ON CONFLICT(id) DO UPDATE SET \
                  collection_id = excluded.collection_id, \
                  name = excluded.name, \
@@ -388,7 +409,9 @@ pub fn upsert_request(request: StoredRequest) -> Result<StoredRequest, String> {
                  sort_order = excluded.sort_order, \
                  docs_md = excluded.docs_md, \
                  graphql_json = excluded.graphql_json, \
-                 assertions_json = excluded.assertions_json",
+                 assertions_json = excluded.assertions_json, \
+                 pre_script = excluded.pre_script, \
+                 post_script = excluded.post_script",
             params![
                 stored.id,
                 stored.collection_id,
@@ -403,7 +426,9 @@ pub fn upsert_request(request: StoredRequest) -> Result<StoredRequest, String> {
                 stored.sort_order,
                 stored.docs_md,
                 graphql_json,
-                assertions_json
+                assertions_json,
+                stored.pre_script,
+                stored.post_script
             ],
         )
         .map_err(sql_err)?;
@@ -923,7 +948,7 @@ pub fn get_request(id: &str) -> Result<Option<StoredRequest>, String> {
         .prepare(
             "SELECT id, collection_id, name, method, url, headers_json, query_params_json, \
              body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
-             assertions_json \
+             assertions_json, pre_script, post_script \
              FROM requests WHERE id = ?1",
         )
         .map_err(sql_err)?;
@@ -1000,6 +1025,8 @@ mod tests {
                 variables_json: "{}".into(),
             }),
             assertions: vec![],
+            pre_script: None,
+            post_script: None,
         }
     }
 
@@ -1577,7 +1604,7 @@ mod tests {
                 r.get(0)
             })
             .unwrap();
-        assert_eq!(version, 3);
+        assert_eq!(version, 4);
         // The column must exist exactly once (a second ADD would have errored fatally).
         let count: i64 = conn
             .query_row(
@@ -1612,7 +1639,7 @@ mod tests {
                 r.get(0)
             })
             .unwrap();
-        assert_eq!(version, 3, "migration bumped the schema version");
+        assert_eq!(version, 4, "migration bumped the schema version");
 
         let table_count: i64 = conn
             .query_row(
@@ -1631,6 +1658,84 @@ mod tests {
             )
             .unwrap();
         assert_eq!(kept, 1, "pre-existing rows untouched by the v3 migration");
+    }
+
+    // ---------- pre/post scripts (v4 migration) ----------
+
+    #[test]
+    fn pre_post_script_round_trip() {
+        let _g = setup();
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        // Absent scripts round-trip as None.
+        let bare = upsert_request(sample_request(&coll.id, Body::None, Auth::None)).unwrap();
+        assert_eq!(bare.pre_script, None);
+        assert_eq!(bare.post_script, None);
+
+        // Both scripts present round-trip verbatim.
+        let mut req = sample_request(&coll.id, Body::None, Auth::None);
+        req.pre_script = Some("lok.env.set('id', '1');".into());
+        req.post_script = Some("lok.expect('ok', lok.response.status === 200);".into());
+        let stored = upsert_request(req).unwrap();
+        let listed = list_requests(Some(coll.id)).unwrap();
+        let got = listed.iter().find(|r| r.id == stored.id).unwrap();
+        assert_eq!(got.pre_script.as_deref(), Some("lok.env.set('id', '1');"));
+        assert_eq!(
+            got.post_script.as_deref(),
+            Some("lok.expect('ok', lok.response.status === 200);")
+        );
+        assert_eq!(*got, stored, "full request incl. scripts preserved");
+    }
+
+    #[test]
+    fn migrate_v3_to_v4_adds_script_columns_and_preserves_rows() {
+        let _g = setup();
+        let conn = connection().unwrap().lock().unwrap();
+        // Pin the shared in-memory DB back to v3 (drop the script columns is not
+        // possible in SQLite without a table rebuild, so instead assert the v4
+        // ALTER is idempotent: force version to 3 and re-run migrate). Seed a row.
+        conn.execute("UPDATE schema_version SET version = 3", [])
+            .unwrap();
+        conn.execute(
+            "INSERT INTO collections (id, name, sort_order) VALUES ('c-v4', 'Keep', 0)",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO requests (id, collection_id, name, method, url, headers_json, \
+             query_params_json, body_json, auth_json, options_json, sort_order, docs_md, \
+             graphql_json, assertions_json) \
+             VALUES ('r-v4', 'c-v4', 'legacy', 'GET', 'https://x.test', '[]', '[]', \
+             '{\"type\":\"none\"}', '{\"type\":\"none\"}', ?1, 0, NULL, NULL, NULL)",
+            params![serde_json::to_string(&RequestOptions::default()).unwrap()],
+        )
+        .unwrap();
+
+        migrate(&conn).unwrap();
+
+        let version: i64 = conn
+            .query_row("SELECT version FROM schema_version LIMIT 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(version, 4, "migration bumped to v4");
+
+        // Both new columns exist exactly once.
+        for column in ["pre_script", "post_script"] {
+            let count: i64 = conn
+                .query_row(
+                    "SELECT COUNT(*) FROM pragma_table_info('requests') WHERE name = ?1",
+                    params![column],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            assert_eq!(count, 1, "{column} column present exactly once");
+        }
+
+        // The pre-existing row survives and reads as None scripts.
+        drop(conn);
+        let got = get_request("r-v4").unwrap().unwrap();
+        assert_eq!(got.pre_script, None);
+        assert_eq!(got.post_script, None);
     }
 
     // ---------- workflows ----------

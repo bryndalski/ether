@@ -18,6 +18,7 @@ import { buildOperationRequest } from "../../lib/graphqlBody";
 import { hasRedactedSecrets } from "../../lib/replay";
 import type { ScrubConfig, StoredRequest } from "../../lib/types";
 import { TestsPanel } from "./tests/TestsPanel";
+import { ScriptsPanel } from "./scripts/ScriptsPanel";
 import { RequestTypeToggle } from "../graphql/RequestTypeToggle";
 import { EmptyState } from "../common/EmptyState";
 import { ResponseDock } from "../response/ResponseDock";
@@ -319,6 +320,20 @@ export function RequestWorkbench() {
               }
               scrubConfig={scrubConfig}
               onScrubConfigChange={setScrubConfig}
+            />
+          )}
+          {tab === "Scripts" && (
+            <ScriptsPanel
+              draft={draft}
+              environmentId={activeEnvironmentId}
+              lastResponse={sendState.response}
+              sendOutcomes={{ pre: null, post: null }}
+              onPreScriptChange={(script) =>
+                dispatch({ kind: "setPreScript", script })
+              }
+              onPostScriptChange={(script) =>
+                dispatch({ kind: "setPostScript", script })
+              }
             />
           )}
           {tab === "cURL" && (

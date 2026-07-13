@@ -33,6 +33,8 @@ export function buildIntrospectionRequest(
     },
     graphql: null,
     assertions: [],
+    pre_script: null,
+    post_script: null,
   };
 }
 

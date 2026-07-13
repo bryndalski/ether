@@ -6,9 +6,18 @@ export type RequestTabKey =
   | "Body"
   | "Auth"
   | "Tests"
+  | "Scripts"
   | "cURL";
 
-const TABS: RequestTabKey[] = ["Params", "Headers", "Body", "Auth", "Tests", "cURL"];
+const TABS: RequestTabKey[] = [
+  "Params",
+  "Headers",
+  "Body",
+  "Auth",
+  "Tests",
+  "Scripts",
+  "cURL",
+];
 
 interface RequestTabsProps {
   active: RequestTabKey;
@@ -29,6 +38,8 @@ function countFor(tab: RequestTabKey, counts: DraftCounts): number {
       return counts.auth;
     case "Tests":
       return counts.assertions;
+    case "Scripts":
+      return counts.scripts;
     case "cURL":
       return 0;
   }

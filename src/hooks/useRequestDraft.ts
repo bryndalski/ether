@@ -34,6 +34,8 @@ export type DraftAction =
   | { kind: "setGraphql"; graphql: Partial<GraphqlMeta> }
   | { kind: "clearGraphql" }
   | { kind: "setAssertions"; assertions: Assertion[] }
+  | { kind: "setPreScript"; script: string }
+  | { kind: "setPostScript"; script: string }
   | { kind: "importSpec"; spec: RequestSpec };
 
 export interface DraftCounts {
@@ -42,6 +44,8 @@ export interface DraftCounts {
   body: number;
   auth: number;
   assertions: number;
+  /** Number of non-empty scripts (0, 1 or 2) — feeds the Scripts tab chip. */
+  scripts: number;
 }
 
 export interface DraftApi {
@@ -56,6 +60,19 @@ function enabledCount(rows: KeyValue[]): number {
 
 function bodyCount(body: Body): number {
   return body.type === "none" ? 0 : 1;
+}
+
+/** A blank or whitespace-only script is "no script" → null (Rust `None`). */
+function emptyToNull(script: string): string | null {
+  return script.trim() === "" ? null : script;
+}
+
+/** Count of non-empty scripts on a draft (0, 1 or 2). */
+function scriptCount(draft: StoredRequest): number {
+  let count = 0;
+  if (draft.pre_script && draft.pre_script.trim() !== "") count += 1;
+  if (draft.post_script && draft.post_script.trim() !== "") count += 1;
+  return count;
 }
 
 function authCount(auth: Auth): number {
@@ -105,6 +122,12 @@ export function draftReducer(
       return { ...draft, graphql: null };
     case "setAssertions":
       return { ...draft, assertions: action.assertions };
+    case "setPreScript":
+      // Store null for an empty/whitespace-only script so it round-trips as
+      // Rust's `None` (a blank script is "no script", not an empty one).
+      return { ...draft, pre_script: emptyToNull(action.script) };
+    case "setPostScript":
+      return { ...draft, post_script: emptyToNull(action.script) };
     case "importSpec": {
       const { spec } = action;
       return {
@@ -141,6 +164,7 @@ export function useRequestDraft(seed: StoredRequest | null): DraftApi {
       body: bodyCount(draft.body),
       auth: authCount(draft.auth),
       assertions: draft.assertions.filter((a) => a.enabled).length,
+      scripts: scriptCount(draft),
     },
   };
 }
@@ -170,4 +194,6 @@ const EMPTY_DRAFT: StoredRequest = {
   docs_md: null,
   graphql: null,
   assertions: [],
+  pre_script: null,
+  post_script: null,
 };

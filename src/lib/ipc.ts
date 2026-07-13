@@ -14,6 +14,7 @@ import type {
   StoredRequest,
 } from "./types";
 import type { Workflow } from "./workflow";
+import type { ScriptOutcome, ScriptedResponse } from "./scripts";
 
 // ---- engine ----
 
@@ -36,6 +37,16 @@ export function resolveAndSend(
   return invoke("resolve_and_send", { request, environmentId });
 }
 
+/** Resolve + send with the FULL script contract: runs the pre-script (mutate +
+ *  fail-closed), interpolates, sends, then runs the post-script over the
+ *  response. Returns `{ response, pre?, post? }`. Keys match the Rust params. */
+export function resolveAndSendScripted(
+  request: StoredRequest,
+  environmentId: string | null,
+): Promise<ScriptedResponse> {
+  return invoke("resolve_and_send_scripted", { request, environmentId });
+}
+
 /** Build a REDACTED cURL preview in Rust (secrets replaced with "•••"). The FE
  *  must never call `to_curl` for previews — redaction is Rust's responsibility. */
 export function resolvePreviewCurl(
@@ -43,6 +54,27 @@ export function resolvePreviewCurl(
   environmentId: string | null,
 ): Promise<string> {
   return invoke("resolve_preview_curl", { request, environmentId });
+}
+
+// ---- pre/post-request scripts (QuickJS sandbox) ----
+
+/** Run a PRE script against a stored request snapshot in the sandbox (editor
+ *  "Run" button). Keys match the Rust command params exactly. */
+export function runPreScript(
+  request: StoredRequest,
+  environmentId: string | null,
+  script: string,
+): Promise<ScriptOutcome> {
+  return invoke("run_pre_script", { request, environmentId, script });
+}
+
+/** Run a POST script against a given response + run-var map in the sandbox. */
+export function runPostScript(
+  response: ResponseData,
+  script: string,
+  variables: Record<string, string>,
+): Promise<ScriptOutcome> {
+  return invoke("run_post_script", { response, script, variables });
 }
 
 // ---- GraphQL subscriptions (long-lived WebSocket, graphql-transport-ws) ----

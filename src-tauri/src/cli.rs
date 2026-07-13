@@ -67,10 +67,7 @@ pub fn resolve_target(target_id: &str) -> Result<ResolvedTarget, String> {
     if let Some(request) = store::get_request(target_id)? {
         return Ok(ResolvedTarget::Request(Box::new(request)));
     }
-    if store::list_collections()?
-        .iter()
-        .any(|c| c.id == target_id)
-    {
+    if store::list_collections()?.iter().any(|c| c.id == target_id) {
         let requests = store::list_requests(Some(target_id.to_string()))?;
         return Ok(ResolvedTarget::Collection(target_id.to_string(), requests));
     }
@@ -185,7 +182,12 @@ pub fn run_file_request(request: &StoredRequest, path: &str) -> RunReport {
     let clock = Instant::now();
     let case = run_one_request_no_store(request);
     let duration_ms = clock.elapsed().as_secs_f64() * 1000.0;
-    RunReport::new(RunTarget::File(path.to_string()), started_at, vec![case], duration_ms)
+    RunReport::new(
+        RunTarget::File(path.to_string()),
+        started_at,
+        vec![case],
+        duration_ms,
+    )
 }
 
 fn now_rfc3339() -> String {

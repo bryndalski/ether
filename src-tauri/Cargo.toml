@@ -49,6 +49,11 @@ futures-util = "0.3"
 tokio = { version = "1", features = ["sync", "time", "macros"] }
 # The only dependency `lok` adds: declarative arg parsing for the CLI tree.
 clap = { version = "4", features = ["derive"] }
+# Sandboxed JS for pre/post-request scripts. A private QuickJS Runtime with NO
+# host bindings (no fs/net/process/module loader) — the sandbox is closed by
+# construction (see docs/architecture/quickjs-scripts.md). `loader`/`dyn-load`/
+# `futures` are DELIBERATELY off so `import`/`require`/timers cannot resolve.
+rquickjs = { version = "0.9", features = ["classes", "properties", "array-buffer"] }
 
 [dev-dependencies]
 # The subscription tests spin a real loopback WS server: `net` to bind/accept,

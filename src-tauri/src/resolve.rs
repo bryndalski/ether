@@ -14,8 +14,11 @@
 use std::collections::HashMap;
 
 use crate::interp::{self, RenderCtx, RenderTarget};
-use crate::models::{Auth, Body, Environment, KeyValue, RequestSpec, ResponseData, StoredRequest};
-use crate::{curlgen, engine, secrets, sigv4, store};
+use crate::models::{
+    Auth, Body, Environment, KeyValue, RequestPatch, RequestSpec, ResponseData, ScriptLimits,
+    ScriptOutcome, ScriptedResponse, StoredRequest,
+};
+use crate::{curlgen, engine, scripts, secrets, sigv4, store};
 
 /// Placeholder substituted for a secret value when building a redacted spec for
 /// preview/curl generation — a real secret value must never reach that path.
@@ -23,16 +26,151 @@ const SECRET_PLACEHOLDER: &str = "•••";
 
 /// Resolve a stored request against an environment and execute it. History is
 /// written by the engine, so this command never persists anything itself.
+///
+/// A `pre_script` (if present) runs BEFORE interpolation: it may rewrite the
+/// request and set run-vars, and a failing pre-script fail-closes the send
+/// (returns `Err`) so a broken guard never sends a half-formed request. The
+/// `post_script` is ignored on this bare path — callers that need the post
+/// outcome use `resolve_and_send_scripted`; this signature stays unchanged for
+/// the many existing FE call sites (send / watch / benchmark / replay).
 #[tauri::command]
 pub async fn resolve_and_send(
     request: StoredRequest,
     environment_id: Option<String>,
 ) -> Result<ResponseData, String> {
+    let (response, _pre, _post) =
+        resolve_and_send_core(request, environment_id.as_deref(), false).await?;
+    Ok(response)
+}
+
+/// Resolve + send with the FULL script contract: runs the pre-script (mutate +
+/// fail-closed), interpolates, sends, then runs the post-script over the
+/// response, and returns all three so the editor can render logs + tests.
+#[tauri::command]
+pub async fn resolve_and_send_scripted(
+    request: StoredRequest,
+    environment_id: Option<String>,
+) -> Result<ScriptedResponse, String> {
+    let (response, pre, post) =
+        resolve_and_send_core(request, environment_id.as_deref(), true).await?;
+    Ok(ScriptedResponse {
+        response,
+        pre,
+        post,
+    })
+}
+
+/// The shared resolve+send pipeline. Ordering is the security-relevant part
+/// (see docs/architecture/quickjs-scripts.md §3.1): the pre-script mutates the
+/// still-templated request and sets run-vars BEFORE `build_render_ctx` fetches
+/// secrets and BEFORE interpolation, so (a) `{{var.x}}` the script set resolves
+/// normally and (b) the pre-script never sees a resolved secret. The post-script
+/// reads the response only.
+async fn resolve_and_send_core(
+    request: StoredRequest,
+    environment_id: Option<&str>,
+    want_post: bool,
+) -> Result<(ResponseData, Option<ScriptOutcome>, Option<ScriptOutcome>), String> {
     let environments = store::list_environments()?;
-    let flat = flatten_env(&environments, environment_id.as_deref());
-    let ctx = build_render_ctx(&environments, environment_id.as_deref(), &flat, false)?;
-    let spec = resolve_spec(&request, &ctx, false)?;
-    engine::execute_request(spec).await
+    let flat = flatten_env(&environments, environment_id);
+
+    // Run-vars start empty and are enriched by the pre-script's env.set.
+    let mut run_vars: HashMap<String, String> = HashMap::new();
+    let mut patched = request.clone();
+    let mut pre_outcome: Option<ScriptOutcome> = None;
+
+    if let Some(script) = request
+        .pre_script
+        .as_deref()
+        .filter(|s| !s.trim().is_empty())
+    {
+        let req_snapshot = scripts::script_request_from(&patched, &run_vars);
+        let outcome = scripts::run_pre(req_snapshot, script, ScriptLimits::default());
+        if !outcome.ok {
+            // Fail-closed: a broken pre-script aborts the send.
+            return Err(format!(
+                "pre-request script failed: {}",
+                outcome
+                    .error
+                    .clone()
+                    .unwrap_or_else(|| "unknown error".into())
+            ));
+        }
+        if let Some(patch) = &outcome.request_patch {
+            apply_request_patch(&mut patched, patch);
+        }
+        for (name, value) in &outcome.env_set {
+            run_vars.insert(name.clone(), value.clone());
+        }
+        pre_outcome = Some(outcome);
+    }
+
+    // Interpolate the (possibly-patched) request with the run-vars folded in
+    // BEFORE secrets — so escaping still runs over whatever the script produced.
+    let mut ctx = build_render_ctx(&environments, environment_id, &flat, false)?;
+    for (name, value) in &run_vars {
+        ctx.vars.insert(name.clone(), value.clone());
+    }
+    let spec = resolve_spec(&patched, &ctx, false)?;
+    let response = engine::execute_request(spec).await?;
+
+    // Post-script reads the response only (never the outbound signed request).
+    let post_outcome = if want_post {
+        match request
+            .post_script
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
+        {
+            Some(script) => {
+                let resp_snapshot = scripts::ScriptResponse {
+                    status: response.status,
+                    headers: response.headers.clone(),
+                    body: response.body.clone(),
+                    timings: serde_json::to_value(&response.timings)
+                        .unwrap_or(serde_json::Value::Null),
+                    vars: run_vars.clone(),
+                };
+                Some(scripts::run_post(
+                    resp_snapshot,
+                    script,
+                    ScriptLimits::default(),
+                ))
+            }
+            None => None,
+        }
+    } else {
+        None
+    };
+
+    Ok((response, pre_outcome, post_outcome))
+}
+
+/// Apply a pre-script's [`RequestPatch`] to the stored request before
+/// interpolation. Only `Some` fields are touched; header/query lists are full
+/// replacements (the script's working copy was seeded from the original). A
+/// patched body only replaces a `Raw` body's text — the content type and other
+/// body kinds are left to the request definition.
+fn apply_request_patch(request: &mut StoredRequest, patch: &RequestPatch) {
+    if let Some(method) = &patch.method {
+        request.method = method.clone();
+    }
+    if let Some(url) = &patch.url {
+        request.url = url.clone();
+    }
+    if let Some(headers) = &patch.headers {
+        request.headers = headers.clone();
+    }
+    if let Some(query) = &patch.query_params {
+        request.query_params = query.clone();
+    }
+    if let Some(body_text) = &patch.body {
+        if let Body::Raw { content_type, .. } = &request.body {
+            request.body = Body::Raw {
+                content_type: content_type.clone(),
+                text: body_text.clone(),
+            };
+        }
+    }
 }
 
 /// Resolve a stored request into an executable [`RequestSpec`] without sending
@@ -472,6 +610,8 @@ mod tests {
             docs_md: None,
             graphql: None,
             assertions: vec![],
+            pre_script: None,
+            post_script: None,
         }
     }
 
@@ -888,5 +1028,111 @@ mod tests {
         let req = stored("http://{{env.host}}/x");
         let err = tauri::async_runtime::block_on(resolve_and_send(req, None)).unwrap_err();
         assert!(err.contains("host"), "got: {err}");
+    }
+
+    // ---------- pre/post script pipeline integration ----------
+
+    #[test]
+    fn apply_request_patch_replaces_only_touched_fields() {
+        let mut req = stored("https://original/");
+        req.headers = vec![KeyValue {
+            name: "X-Old".into(),
+            value: "1".into(),
+            enabled: true,
+        }];
+        req.body = Body::Raw {
+            content_type: "application/json".into(),
+            text: "{}".into(),
+        };
+        let patch = RequestPatch {
+            method: Some("POST".into()),
+            url: Some("https://patched/x".into()),
+            body: Some("{\"a\":1}".into()),
+            headers: Some(vec![KeyValue {
+                name: "X-Sig".into(),
+                value: "abc".into(),
+                enabled: true,
+            }]),
+            query_params: None,
+        };
+        apply_request_patch(&mut req, &patch);
+        assert_eq!(req.method, "POST");
+        assert_eq!(req.url, "https://patched/x");
+        assert_eq!(req.headers.len(), 1);
+        assert_eq!(req.headers[0].name, "X-Sig");
+        // Raw body text replaced; content type kept from the definition.
+        match req.body {
+            Body::Raw { content_type, text } => {
+                assert_eq!(content_type, "application/json");
+                assert_eq!(text, "{\"a\":1}");
+            }
+            _ => panic!("expected raw body"),
+        }
+    }
+
+    #[test]
+    fn apply_request_patch_leaves_non_raw_body_untouched() {
+        // A body patch on a None body is a no-op (only Raw bodies carry text).
+        let mut req = stored("https://x/");
+        let patch = RequestPatch {
+            body: Some("ignored".into()),
+            ..RequestPatch::default()
+        };
+        apply_request_patch(&mut req, &patch);
+        assert!(matches!(req.body, Body::None));
+    }
+
+    #[test]
+    #[ignore = "shares the process-wide store connection; races store::tests table resets"]
+    fn pre_script_sets_var_before_interpolation_over_local_server() {
+        // Proves ordering: a pre-script's env.set writes a run-var that a later
+        // {{var.id}} in the URL resolves to — the request lands on /42.
+        crate::store::init_in_memory().unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut buf = [0u8; 2048];
+            let n = stream.read(&mut buf).unwrap();
+            let request_text = String::from_utf8_lossy(&buf[..n]).to_string();
+            let body = "{\"ok\":true}";
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            stream.flush().unwrap();
+            request_text
+        });
+
+        let host = format!("{}:{}", addr.ip(), addr.port());
+        let mut req = stored(&format!("http://{host}/{{{{var.id}}}}"));
+        req.pre_script = Some("lok.env.set('id', '42');".into());
+
+        let scripted = tauri::async_runtime::block_on(resolve_and_send_scripted(req, None))
+            .expect("scripted send succeeds");
+        assert_eq!(scripted.response.status, 200);
+        assert!(scripted.pre.is_some(), "pre outcome attached");
+
+        let request_text = server.join().unwrap();
+        assert!(
+            request_text.starts_with("GET /42 "),
+            "run-var did not resolve before interpolation: {}",
+            request_text.lines().next().unwrap_or("")
+        );
+    }
+
+    #[test]
+    #[ignore = "shares the process-wide store connection; races store::tests table resets"]
+    fn pre_script_failure_fail_closes_the_send() {
+        crate::store::init_in_memory().unwrap();
+        let mut req = stored("http://127.0.0.1:1/x");
+        req.pre_script = Some("throw new Error('nope');".into());
+        let err = tauri::async_runtime::block_on(resolve_and_send(req, None)).unwrap_err();
+        assert!(
+            err.contains("pre-request script failed"),
+            "fail-closed error expected, got: {err}"
+        );
     }
 }

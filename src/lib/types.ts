@@ -115,6 +115,12 @@ export interface StoredRequest {
   docs_md: string | null;
   graphql: GraphqlMeta | null;
   assertions: Assertion[];
+  /** Sandboxed JS run BEFORE interpolation (mutate request / set run-vars).
+   *  Optional so pre-scripts JSON (Rust `#[serde(default)]`) and older callers
+   *  omit it; absent/blank ⇒ no pre-script. */
+  pre_script?: string | null;
+  /** Sandboxed JS run AFTER the response (read-only response + tests). */
+  post_script?: string | null;
 }
 
 export interface Environment {

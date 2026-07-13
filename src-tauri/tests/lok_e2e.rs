@@ -55,6 +55,8 @@ fn stored_request(id: &str, url: &str, assertions: Vec<Assertion>) -> StoredRequ
         docs_md: None,
         graphql: None,
         assertions,
+        pre_script: None,
+        post_script: None,
     }
 }
 
@@ -163,7 +165,10 @@ fn env_host_is_interpolated_through_cli_path() {
         }],
     );
 
-    let report = cli::run_target(ResolvedTarget::Request(Box::new(request)), env_id.as_deref());
+    let report = cli::run_target(
+        ResolvedTarget::Request(Box::new(request)),
+        env_id.as_deref(),
+    );
     let request_text = server.join().unwrap();
 
     assert!(report.summary.all_green, "report: {report:?}");

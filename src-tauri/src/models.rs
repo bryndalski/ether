@@ -284,6 +284,104 @@ pub struct StoredRequest {
     /// `#[serde(default)]` back-fills `[]` for any pre-migration payload.
     #[serde(default)]
     pub assertions: Vec<Assertion>,
+    /// Optional sandboxed JS run BEFORE interpolation (mutates the pending
+    /// request / sets run-vars). `#[serde(default)]` reads a pre-v4 row as None.
+    #[serde(default)]
+    pub pre_script: Option<String>,
+    /// Optional sandboxed JS run AFTER the response (read-only response + tests).
+    #[serde(default)]
+    pub post_script: Option<String>,
+}
+
+// ---------- pre/post request scripts (QuickJS sandbox, `scripts.rs`) ----------
+
+/// Runtime limits for a single script execution. Both DoS backstops are
+/// enforced by the QuickJS runtime, not by trusting the script: `step_limit` is
+/// the deterministic CI backstop, `wall_ms` the human-facing one, and
+/// `memory_bytes` caps the VM heap. Defaults mirror the blueprint (§1.4).
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub struct ScriptLimits {
+    /// Wall-clock cap for the run in milliseconds.
+    pub wall_ms: u64,
+    /// Interrupt-tick budget — the deterministic backstop for a busy loop.
+    pub step_limit: u64,
+    /// QuickJS heap cap in bytes; an allocation past it throws in-VM.
+    pub memory_bytes: usize,
+}
+
+impl Default for ScriptLimits {
+    fn default() -> Self {
+        Self {
+            wall_ms: 1000,
+            step_limit: 5_000_000,
+            memory_bytes: 16 * 1024 * 1024,
+        }
+    }
+}
+
+/// One script-authored test (from `lok.expect` / `lok.test`), folded into the
+/// same pass/fail summary as the scriptless `AssertOutcome`s.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ScriptTest {
+    pub name: String,
+    pub passed: bool,
+}
+
+/// The total, never-panic result of one script run. `ok=false` on any throw or
+/// limit hit; partial `logs`/`env_set` gathered before a throw are still
+/// returned. Mirrored in `src/lib/scripts.ts`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct ScriptOutcome {
+    /// False when the script threw or hit a wall/step/memory limit.
+    pub ok: bool,
+    /// The JS error message or a limit description (`None` when `ok`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+    /// Captured `console.*` lines, bounded (oldest dropped).
+    #[serde(default)]
+    pub logs: Vec<String>,
+    /// Pre only: the mutated request fields to fold back before interpolation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_patch: Option<RequestPatch>,
+    /// Run-vars the script set via `lok.env.set` (both phases).
+    #[serde(default)]
+    pub env_set: Vec<(String, String)>,
+    /// Post only: `{name, passed}` from `lok.expect` / `lok.test`.
+    #[serde(default)]
+    pub tests: Vec<ScriptTest>,
+}
+
+/// The enriched result of a scripted send: the response plus the optional pre-
+/// and post-script outcomes (each `None` when the request carries no such
+/// script). The plain `resolve_and_send` still returns a bare `ResponseData`
+/// (unchanged for existing callers); `resolve_and_send_scripted` returns this.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ScriptedResponse {
+    pub response: ResponseData,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pre: Option<ScriptOutcome>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub post: Option<ScriptOutcome>,
+}
+
+/// The subset of request fields a pre-script may rewrite. Every `Some` field is
+/// applied to the `StoredRequest` BEFORE interpolation, so the normal escaping
+/// (Header / Url / JsonBody targets in `resolve.rs`) still runs over whatever
+/// the script produced — the script cannot bypass CRLF/percent/JSON escaping.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct RequestPatch {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<String>,
+    /// Full replacement header list when the script touched any header.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub headers: Option<Vec<KeyValue>>,
+    /// Full replacement query list when the script touched any query param.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub query_params: Option<Vec<KeyValue>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

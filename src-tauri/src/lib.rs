@@ -8,6 +8,7 @@ pub mod json_path;
 pub mod models;
 pub mod report;
 pub mod resolve;
+pub mod scripts;
 pub mod secrets;
 pub mod sigv4;
 pub mod store;
@@ -26,7 +27,10 @@ pub fn run() {
             engine::execute_request,
             engine::cancel_request,
             resolve::resolve_and_send,
+            resolve::resolve_and_send_scripted,
             resolve::resolve_preview_curl,
+            scripts::run_pre_script,
+            scripts::run_post_script,
             interp::preview_template,
             store::list_collections,
             store::upsert_collection,

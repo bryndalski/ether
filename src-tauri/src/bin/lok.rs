@@ -179,7 +179,8 @@ fn finish(
         };
         match out {
             Some(path) => {
-                std::fs::write(path, &formatted).map_err(|e| format!("write {}: {e}", path.display()))?;
+                std::fs::write(path, &formatted)
+                    .map_err(|e| format!("write {}: {e}", path.display()))?;
             }
             None => println!("{formatted}"),
         }
@@ -197,7 +198,12 @@ fn print_summary(report: &RunReport) {
     let verdict = if s.all_green { "PASS" } else { "FAIL" };
     println!(
         "{verdict}  {} cases · {} assertions ({} passed, {} failed, {} skipped) · {:.0}ms",
-        s.cases, s.assertions_total, s.assertions_passed, s.assertions_failed, s.assertions_skipped, s.duration_ms
+        s.cases,
+        s.assertions_total,
+        s.assertions_passed,
+        s.assertions_failed,
+        s.assertions_skipped,
+        s.duration_ms
     );
     for case in &report.cases {
         if let Some(err) = &case.transport_error {
@@ -224,7 +230,10 @@ fn list_command(db_flag: Option<PathBuf>, args: ListArgs) -> Result<i32, String>
         ListWhat::Requests => {
             let requests = store::list_requests(None)?;
             if as_json {
-                println!("{}", serde_json::to_string_pretty(&requests).map_err(|e| e.to_string())?);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&requests).map_err(|e| e.to_string())?
+                );
             } else {
                 for r in &requests {
                     println!("{}  {:<6} {}", r.id, r.method, r.name);
@@ -234,7 +243,10 @@ fn list_command(db_flag: Option<PathBuf>, args: ListArgs) -> Result<i32, String>
         ListWhat::Collections => {
             let collections = store::list_collections()?;
             if as_json {
-                println!("{}", serde_json::to_string_pretty(&collections).map_err(|e| e.to_string())?);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&collections).map_err(|e| e.to_string())?
+                );
             } else {
                 for c in &collections {
                     println!("{}  {}", c.id, c.name);
@@ -244,7 +256,10 @@ fn list_command(db_flag: Option<PathBuf>, args: ListArgs) -> Result<i32, String>
         ListWhat::Workflows => {
             let workflows = store::workflow_list()?;
             if as_json {
-                println!("{}", serde_json::to_string_pretty(&workflows).map_err(|e| e.to_string())?);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&workflows).map_err(|e| e.to_string())?
+                );
             } else {
                 for w in &workflows {
                     println!("{}  {}  ({} nodes)", w.id, w.name, w.nodes.len());

@@ -205,6 +205,8 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => {
         docs_md: null,
         graphql: null,
         assertions: [],
+        pre_script: null,
+        post_script: null,
       };
       // Push + select so the workbench draft seeds from it (§5 contract).
       set({

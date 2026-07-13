@@ -38,6 +38,8 @@ export function useNewRequest() {
       docs_md: null,
       graphql: null,
       assertions: [],
+      pre_script: null,
+      post_script: null,
     };
     useCollectionsStore.setState({
       requests: [...store.requests, request],

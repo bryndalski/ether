@@ -90,6 +90,37 @@ export const pl: Dict = {
     authTypeAria: "Typ autoryzacji",
   },
 
+  scripts: {
+    tabAria: "Skrypty żądania",
+    segmentsAria: "Faza skryptu",
+    preRequest: "Przed żądaniem",
+    tests: "Testy",
+    run: "Uruchom",
+    running: "Uruchamianie…",
+    needResponse: "Najpierw wyślij żądanie, aby uruchomić skrypt po odpowiedzi.",
+    preAria: "Edytor skryptu przed żądaniem",
+    postAria: "Edytor skryptu po odpowiedzi",
+    prePlaceholder: 'lok.request.setHeader("X-Sig", "…");',
+    postPlaceholder: 'lok.expect("2xx", lok.response.status < 300);',
+    emptyHint:
+      "Opcjonalny JS. `lok.request` działa przed wysłaniem żądania.",
+    emptyHintPost:
+      "Opcjonalny JS. `lok.response` jest tylko do odczytu, po odpowiedzi.",
+    limitNote:
+      "Piaskownica: bez sieci, systemu plików i importów; budżet 1s / 16MB.",
+    consoleHeading: "Konsola",
+    testsHeading: "Testy",
+    envHeading: "Ustawione zmienne",
+    resultsAria: "Wyniki skryptu",
+    notRun: "Uruchom skrypt, aby zobaczyć konsolę i wyniki testów.",
+    noLogs: "Brak wyjścia konsoli.",
+    noTests: "Brak zarejestrowanych testów.",
+    error: "Błąd skryptu",
+    snippets: "Fragmenty",
+    snippetsAria: "Fragmenty do wstawienia",
+    insertSnippet: "Wstaw fragment",
+  },
+
   auth: {
     noAuth: "Request wysyłany bez autoryzacji.",
     token: "Token",

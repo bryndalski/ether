@@ -130,7 +130,9 @@ fn label_of(assertion: &Assertion) -> String {
         Assertion::JsonPathExists { path, .. } => format!("{path} exists"),
         Assertion::JsonPathEquals { path, expected, .. } => format!("{path} == {expected}"),
         Assertion::JsonPathType {
-            path, expected_type, ..
+            path,
+            expected_type,
+            ..
         } => format!("{path} type {expected_type}"),
         Assertion::BodyContains { substring, .. } => format!("body contains {substring:?}"),
         Assertion::ResponseTimeBelow { max_ms, .. } => format!("response time < {max_ms}ms"),
@@ -187,7 +189,11 @@ fn eval_one(
         Assertion::StatusEquals { expected, .. } => {
             let expected = u32::from(*expected);
             if response.status == expected {
-                pass(index, label, format!("status {} == {expected}", response.status))
+                pass(
+                    index,
+                    label,
+                    format!("status {} == {expected}", response.status),
+                )
             } else {
                 fail(
                     index,
@@ -221,13 +227,7 @@ fn eval_one(
             if present {
                 pass(index, label, format!("header {name} present"))
             } else {
-                fail(
-                    index,
-                    label,
-                    format!("header {name} missing"),
-                    None,
-                    None,
-                )
+                fail(index, label, format!("header {name} missing"), None, None)
             }
         }
         Assertion::HeaderEquals { name, expected, .. } => {
@@ -253,22 +253,22 @@ fn eval_one(
                 )
             }
         }
-        Assertion::JsonPathExists { path, .. } => {
-            with_json(response, index, label, path, None, parse_body, |root, label| {
+        Assertion::JsonPathExists { path, .. } => with_json(
+            response,
+            index,
+            label,
+            path,
+            None,
+            parse_body,
+            |root, label| {
                 let resolved = json_path::resolve(root, path);
                 if resolved.found {
                     Ok(pass(index, label, format!("{path} exists")))
                 } else {
-                    Err(fail(
-                        index,
-                        label,
-                        format!("{path} not found"),
-                        None,
-                        None,
-                    ))
+                    Err(fail(index, label, format!("{path} not found"), None, None))
                 }
-            })
-        }
+            },
+        ),
         Assertion::JsonPathEquals { path, expected, .. } => {
             let expected_clone = expected.clone();
             with_json(
@@ -334,7 +334,9 @@ fn eval_one(
                         Err(fail(
                             index,
                             label,
-                            format!("{path}: expected type {expected_type_clone}, got {actual_type}"),
+                            format!(
+                                "{path}: expected type {expected_type_clone}, got {actual_type}"
+                            ),
                             Some(expected_type_clone.clone()),
                             Some(actual_type.to_string()),
                         ))
@@ -367,11 +369,7 @@ fn eval_one(
         Assertion::ResponseTimeBelow { max_ms, .. } => {
             let total = response.timings.total_ms;
             if total < *max_ms {
-                pass(
-                    index,
-                    label,
-                    format!("{total:.0}ms < {max_ms}ms"),
-                )
+                pass(index, label, format!("{total:.0}ms < {max_ms}ms"))
             } else {
                 fail(
                     index,

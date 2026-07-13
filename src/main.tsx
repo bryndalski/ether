@@ -7,6 +7,7 @@ import "./styles/tailwind.css";
 import "./components/palette/palette.css";
 import "./components/workbench/workbench.css";
 import "./components/workbench/tests/testing.css";
+import "./components/workbench/scripts/scripts.css";
 import "./components/graphql/graphql.css";
 import "./components/workflow/workflow.css";
 
