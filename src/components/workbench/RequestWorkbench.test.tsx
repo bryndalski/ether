@@ -15,6 +15,35 @@ import type { ResponseData, StoredRequest } from "../../lib/types";
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 const mockInvoke = vi.mocked(invoke);
 
+// The URL bar is now a single-line CodeMirror; stub it to a plain input honoring
+// the same value/onChange/onEnter/aria contract so DOM-level change + Enter still
+// exercise the workbench send path without mounting the real editor.
+vi.mock("../common/SingleLineCodeInput", () => ({
+  SingleLineCodeInput: ({
+    value,
+    onChange,
+    onEnter,
+    ariaLabel,
+    placeholder,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    onEnter?: () => void;
+    ariaLabel: string;
+    placeholder?: string;
+  }) => (
+    <input
+      aria-label={ariaLabel}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onEnter?.();
+      }}
+    />
+  ),
+}));
+
 const request: StoredRequest = {
   id: "req-1",
   collection_id: "col-1",

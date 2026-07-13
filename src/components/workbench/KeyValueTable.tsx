@@ -1,6 +1,13 @@
+import { useMemo } from "react";
 import type { KeyValue } from "../../lib/types";
 import { Icon } from "../common/Icon";
 import { useT } from "../../i18n/useT";
+import { useVariableCandidates } from "../../hooks/useVariableCandidates";
+import {
+  COMMON_HEADER_NAMES,
+  contentTypeValueCompletionSource,
+} from "../../lib/completion/headerCatalog";
+import { KeyValueValueCell } from "./KeyValueValueCell";
 
 interface KeyValueTableProps {
   rows: KeyValue[];
@@ -10,13 +17,16 @@ interface KeyValueTableProps {
   keyPlaceholder?: string;
   valuePlaceholder?: string;
   keyClassName?: string;
+  /** "headers" adds a header-name <datalist> + Content-Type value list. */
+  variant?: "params" | "headers";
 }
 
 const EMPTY: KeyValue = { name: "", value: "", enabled: true };
+const HEADER_NAME_LIST_ID = "lok-header-names";
 
 /** The enable/disable KV grid shared by Params, Headers and form body. A
  *  trailing "ghost" row appends a new entry on first edit; ✕ removes a row.
- *  Fully controlled — the row list is driven by useRequestDraft, not local state. */
+ *  Value cells carry the shared `{{...}}` autocomplete (lazy on focus). */
 export function KeyValueTable({
   rows,
   onChange,
@@ -25,8 +35,11 @@ export function KeyValueTable({
   keyPlaceholder = "Key",
   valuePlaceholder = "Value",
   keyClassName = "k",
+  variant = "params",
 }: KeyValueTableProps) {
   const t = useT();
+  const getCandidates = useVariableCandidates();
+  const isHeaders = variant === "headers";
   // Render the real rows plus one ghost row for adding the next entry.
   const displayRows = [...rows, EMPTY];
 
@@ -46,6 +59,13 @@ export function KeyValueTable({
 
   return (
     <div>
+      {isHeaders && (
+        <datalist id={HEADER_NAME_LIST_ID}>
+          {COMMON_HEADER_NAMES.map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
+      )}
       <div className="kv-head">
         <span />
         <span>{keyHeader}</span>
@@ -73,16 +93,17 @@ export function KeyValueTable({
               aria-label={`${keyHeader} ${index + 1}`}
               spellCheck={false}
               autoComplete="off"
+              list={isHeaders ? HEADER_NAME_LIST_ID : undefined}
               onChange={(event) => patchRow(index, { name: event.target.value })}
             />
-            <input
-              type="text"
+            <ValueCell
+              rowName={row.name}
               value={row.value}
               placeholder={valuePlaceholder}
-              aria-label={`${valueHeader} ${index + 1}`}
-              spellCheck={false}
-              autoComplete="off"
-              onChange={(event) => patchRow(index, { value: event.target.value })}
+              ariaLabel={`${valueHeader} ${index + 1}`}
+              isHeaders={isHeaders}
+              getCandidates={getCandidates}
+              onChange={(next) => patchRow(index, { value: next })}
             />
             {isGhost ? (
               <span />
@@ -100,5 +121,43 @@ export function KeyValueTable({
         );
       })}
     </div>
+  );
+}
+
+interface ValueCellProps {
+  rowName: string;
+  value: string;
+  placeholder: string;
+  ariaLabel: string;
+  isHeaders: boolean;
+  getCandidates: ReturnType<typeof useVariableCandidates>;
+  onChange: (value: string) => void;
+}
+
+/** Wraps KeyValueValueCell and, for a Content-Type header row, adds the MIME
+ *  value list as an extra completion source alongside `{{...}}`. */
+function ValueCell({
+  rowName,
+  value,
+  placeholder,
+  ariaLabel,
+  isHeaders,
+  getCandidates,
+  onChange,
+}: ValueCellProps) {
+  const extraSources = useMemo(
+    () =>
+      isHeaders ? [contentTypeValueCompletionSource(() => rowName)] : undefined,
+    [isHeaders, rowName],
+  );
+  return (
+    <KeyValueValueCell
+      value={value}
+      onChange={onChange}
+      getCandidates={getCandidates}
+      ariaLabel={ariaLabel}
+      placeholder={placeholder}
+      extraSources={extraSources}
+    />
   );
 }

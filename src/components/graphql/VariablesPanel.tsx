@@ -4,6 +4,8 @@ import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { linter } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
 import { useT } from "../../i18n/useT";
+import { useVariableCandidates } from "../../hooks/useVariableCandidates";
+import { variableAutocomplete } from "../../lib/completion/variableExtension";
 
 interface VariablesPanelProps {
   value: string;
@@ -25,9 +27,15 @@ const editorTheme = EditorView.theme({
  *  a string value is preserved for Rust interpolation. */
 export function VariablesPanel({ value, onChange }: VariablesPanelProps) {
   const t = useT();
+  const getCandidates = useVariableCandidates();
   const extensions = useMemo(
-    () => [json(), linter(jsonParseLinter()), editorTheme],
-    [],
+    () => [
+      json(),
+      linter(jsonParseLinter()),
+      variableAutocomplete({ getCandidates }),
+      editorTheme,
+    ],
+    [getCandidates],
   );
 
   return (

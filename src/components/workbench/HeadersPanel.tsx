@@ -19,6 +19,7 @@ export function HeadersPanel({ headers, onChange }: HeadersPanelProps) {
           keyHeader="Header"
           valueHeader="Value"
           keyPlaceholder="Header"
+          variant="headers"
         />
       </div>
     </div>

@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import "./styles/tokens.css";
 import "./styles/base.css";
+import "./styles/completion.css";
 import "./styles/tailwind.css";
 import "./components/palette/palette.css";
 import "./components/workbench/workbench.css";

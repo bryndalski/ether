@@ -1,4 +1,6 @@
 import { useT } from "../../i18n/useT";
+import { useVariableCandidates } from "../../hooks/useVariableCandidates";
+import { SingleLineCodeInput } from "../common/SingleLineCodeInput";
 
 interface UrlInputProps {
   url: string;
@@ -6,27 +8,22 @@ interface UrlInputProps {
   onEnter: () => void;
 }
 
-/** Monospace URL field. Enter submits (sends the request). Inline {{var}}
- *  coloring is a nice-to-have deferred to a future overlay-highlight helper;
- *  v1 is a plain accessible input. */
+/** Monospace URL field. Enter submits (sends the request). A single-line
+ *  CodeMirror carries the shared `{{...}}` autocomplete + token-pill highlight,
+ *  so URL variables are suggested and colored exactly like everywhere else. */
 export function UrlInput({ url, onChange, onEnter }: UrlInputProps) {
   const t = useT();
+  const getCandidates = useVariableCandidates();
   return (
-    <input
-      type="text"
+    <SingleLineCodeInput
       className="url-field"
-      aria-label={t("workbench.urlAria")}
-      placeholder="https://api.example.com/{{env.host}}/users"
       value={url}
-      spellCheck={false}
-      autoComplete="off"
-      onChange={(event) => onChange(event.target.value)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          onEnter();
-        }
-      }}
+      onChange={onChange}
+      onEnter={onEnter}
+      getCandidates={getCandidates}
+      ariaLabel={t("workbench.urlAria")}
+      placeholder="https://api.example.com/{{env.host}}/users"
+      fontSize="var(--lok-fs-md)"
     />
   );
 }

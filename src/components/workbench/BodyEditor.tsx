@@ -4,6 +4,8 @@ import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { lintGutter, linter } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
 import { useT } from "../../i18n/useT";
+import { useVariableCandidates } from "../../hooks/useVariableCandidates";
+import { variableAutocomplete } from "../../lib/completion/variableExtension";
 
 interface BodyEditorProps {
   value: string;
@@ -30,11 +32,15 @@ const editorTheme = EditorView.theme({
  *  linter (Send is still allowed; Rust validates). */
 export function BodyEditor({ value, contentType, onChange }: BodyEditorProps) {
   const t = useT();
+  const getCandidates = useVariableCandidates();
   const isJson = contentType.includes("json");
+  // The `{{...}}` source returns null outside a `{{`, so it never conflicts with
+  // JSON parsing/lint; mount it after json()/linter.
   const extensions = useMemo(() => {
-    if (!isJson) return [editorTheme];
-    return [json(), linter(jsonParseLinter()), lintGutter(), editorTheme];
-  }, [isJson]);
+    const variables = variableAutocomplete({ getCandidates });
+    if (!isJson) return [editorTheme, variables];
+    return [json(), linter(jsonParseLinter()), lintGutter(), editorTheme, variables];
+  }, [isJson, getCandidates]);
 
   return (
     <div aria-label={t("workbench.requestBody")}>

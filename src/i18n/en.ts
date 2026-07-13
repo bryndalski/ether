@@ -593,6 +593,20 @@ export const en = {
     deleteNode: "Delete step",
     logTitle: "Run log",
   },
+
+  autocomplete: {
+    secretDetail: "secret",
+    urlAria: "Request URL",
+    valueAria: "Value with variable autocomplete",
+    headerNameAria: "Header name",
+    dynamicUuid: "random UUID v4",
+    dynamicTimestamp: "Unix seconds",
+    dynamicTimestampMs: "Unix milliseconds",
+    dynamicDatetimeIso: "ISO-8601 / RFC-3339 now",
+    dynamicRandomInt: "random integer in [a,b]",
+    dynamicRandomHex: "n random bytes, hex",
+    dynamicBase64: "base64-encode text",
+  },
 } as const;
 
 // The dictionary SHAPE: same nested key structure as `en`, but every leaf is a

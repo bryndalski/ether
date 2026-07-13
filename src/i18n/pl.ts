@@ -594,4 +594,18 @@ export const pl: Dict = {
     deleteNode: "Usuń krok",
     logTitle: "Dziennik uruchomienia",
   },
+
+  autocomplete: {
+    secretDetail: "sekret",
+    urlAria: "Adres URL requestu",
+    valueAria: "Wartość z autouzupełnianiem zmiennych",
+    headerNameAria: "Nazwa nagłówka",
+    dynamicUuid: "losowy UUID v4",
+    dynamicTimestamp: "sekundy uniksowe",
+    dynamicTimestampMs: "milisekundy uniksowe",
+    dynamicDatetimeIso: "teraz w ISO-8601 / RFC-3339",
+    dynamicRandomInt: "losowa liczba w [a,b]",
+    dynamicRandomHex: "n losowych bajtów, hex",
+    dynamicBase64: "zakoduj tekst w base64",
+  },
 };

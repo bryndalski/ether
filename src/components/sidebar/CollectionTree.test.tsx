@@ -9,6 +9,26 @@ import type { Collection, StoredRequest } from "../../lib/types";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 
+// The URL bar is now a single-line CodeMirror; stub it to a plain input so the
+// seeded draft URL is readable as an input value.
+vi.mock("../common/SingleLineCodeInput", () => ({
+  SingleLineCodeInput: ({
+    value,
+    onChange,
+    ariaLabel,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    ariaLabel: string;
+  }) => (
+    <input
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  ),
+}));
+
 function col(id: string, name: string): Collection {
   return { id, name, parent_id: null, sort_order: 0, docs_md: null };
 }

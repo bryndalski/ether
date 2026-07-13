@@ -4,6 +4,8 @@ import { EditorView } from "@codemirror/view";
 import { graphql } from "cm6-graphql";
 import type { GraphQLSchema } from "graphql";
 import { useT } from "../../i18n/useT";
+import { useVariableCandidates } from "../../hooks/useVariableCandidates";
+import { variableAutocomplete } from "../../lib/completion/variableExtension";
 
 interface QueryEditorProps {
   query: string;
@@ -32,9 +34,16 @@ const editorTheme = EditorView.theme({
  *  templates are opaque string content, so linting is unaffected. */
 export function QueryEditor({ query, schema, onChange }: QueryEditorProps) {
   const t = useT();
+  const getCandidates = useVariableCandidates();
+  // cm6-graphql owns schema completion; our `{{...}}` source returns null unless
+  // inside an open `{{`, so the two completion sources coexist without conflict.
   const extensions = useMemo(
-    () => [graphql(schema ?? undefined), editorTheme],
-    [schema],
+    () => [
+      graphql(schema ?? undefined),
+      variableAutocomplete({ getCandidates }),
+      editorTheme,
+    ],
+    [schema, getCandidates],
   );
 
   return (
