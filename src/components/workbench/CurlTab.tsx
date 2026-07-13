@@ -4,6 +4,7 @@ import { fromCurl } from "../../lib/ipc";
 import { useCurlPreview } from "../../hooks/useCurlPreview";
 import { Icon } from "../common/Icon";
 import { CurlLog } from "./CurlLog";
+import { useT } from "../../i18n/useT";
 
 interface CurlTabProps {
   draft: StoredRequest;
@@ -14,6 +15,7 @@ interface CurlTabProps {
 /** Two-way cURL surface: view = redacted resolve_preview_curl; import =
  *  from_curl → RequestSpec merged onto the draft. Never calls to_curl. */
 export function CurlTab({ draft, environmentId, onImport }: CurlTabProps) {
+  const t = useT();
   const preview = useCurlPreview(draft, environmentId, true);
   const [pasted, setPasted] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export function CurlTab({ draft, environmentId, onImport }: CurlTabProps) {
             cURL · secrets redacted
             <button
               type="button"
-              aria-label="Kopiuj cURL"
+              aria-label={t("workbench.copyCurl")}
               onClick={copyPreview}
               style={{
                 marginLeft: "auto",
@@ -74,7 +76,7 @@ export function CurlTab({ draft, environmentId, onImport }: CurlTabProps) {
 
         <div>
           <label className="wb-label" htmlFor="curl-import">
-            Importuj z cURL
+            {t("workbench.importFromCurl")}
           </label>
           <textarea
             id="curl-import"
@@ -102,7 +104,7 @@ export function CurlTab({ draft, environmentId, onImport }: CurlTabProps) {
             disabled={pasted.trim() === ""}
             onClick={runImport}
           >
-            Import
+            {t("import.importAction")}
           </button>
           {importError && (
             <p

@@ -1,10 +1,12 @@
 import { useEnvStore } from "../../state/useEnvStore";
 import { HealthDot } from "../common/HealthDot";
 import { HistoryTrigger } from "./HistoryTrigger";
+import { useT } from "../../i18n/useT";
 
 /** Bottom status strip (26px): active env, connection meta, version. */
 export function StatusBar() {
   const activeEnvironment = useEnvStore((state) => state.activeEnvironment());
+  const t = useT();
 
   return (
     <footer
@@ -19,7 +21,7 @@ export function StatusBar() {
     >
       <span className="flex items-center gap-1.5">
         <HealthDot />
-        {activeEnvironment?.name ?? "brak env"}
+        {activeEnvironment?.name ?? t("statusbar.noEnv")}
       </span>
       <span className="lok-mono">HTTP/2</span>
       <span className="lok-mono">— ms</span>

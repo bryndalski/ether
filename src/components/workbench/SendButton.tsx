@@ -1,5 +1,6 @@
 import type { SendState } from "../../hooks/useSendRequest";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface SendButtonProps {
   sendState: SendState;
@@ -16,6 +17,7 @@ export function SendButton({
   onSend,
   onCancel,
 }: SendButtonProps) {
+  const t = useT();
   const busy =
     sendState.phase === "interpolating" || sendState.phase === "in-flight";
 
@@ -24,12 +26,12 @@ export function SendButton({
       <button
         type="button"
         className="btn-send lok-heat-gradient--animated"
-        aria-label="Anuluj request"
+        aria-label={t("workbench.cancelRequest")}
         aria-busy={true}
         onClick={onCancel}
       >
         <Icon name="i-x" size={15} />
-        Sending…
+        {t("workbench.sending")}
       </button>
     );
   }
@@ -38,12 +40,12 @@ export function SendButton({
     <button
       type="button"
       className="btn-send"
-      aria-label="Wyślij request"
+      aria-label={t("workbench.sendAria")}
       disabled={disabled}
       onClick={onSend}
     >
       <Icon name="i-send" size={15} />
-      Send
+      {t("workbench.send")}
       <kbd className="kbd">⌘↵</kbd>
     </button>
   );

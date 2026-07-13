@@ -39,7 +39,7 @@ jobs:
       - name: Upload .dmg artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lokowka-dmg
+          name: ether-dmg
           path: src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
 

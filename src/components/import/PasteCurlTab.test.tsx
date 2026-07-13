@@ -46,10 +46,10 @@ describe("PasteCurlTab", () => {
     const onLoadSpec = vi.fn();
     render(<Harness onLoadSpec={onLoadSpec} />);
 
-    fireEvent.change(screen.getByLabelText("Wklej polecenie cURL"), {
+    fireEvent.change(screen.getByLabelText("Paste a cURL command"), {
       target: { value: "curl -X POST https://api.test/users" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Wczytaj do requestu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Load into request" }));
 
     await waitFor(() =>
       expect(mockInvoke).toHaveBeenCalledWith("from_curl", {

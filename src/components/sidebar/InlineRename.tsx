@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n/useT";
 
 interface InlineRenameProps {
   value: string;
@@ -10,6 +11,7 @@ interface InlineRenameProps {
  *  Esc cancels, blur commits. */
 export function InlineRename({ value, onCommit, onCancel }: InlineRenameProps) {
   const [draft, setDraft] = useState(value);
+  const t = useT();
 
   function commit() {
     const next = draft.trim();
@@ -20,7 +22,7 @@ export function InlineRename({ value, onCommit, onCancel }: InlineRenameProps) {
   return (
     <input
       className="tree-rename"
-      aria-label="Zmień nazwę"
+      aria-label={t("common.rename")}
       autoFocus
       value={draft}
       spellCheck={false}

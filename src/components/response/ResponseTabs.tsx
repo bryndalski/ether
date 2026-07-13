@@ -1,4 +1,5 @@
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 export type ResponseTabKey =
   | "Body"
@@ -41,6 +42,7 @@ export function ResponseTabs({
   showSnapshot,
   showWatch,
 }: ResponseTabsProps) {
+  const t = useT();
   const tabs: ResponseTabKey[] = [...BASE_TABS];
   if (assertionSummary !== null) tabs.push("Tests");
   if (showSnapshot) tabs.push("Snapshot");
@@ -76,7 +78,7 @@ export function ResponseTabs({
       <button
         type="button"
         className="tab"
-        aria-label="Kopiuj odpowiedź"
+        aria-label={t("response.copyResponse")}
         style={{ marginLeft: "auto" }}
         onClick={onCopy}
       >

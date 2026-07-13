@@ -1,4 +1,5 @@
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface BenchmarkButtonProps {
   disabled: boolean;
@@ -9,17 +10,18 @@ interface BenchmarkButtonProps {
  *  opens the warned launcher (see BenchmarkLauncher). Disabled when the URL is
  *  empty or a request is in flight. */
 export function BenchmarkButton({ disabled, onClick }: BenchmarkButtonProps) {
+  const t = useT();
   return (
     <button
       type="button"
       className="dv-bench-btn"
-      aria-label="Benchmark tego requestu"
-      title="Benchmark (mierzy p50/p95/p99)"
+      aria-label={t("devtools.benchmarkOfRequest")}
+      title={t("devtools.benchmarkTitle")}
       disabled={disabled}
       onClick={onClick}
     >
       <Icon name="i-bar-chart" size={15} />
-      <span>Benchmark</span>
+      <span>{t("devtools.benchmark")}</span>
     </button>
   );
 }

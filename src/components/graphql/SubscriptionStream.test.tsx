@@ -39,7 +39,7 @@ describe("SubscriptionStream", () => {
     render(<SubscriptionStream stream={stream({ events, eventCount: 2 })} />);
 
     // the aria-live event list exists (screen readers hear pushes)
-    const list = screen.getByLabelText(/Strumień zdarzeń subskrypcji/i);
+    const list = screen.getByLabelText(/Subscription event stream/i);
     expect(list).toHaveAttribute("aria-live", "polite");
     // both payloads rendered
     expect(list.textContent).toContain('"tick": 2');
@@ -54,7 +54,7 @@ describe("SubscriptionStream", () => {
 
   it("disables Clear when there are no events", () => {
     render(<SubscriptionStream stream={stream({ eventCount: 0 })} />);
-    expect(screen.getByLabelText(/Wyczyść strumień/i)).toBeDisabled();
+    expect(screen.getByLabelText(/Clear event stream/i)).toBeDisabled();
   });
 });
 

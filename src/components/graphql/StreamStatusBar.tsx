@@ -1,6 +1,7 @@
 import type { SubConnState } from "../../hooks/useSubscription";
 import { ConnStatusBadge } from "./ConnStatusBadge";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface StreamStatusBarProps {
   connState: SubConnState;
@@ -16,6 +17,7 @@ export function StreamStatusBar({
   eventCount,
   onClear,
 }: StreamStatusBarProps) {
+  const t = useT();
   return (
     <div className="sub-statusbar">
       <ConnStatusBadge connState={connState} />
@@ -26,8 +28,8 @@ export function StreamStatusBar({
       <button
         type="button"
         className="btn-save"
-        aria-label="Wyczyść strumień zdarzeń"
-        title="Wyczyść strumień"
+        aria-label={t("stream.clearStream")}
+        title={t("stream.clearStreamShort")}
         disabled={eventCount === 0}
         onClick={onClear}
       >

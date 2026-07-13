@@ -62,10 +62,12 @@ export function detectImportFormat(text: string): ImportFormat {
   return detectFromObject(parsed as Record<string, unknown>);
 }
 
+// Proper nouns are locale-independent; the `unknown` fallback is localized at
+// its call sites via i18n `import.unknownFormat` (see ImportFileTab).
 export const IMPORT_FORMAT_LABELS: Record<ImportFormat, string> = {
   postman: "Postman",
   insomnia: "Insomnia",
   har: "HAR",
   http: ".http",
-  unknown: "Nieznany",
+  unknown: "Unknown",
 };

@@ -51,7 +51,7 @@ describe("LatencyHistogram", () => {
     );
     const bars = screen.getAllByRole("button");
     expect(bars.length).toBeGreaterThan(0);
-    expect(bars[0]).toHaveAttribute("aria-label", expect.stringMatching(/prób/));
+    expect(bars[0]).toHaveAttribute("aria-label", expect.stringMatching(/samples/));
   });
 
   it("clicking a bar selects a sample by index", () => {

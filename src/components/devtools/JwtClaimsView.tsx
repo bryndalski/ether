@@ -2,6 +2,8 @@ import { decodeJwt, jwtExpiryStatus, type ExpiryStatus } from "../../lib/jwt";
 import { Icon } from "../common/Icon";
 import type { IconName } from "../common/Icon";
 import { JwtCountdown } from "./JwtCountdown";
+import { useT } from "../../i18n/useT";
+import type { TKey } from "../../i18n";
 
 interface JwtClaimsViewProps {
   token: string;
@@ -11,24 +13,24 @@ const REGISTERED_ORDER = ["iss", "sub", "aud", "iat", "nbf", "exp", "jti"];
 
 const STATUS_META: Record<
   ExpiryStatus,
-  { token: string; icon: IconName; label: string }
+  { token: string; icon: IconName; labelKey: TKey }
 > = {
-  valid: { token: "var(--lok-status-success)", icon: "i-check", label: "Ważny" },
+  valid: { token: "var(--lok-status-success)", icon: "i-check", labelKey: "devtools.jwtValid" },
   "expiring-soon": {
     token: "var(--lok-status-warn)",
     icon: "i-alert",
-    label: "Wygasa wkrótce",
+    labelKey: "devtools.jwtExpiringSoon",
   },
-  expired: { token: "var(--lok-status-danger)", icon: "i-x", label: "Wygasł" },
+  expired: { token: "var(--lok-status-danger)", icon: "i-x", labelKey: "devtools.jwtExpired" },
   "not-yet-valid": {
     token: "var(--lok-status-info)",
     icon: "i-clock",
-    label: "Jeszcze nieważny",
+    labelKey: "devtools.jwtNotYetValid",
   },
   "no-exp": {
     token: "var(--lok-status-neutral)",
     icon: "i-unlock",
-    label: "Brak exp",
+    labelKey: "devtools.noExp",
   },
 };
 
@@ -41,13 +43,16 @@ function renderValue(value: unknown): string {
  *  niezweryfikowany" banner never lets a user mistake this for a validator.
  *  SECURITY: the token itself is NEVER copied/logged — only the decoded JSON. */
 export function JwtClaimsView({ token }: JwtClaimsViewProps) {
+  const t = useT();
   const decoded = decodeJwt(token);
 
   if (!decoded.valid || decoded.payload == null) {
     return (
       <div className="dv-jwt">
         <p className="dv-note dv-note-danger">
-          Nie udało się zdekodować tokenu: {decoded.error ?? "nieznany błąd"}.
+          {t("devtools.decodeFailed", {
+            error: decoded.error ?? t("common.unknownError"),
+          })}
         </p>
       </div>
     );
@@ -75,20 +80,20 @@ export function JwtClaimsView({ token }: JwtClaimsViewProps) {
     <div className="dv-jwt">
       <div className="dv-jwt-banner" role="note">
         <Icon name="i-unlock" size={14} />
-        <span>Podpis niezweryfikowany — to tylko dekoder.</span>
+        <span>{t("devtools.jwtSignatureUnverified")}</span>
       </div>
 
       <div className="dv-jwt-statusrow">
         <span className="dv-badge" style={{ color: meta.token }}>
           <Icon name={meta.icon} size={14} />
-          {meta.label}
+          {t(meta.labelKey)}
         </span>
         <JwtCountdown payload={decoded.payload} />
         <button
           type="button"
           className="dv-btn dv-btn-ghost"
-          aria-label="Kopiuj zdekodowany JSON"
-          title="Kopiuje zdekodowany JSON (nigdy surowy token)"
+          aria-label={t("devtools.copyDecodedJson")}
+          title={t("devtools.copyDecodedJsonTitle")}
           onClick={copyDecoded}
         >
           <Icon name="i-copy" size={13} />

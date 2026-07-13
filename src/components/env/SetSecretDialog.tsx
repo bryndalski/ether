@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface SetSecretDialogProps {
   name: string;
@@ -11,6 +12,7 @@ interface SetSecretDialogProps {
  *  while typing, is passed once to secret_set, then cleared — it is never
  *  rendered back, logged, or stored. A Keychain warning is always visible. */
 export function SetSecretDialog({ name, onSubmit, onDone }: SetSecretDialogProps) {
+  const t = useT();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -35,25 +37,22 @@ export function SetSecretDialog({ name, onSubmit, onDone }: SetSecretDialogProps
       className="env-dialog"
       role="dialog"
       aria-modal="true"
-      aria-label={`Zapisz sekret ${name}`}
+      aria-label={t("secrets.saveSecretAria", { name })}
       onKeyDown={(event) => event.key === "Escape" && onDone()}
     >
       <div className="env-dialog-card">
-        <p className="env-dialog-title">Ustaw sekret: {name}</p>
+        <p className="env-dialog-title">{t("secrets.setSecretTitle", { name })}</p>
 
         <div className="keychain-warn" role="note">
           <Icon name="i-shield" size={16} />
-          <span>
-            Wartość zostanie zapisana w macOS Keychain i nigdy nie wraca do
-            aplikacji. Lokówka nie może jej odczytać ani wyświetlić.
-          </span>
+          <span>{t("secrets.keychainNote")}</span>
         </div>
 
         <input
           type="password"
           autoComplete="off"
           autoFocus
-          aria-label={`Wartość sekretu ${name}`}
+          aria-label={t("secrets.secretValue", { name })}
           value={value}
           onChange={(event) => setValue(event.target.value)}
           className="env-field"
@@ -75,7 +74,7 @@ export function SetSecretDialog({ name, onSubmit, onDone }: SetSecretDialogProps
 
         <div className="env-dialog-actions">
           <button type="button" className="env-btn ghost" onClick={onDone}>
-            Anuluj
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -83,7 +82,7 @@ export function SetSecretDialog({ name, onSubmit, onDone }: SetSecretDialogProps
             disabled={saving || value === ""}
             onClick={handleSave}
           >
-            Zapisz do Keychain
+            {t("secrets.saveToKeychain")}
           </button>
         </div>
       </div>

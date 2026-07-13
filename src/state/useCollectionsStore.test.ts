@@ -161,12 +161,12 @@ describe("useCollectionsStore", () => {
     expect(deleteCollection).toHaveBeenCalledWith("root");
   });
 
-  it("duplicateRequest deep-clones with a fresh id, (kopia) name and selects it", async () => {
+  it("duplicateRequest deep-clones with a fresh id, (copy) name and selects it", async () => {
     useCollectionsStore.setState({ requests: [makeRequest("a")] });
     const newId = await useCollectionsStore.getState().duplicateRequest("a");
     const state = useCollectionsStore.getState();
     const copy = state.requests.find((r) => r.id === newId)!;
-    expect(copy.name).toBe("req a (kopia)");
+    expect(copy.name).toBe("req a (copy)");
     expect(copy.id).not.toBe("a");
     expect(state.activeRequestId).toBe(newId);
   });

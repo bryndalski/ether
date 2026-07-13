@@ -14,7 +14,7 @@ describe("KeyValueTable", () => {
   it("toggling a checkbox flips enabled in the emitted rows", () => {
     const onChange = vi.fn();
     render(<KeyValueTable rows={rows} onChange={onChange} keyHeader="Header" />);
-    fireEvent.click(screen.getByLabelText("Włącz Authorization"));
+    fireEvent.click(screen.getByLabelText("Enable Authorization"));
     expect(onChange).toHaveBeenCalledWith([
       { name: "Authorization", value: "Bearer x", enabled: false },
       rows[1],
@@ -24,7 +24,7 @@ describe("KeyValueTable", () => {
   it("the remove button drops that row", () => {
     const onChange = vi.fn();
     render(<KeyValueTable rows={rows} onChange={onChange} keyHeader="Header" />);
-    fireEvent.click(screen.getByLabelText("Usuń Accept"));
+    fireEvent.click(screen.getByLabelText("Remove Accept"));
     expect(onChange).toHaveBeenCalledWith([rows[0]]);
   });
 
@@ -43,10 +43,10 @@ describe("KeyValueTable", () => {
   it("exposes accessible names on the enable + remove controls", () => {
     render(<KeyValueTable rows={rows} onChange={() => {}} keyHeader="Header" />);
     expect(
-      screen.getByRole("button", { name: "Usuń Authorization" }),
+      screen.getByRole("button", { name: "Remove Authorization" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("checkbox", { name: "Włącz Accept" }),
+      screen.getByRole("checkbox", { name: "Enable Accept" }),
     ).toBeInTheDocument();
   });
 });

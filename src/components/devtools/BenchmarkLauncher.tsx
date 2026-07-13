@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { BenchConfig } from "../../hooks/useBenchmark";
 import { clampConfig } from "../../hooks/useBenchmark";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface BenchmarkLauncherProps {
   host: string;
@@ -20,6 +21,7 @@ export function BenchmarkLauncher({
   hasRedactedSecrets,
   onRun,
 }: BenchmarkLauncherProps) {
+  const t = useT();
   const [iterations, setIterations] = useState(20);
   const [concurrency, setConcurrency] = useState(1);
 
@@ -30,7 +32,7 @@ export function BenchmarkLauncher({
     <div className="dv-launcher">
       <div className="dv-launcher-fields">
         <label className="dv-field">
-          <span className="dv-field-label">Liczba prób</span>
+          <span className="dv-field-label">{t("devtools.sampleCount")}</span>
           <input
             type="number"
             min={1}
@@ -41,7 +43,7 @@ export function BenchmarkLauncher({
           />
         </label>
         <label className="dv-field">
-          <span className="dv-field-label">Równoległość</span>
+          <span className="dv-field-label">{t("devtools.concurrency")}</span>
           <input
             type="number"
             min={1}
@@ -59,11 +61,12 @@ export function BenchmarkLauncher({
       >
         <Icon name="i-alert" size={14} />
         <span>
-          Benchmark wykona <strong className="lok-tnums">{config.iterations}</strong>{" "}
-          realnych requestów na <strong>{host || "endpoint"}</strong>.
-          {isProd && " To środowisko PROD — zachowaj ostrożność."}
-          {hasRedactedSecrets &&
-            " Uwaga: request zawiera zredagowane sekrety (•••)."}
+          {t("devtools.benchmarkWillRun")}{" "}
+          <strong className="lok-tnums">{config.iterations}</strong>{" "}
+          {t("devtools.benchmarkIntro")}{" "}
+          <strong>{host || "endpoint"}</strong>.
+          {isProd && t("devtools.benchmarkProdWarning")}
+          {hasRedactedSecrets && t("devtools.benchmarkRedactedWarn")}
         </span>
       </div>
 
@@ -73,7 +76,7 @@ export function BenchmarkLauncher({
         onClick={() => onRun(config)}
       >
         <Icon name="i-flame" size={14} />
-        Uruchom benchmark
+        {t("devtools.runBenchmark")}
       </button>
     </div>
   );

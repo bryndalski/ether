@@ -1,4 +1,5 @@
 import type { KeyValue } from "../../lib/types";
+import { useT } from "../../i18n/useT";
 
 interface ResponseHeadersProps {
   headers: KeyValue[];
@@ -6,8 +7,9 @@ interface ResponseHeadersProps {
 
 /** Read-only two-column mono list of response headers. */
 export function ResponseHeaders({ headers }: ResponseHeadersProps) {
+  const t = useT();
   if (headers.length === 0) {
-    return <p className="wb-label">Brak nagłówków w odpowiedzi.</p>;
+    return <p className="wb-label">{t("response.noHeaders")}</p>;
   }
   return (
     <div className="lok-selectable">

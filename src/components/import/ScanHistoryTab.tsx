@@ -3,6 +3,7 @@ import type { ImportApi } from "../../hooks/useImport";
 import type { RequestSpec } from "../../lib/types";
 import { EmptyState } from "../common/EmptyState";
 import { ScanHistoryList } from "./ScanHistoryList";
+import { useT } from "../../i18n/useT";
 
 interface ScanHistoryTabProps {
   api: ImportApi;
@@ -19,6 +20,7 @@ export function ScanHistoryTab({
   activeRequestPresent,
   onLoadSpec,
 }: ScanHistoryTabProps) {
+  const t = useT();
   const [commands, setCommands] = useState<string[]>([]);
   const [scanned, setScanned] = useState(false);
 
@@ -41,25 +43,23 @@ export function ScanHistoryTab({
     <div
       className="import-modal-body"
       role="tabpanel"
-      aria-label="Skanuj historię"
+      aria-label={t("import.scanHistoryTab")}
     >
       <div className="import-row">
-        <span className="import-label">
-          Znalezione polecenia cURL w historii powłoki
-        </span>
+        <span className="import-label">{t("import.scanIntro")}</span>
         <button
           type="button"
           className="import-btn ghost"
           style={{ marginLeft: "auto" }}
           onClick={() => void scan()}
         >
-          Skanuj ponownie
+          {t("import.scanAgain")}
         </button>
       </div>
       {scanned && commands.length === 0 ? (
         <EmptyState
-          headline="Brak curli w historii"
-          hint="Nie znaleziono poleceń curl w historii powłoki."
+          headline={t("import.noCurlHeadline")}
+          hint={t("import.noCurlInHistory")}
           icon="~"
         />
       ) : (

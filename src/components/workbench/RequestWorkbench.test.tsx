@@ -85,7 +85,7 @@ describe("RequestWorkbench", () => {
     mockInvoke.mockResolvedValue(okResponse);
     render(<RequestWorkbench />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Wyślij request" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send request" }));
 
     await waitFor(() =>
       expect(mockInvoke).toHaveBeenCalledWith("resolve_and_send", {
@@ -120,14 +120,14 @@ describe("RequestWorkbench", () => {
     seedActive({ ...request, url: "" });
     render(<RequestWorkbench />);
 
-    const send = screen.getByRole("button", { name: "Wyślij request" });
+    const send = screen.getByRole("button", { name: "Send request" });
     expect(send).toBeDisabled();
 
     fireEvent.change(screen.getByLabelText("URL requestu"), {
       target: { value: "https://api/x" },
     });
     expect(
-      screen.getByRole("button", { name: "Wyślij request" }),
+      screen.getByRole("button", { name: "Send request" }),
     ).not.toBeDisabled();
   });
 

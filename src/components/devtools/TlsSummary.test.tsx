@@ -15,12 +15,12 @@ describe("TlsSummary", () => {
     render(<TlsSummary tls={tls} insecure={false} />);
     expect(screen.getByText("TLSv1.3")).toBeInTheDocument();
     expect(screen.getByText("TLS_AES_128_GCM_SHA256")).toBeInTheDocument();
-    expect(screen.getByText("Zweryfikowany")).toBeInTheDocument();
+    expect(screen.getByText("Verified")).toBeInTheDocument();
   });
 
   it("shows an unverified badge when verify_ok is false", () => {
     render(<TlsSummary tls={{ ...tls, verify_ok: false }} insecure={false} />);
-    expect(screen.getByText("Niezweryfikowany")).toBeInTheDocument();
+    expect(screen.getByText("Not verified")).toBeInTheDocument();
   });
 
   it("adds the --insecure note when verification was skipped", () => {

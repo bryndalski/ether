@@ -5,6 +5,7 @@ import {
   type ImportFormat,
 } from "../../lib/importFormat";
 import { ImportResultPreview } from "./ImportResultPreview";
+import { useT } from "../../i18n/useT";
 
 interface ImportFileTabProps {
   api: ImportApi;
@@ -22,6 +23,7 @@ const OVERRIDE_OPTIONS: ImportFormat[] = [
 /** Paste file contents → auto-detect format (chip + override) → matching
  *  import_* IPC → preview + warnings → save (collections before requests). */
 export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
+  const t = useT();
   const [text, setText] = useState("");
   const [override, setOverride] = useState<ImportFormat | "auto">("auto");
   const [includeEnvs, setIncludeEnvs] = useState(false);
@@ -29,6 +31,8 @@ export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
   const detected = useMemo(() => api.detect(text), [api, text]);
   const format = override === "auto" ? detected : override;
   const stage = api.stage;
+  const formatLabel = (fmt: ImportFormat): string =>
+    fmt === "unknown" ? t("import.unknownFormat") : IMPORT_FORMAT_LABELS[fmt];
 
   async function onSave() {
     if (stage.kind !== "result") return;
@@ -41,9 +45,9 @@ export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
   }
 
   return (
-    <div className="import-modal-body" role="tabpanel" aria-label="Importuj plik">
+    <div className="import-modal-body" role="tabpanel" aria-label={t("import.importFileTab")}>
       <label className="import-label" htmlFor="import-file-text">
-        Wklej zawartość pliku (Postman / Insomnia / HAR / .http)
+        {t("import.pasteFileContents")}
       </label>
       <textarea
         id="import-file-text"
@@ -56,10 +60,10 @@ export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
 
       <div className="import-row">
         <span className="import-chip" aria-live="polite">
-          Wykryto: {IMPORT_FORMAT_LABELS[detected]}
+          {t("import.detected", { format: formatLabel(detected) })}
         </span>
         <label className="import-label" htmlFor="import-format-override">
-          Wymuś format
+          {t("import.forceFormat")}
         </label>
         <select
           id="import-format-override"
@@ -69,7 +73,7 @@ export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
             setOverride(event.target.value as ImportFormat | "auto")
           }
         >
-          <option value="auto">Auto</option>
+          <option value="auto">{t("import.auto")}</option>
           {OVERRIDE_OPTIONS.map((option) => (
             <option key={option} value={option}>
               {IMPORT_FORMAT_LABELS[option]}
@@ -82,13 +86,13 @@ export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
           disabled={text.trim() === "" || format === "unknown"}
           onClick={() => void api.importFile(text, format)}
         >
-          Importuj
+          {t("import.importAction")}
         </button>
       </div>
 
       {format === "unknown" && text.trim() !== "" && (
         <p className="import-error" aria-live="polite">
-          Nie rozpoznano formatu — wybierz format ręcznie.
+          {t("import.unrecognizedFormat")}
         </p>
       )}
       {stage.kind === "error" && (
@@ -107,7 +111,9 @@ export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
                 checked={includeEnvs}
                 onChange={(event) => setIncludeEnvs(event.target.checked)}
               />
-              Zaimportuj też {stage.result.environments.length} środowisk
+              {t("import.alsoImportEnvironments", {
+                count: stage.result.environments.length,
+              })}
             </label>
           )}
           <button
@@ -119,7 +125,7 @@ export function ImportFileTab({ api, onSaved, onError }: ImportFileTabProps) {
             }
             onClick={() => void onSave()}
           >
-            Zapisz do kolekcji
+            {t("import.saveToCollection")}
           </button>
         </>
       )}

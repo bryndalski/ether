@@ -4,6 +4,7 @@ import { useEnvPill } from "../../hooks/useEnvPill";
 import { HealthDot } from "../common/HealthDot";
 import { EnvDropdown } from "./EnvDropdown";
 import { EnvQuickLook } from "./EnvQuickLook";
+import { useT } from "../../i18n/useT";
 
 /** Env-switcher pill: health dot + name + caret. Colored by active env accent,
  *  hover reveals a quick-look popover, click opens the picker dropdown. */
@@ -21,9 +22,10 @@ export function EnvPill() {
     closeDropdown,
   } = useEnvPill();
   const openEnvManager = useUiStore((state) => state.openEnvManager);
+  const t = useT();
 
   const kind = envKind(activeEnvironment);
-  const label = activeEnvironment?.name ?? "Bez środowiska";
+  const label = activeEnvironment?.name ?? t("topbar.noEnvironment");
 
   return (
     <div

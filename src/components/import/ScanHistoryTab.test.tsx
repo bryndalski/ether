@@ -77,6 +77,6 @@ describe("ScanHistoryTab", () => {
   it("shows an empty state when the history has no curls", async () => {
     mockInvoke.mockResolvedValueOnce([]);
     render(<Harness onLoadSpec={vi.fn()} />);
-    expect(await screen.findByText("Brak curli w historii")).toBeInTheDocument();
+    expect(await screen.findByText("No curls in history")).toBeInTheDocument();
   });
 });

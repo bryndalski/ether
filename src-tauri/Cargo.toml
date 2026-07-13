@@ -1,7 +1,7 @@
 [package]
 name = "lokowka"
 version = "0.1.0"
-description = "Lokówka — a fully local API client for macOS with curl under the hood"
+description = "Ether — a fully local API client for macOS with curl under the hood"
 authors = ["Jakub Bryndal"]
 edition = "2021"
 

@@ -2,6 +2,7 @@ import { histogramBins } from "../../lib/histogram";
 import type { BenchStats } from "../../lib/percentile";
 import type { BenchSample } from "../../hooks/useBenchmark";
 import { formatMs } from "../../lib/format";
+import { useT } from "../../i18n/useT";
 
 interface LatencyHistogramProps {
   samples: BenchSample[];
@@ -32,6 +33,7 @@ export function LatencyHistogram({
   selectedIndex,
   onSelectSample,
 }: LatencyHistogramProps) {
+  const t = useT();
   const okSamples = samples.filter((sample) => sample.ok);
   const bins = histogramBins(okSamples.map((sample) => sample.totalMs));
   if (bins.length === 0) return null;
@@ -54,7 +56,7 @@ export function LatencyHistogram({
       className="dv-histogram"
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       role="group"
-      aria-label="Histogram opóźnień z liniami percentyli"
+      aria-label={t("devtools.latencyHistogramAria")}
     >
       {/* axes */}
       <line
@@ -99,7 +101,11 @@ export function LatencyHistogram({
             }
             role="button"
             tabIndex={0}
-            aria-label={`Kubełek ${formatMs(bin.x0)}–${formatMs(bin.x1)} ms · ${bin.count} prób`}
+            aria-label={t("devtools.bucketAria", {
+              from: formatMs(bin.x0),
+              to: formatMs(bin.x1),
+              count: bin.count,
+            })}
             onClick={() => sampleHere && onSelectSample(sampleHere.index)}
             onKeyDown={(event) => {
               if (

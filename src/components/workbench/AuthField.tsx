@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n/useT";
 
 interface AuthFieldProps {
   label: string;
@@ -18,6 +19,7 @@ export function AuthField({
   secret = false,
   hint,
 }: AuthFieldProps) {
+  const t = useT();
   const [revealed, setRevealed] = useState(false);
   const type = secret && !revealed ? "password" : "text";
   return (
@@ -40,7 +42,11 @@ export function AuthField({
       {secret ? (
         <button
           type="button"
-          aria-label={revealed ? `Ukryj ${label}` : `Pokaż ${label}`}
+          aria-label={
+            revealed
+              ? t("auth.hideField", { label })
+              : t("auth.revealField", { label })
+          }
           aria-pressed={revealed}
           onClick={() => setRevealed((current) => !current)}
           style={{
@@ -52,7 +58,7 @@ export function AuthField({
             padding: "0 6px",
           }}
         >
-          {revealed ? "Ukryj" : "Pokaż"}
+          {revealed ? t("auth.hide") : t("auth.reveal")}
         </button>
       ) : (
         <span />

@@ -1,6 +1,7 @@
 import type { Environment } from "../../lib/types";
 import { envKind } from "../../state/useEnvStore";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface EnvListProps {
   environments: Environment[];
@@ -26,6 +27,7 @@ function EnvRow({
   onRequestDelete,
 }: EnvRowProps) {
   const kind = envKind(environment);
+  const t = useT();
   return (
     <div style={{ display: "flex", alignItems: "center" }}>
       <button
@@ -48,7 +50,7 @@ function EnvRow({
       <button
         type="button"
         className="icon-btn danger"
-        aria-label={`Usuń środowisko ${environment.name}`}
+        aria-label={t("env.deleteEnvironment", { name: environment.name })}
         onClick={() => onRequestDelete(environment.id)}
       >
         <Icon name="i-trash" size={13} />
@@ -66,13 +68,14 @@ export function EnvList({
   onCreate,
   onRequestDelete,
 }: EnvListProps) {
+  const t = useT();
   const bases = environments.filter((e) => e.parent_id === null);
   const childrenOf = (id: string) =>
     environments.filter((e) => e.parent_id === id);
 
   return (
     <div className="env-list">
-      <div className="env-list-scroll lok-scroll" role="listbox" aria-label="Środowiska">
+      <div className="env-list-scroll lok-scroll" role="listbox" aria-label={t("env.environmentsList")}>
         {bases.map((base) => (
           <div key={base.id}>
             <EnvRow
@@ -102,7 +105,7 @@ export function EnvList({
               padding: "8px",
             }}
           >
-            Brak środowisk.
+            {t("env.noEnvironments")}
           </p>
         )}
       </div>
@@ -112,7 +115,7 @@ export function EnvList({
         onClick={() => onCreate(null)}
       >
         <Icon name="i-plus" size={15} />
-        Nowe środowisko
+        {t("env.newEnvironment")}
       </button>
     </div>
   );

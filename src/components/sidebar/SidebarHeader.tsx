@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCollectionsStore } from "../../state/useCollectionsStore";
+import { useT } from "../../i18n/useT";
 import { Icon } from "../common/Icon";
 import { RowContextMenu, type MenuItem } from "./RowContextMenu";
 
@@ -16,17 +17,18 @@ export function SidebarHeader({ query, onQueryChange }: SidebarHeaderProps) {
   );
   const createRequest = useCollectionsStore((state) => state.createRequest);
   const collections = useCollectionsStore((state) => state.collections);
+  const t = useT();
 
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
   const items: MenuItem[] = [
     {
-      label: "Nowa kolekcja",
+      label: t("sidebar.newCollection"),
       icon: "i-folder",
       onSelect: () => void createCollection(null),
     },
     {
-      label: "Nowy request",
+      label: t("palette.newRequest"),
       icon: "i-plus",
       onSelect: () => void createRequest(collections[0]?.id ?? ""),
     },
@@ -44,15 +46,15 @@ export function SidebarHeader({ query, onQueryChange }: SidebarHeaderProps) {
         <input
           type="search"
           className="sidebar-search-input"
-          placeholder="Szukaj requestów…"
-          aria-label="Szukaj requestów"
+          placeholder={t("sidebar.searchRequests")}
+          aria-label={t("sidebar.searchAria")}
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
         />
       </div>
       <button
         type="button"
-        aria-label="Dodaj kolekcję lub request"
+        aria-label={t("sidebar.addAria")}
         aria-haspopup="menu"
         className="flex shrink-0 items-center justify-center rounded-[var(--lok-radius-sm)] p-1.5 transition-colors hover:bg-[var(--lok-bg-hover)]"
         style={{ color: "var(--lok-text-secondary)" }}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { KeyValue } from "../../lib/types";
 import { VariablesPanel } from "./VariablesPanel";
 import { HeadersPanel } from "./HeadersPanel";
+import { useT } from "../../i18n/useT";
 
 interface OperationVarsPanelProps {
   variablesJson: string;
@@ -20,6 +21,7 @@ export function OperationVarsPanel({
   headers,
   onHeadersChange,
 }: OperationVarsPanelProps) {
+  const t = useT();
   const [tab, setTab] = useState<VarsTab>("Variables");
   const headerCount = headers.filter((h) => h.enabled && h.name !== "").length;
 
@@ -27,7 +29,7 @@ export function OperationVarsPanel({
 
   return (
     <div className="vars-pane">
-      <div className="vars-tabs" role="tablist" aria-label="Zmienne i nagłówki">
+      <div className="vars-tabs" role="tablist" aria-label={t("graphql.varsAndHeaders")}>
         {tabs.map((key, index) => (
           <button
             key={key}

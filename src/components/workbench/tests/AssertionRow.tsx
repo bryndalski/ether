@@ -3,6 +3,7 @@ import { defaultAssertion } from "../../../lib/assertionDefaults";
 import { Icon } from "../../common/Icon";
 import { AssertionTypeSelect } from "./AssertionTypeSelect";
 import { AssertionFields } from "./AssertionFields";
+import { useT } from "../../../i18n/useT";
 
 interface AssertionRowProps {
   assertion: Assertion;
@@ -13,13 +14,14 @@ interface AssertionRowProps {
 
 /** One assertion: enable checkbox + type menu + type-driven fields + remove. */
 export function AssertionRow({ assertion, index, onChange, onRemove }: AssertionRowProps) {
-  const label = `asercja ${index + 1}`;
+  const t = useT();
+  const label = t("tests.assertionLabel", { index: index + 1 });
   return (
     <div className="test-row" data-disabled={assertion.enabled ? undefined : "true"}>
       <input
         type="checkbox"
         checked={assertion.enabled}
-        aria-label={`Włącz ${label}`}
+        aria-label={t("tests.enableAssertion", { label })}
         onChange={(event) => onChange({ ...assertion, enabled: event.target.checked })}
       />
       <AssertionTypeSelect
@@ -32,7 +34,7 @@ export function AssertionRow({ assertion, index, onChange, onRemove }: Assertion
       <div className="test-fields">
         <AssertionFields assertion={assertion} index={index} onChange={onChange} />
       </div>
-      <button type="button" className="rm" aria-label={`Usuń ${label}`} onClick={onRemove}>
+      <button type="button" className="rm" aria-label={t("tests.removeAssertion", { label })} onClick={onRemove}>
         <Icon name="i-x" size={13} />
       </button>
     </div>

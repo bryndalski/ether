@@ -3,6 +3,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
 import { EditorView } from "@codemirror/view";
 import { humanBytes } from "../../lib/format";
+import { useT } from "../../i18n/useT";
 
 interface ResponseBodyProps {
   body: string;
@@ -51,6 +52,7 @@ export function ResponseBody({
   contentType,
   sizeBytes,
 }: ResponseBodyProps) {
+  const t = useT();
   const isLarge = sizeBytes > LARGE_BODY_BYTES;
   const [forceShow, setForceShow] = useState(false);
   const { text, isJson } = useMemo(
@@ -65,8 +67,7 @@ export function ResponseBody({
   if (isBase64) {
     return (
       <div className="wb-label">
-        Binarna odpowiedź ({humanBytes(sizeBytes)}) — zapisz do pliku, by ją
-        otworzyć.
+        {t("response.binaryBody", { size: humanBytes(sizeBytes) })}
       </div>
     );
   }
@@ -75,7 +76,7 @@ export function ResponseBody({
     return (
       <div className="lok-selectable" style={{ display: "grid", gap: 12 }}>
         <p className="wb-label" style={{ color: "var(--lok-status-warn)" }}>
-          Duża odpowiedź ({humanBytes(sizeBytes)}). Renderowanie może być wolne.
+          {t("response.largeBody", { size: humanBytes(sizeBytes) })}
         </p>
         <button
           type="button"
@@ -83,7 +84,7 @@ export function ResponseBody({
           style={{ justifySelf: "start" }}
           onClick={() => setForceShow(true)}
         >
-          Pokaż mimo to
+          {t("response.showAnyway")}
         </button>
       </div>
     );
@@ -93,8 +94,7 @@ export function ResponseBody({
     <div className="lok-selectable">
       {truncatedAt != null && (
         <p className="wb-label" style={{ color: "var(--lok-status-warn)" }}>
-          Podgląd skrócony przy {humanBytes(truncatedAt)} — pełną treść zapisz do
-          pliku.
+          {t("response.truncatedPreview", { size: humanBytes(truncatedAt) })}
         </p>
       )}
       <CodeMirror

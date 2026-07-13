@@ -1,13 +1,15 @@
 import { useUiStore } from "../../state/useUiStore";
+import { useT } from "../../i18n/useT";
 
 /** ⌘K affordance in the titlebar; also opens the palette on click. */
 export function CommandHint() {
   const openPalette = useUiStore((state) => state.openPalette);
+  const t = useT();
   return (
     <button
       type="button"
       onClick={openPalette}
-      aria-label="Otwórz paletę poleceń"
+      aria-label={t("palette.openPalette")}
       className="flex items-center gap-1 rounded-[var(--lok-radius-sm)] px-2 py-1 transition-colors hover:bg-[var(--lok-bg-hover)]"
       style={{
         color: "var(--lok-text-tertiary)",

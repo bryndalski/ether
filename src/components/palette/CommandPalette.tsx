@@ -11,14 +11,18 @@ import {
   type PaletteAction,
 } from "../../lib/paletteActions";
 import { PaletteItem } from "./PaletteItem";
+import { useT } from "../../i18n/useT";
 
 /** ⌘K command palette — a real command surface. Every row calls the same
  *  store/IPC path the mouse UI uses (via paletteActions + the workbench bus).
  *  cmdk owns fuzzy matching, roving aria-activedescendant, Esc/backdrop close. */
 export function CommandPalette() {
+  const t = useT();
   const open = useUiStore((state) => state.paletteOpen);
   const closePalette = useUiStore((state) => state.closePalette);
   const toggleTheme = useUiStore((state) => state.toggleTheme);
+  const locale = useUiStore((state) => state.locale);
+  const setLocale = useUiStore((state) => state.setLocale);
   const openEnvManager = useUiStore((state) => state.openEnvManager);
   const openImport = useUiStore((state) => state.openImport);
   const openHistory = useHistoryStore((state) => state.open);
@@ -35,6 +39,8 @@ export function CommandPalette() {
   const bus = useWorkbenchActions();
 
   const ctx = {
+    t,
+    locale,
     environments,
     activeEnvironmentId,
     activeRequestPresent,
@@ -50,6 +56,7 @@ export function CommandPalette() {
     openHistory,
     runBenchmark: () => bus.benchmark?.(),
     toggleTheme,
+    setLocale,
   };
 
   const groups = groupPaletteActions(buildPaletteActions(ctx));
@@ -64,17 +71,19 @@ export function CommandPalette() {
     <Command.Dialog
       open={open}
       onOpenChange={(next) => !next && closePalette()}
-      label="Paleta poleceń"
+      label={t("palette.title")}
       className="lok-palette"
       overlayClassName="lok-palette-overlay"
       contentClassName="lok-palette-content"
     >
       <Command.Input
-        placeholder="Szukaj requestów, akcji, env…"
+        placeholder={t("palette.searchPlaceholder")}
         className="lok-mono lok-palette-input"
       />
       <Command.List className="lok-palette-list">
-        <Command.Empty className="lok-palette-empty">Brak wyników</Command.Empty>
+        <Command.Empty className="lok-palette-empty">
+          {t("common.noResults")}
+        </Command.Empty>
 
         {groups.map(({ group, actions }) => (
           <Command.Group

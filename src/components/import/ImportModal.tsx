@@ -12,10 +12,17 @@ import { TabBar } from "../common/TabBar";
 import { PasteCurlTab } from "./PasteCurlTab";
 import { ImportFileTab } from "./ImportFileTab";
 import { ScanHistoryTab } from "./ScanHistoryTab";
+import { useT } from "../../i18n/useT";
 import "./import.css";
 
-const TABS = ["Wklej cURL", "Importuj plik", "Skanuj historię"] as const;
-type ImportTab = (typeof TABS)[number];
+// Stable tab keys (locale-independent) mapped to their i18n label keys.
+const TAB_KEYS = ["curl", "file", "history"] as const;
+type ImportTab = (typeof TAB_KEYS)[number];
+const TAB_LABEL_KEY = {
+  curl: "import.pasteCurlTab",
+  file: "import.importFileTab",
+  history: "import.scanHistoryTab",
+} as const;
 
 /** Import modal with three tabs (paste cURL / import file / scan history).
  *  Copies the EnvironmentManager modal contract; adds a real shared focus-trap.
@@ -28,8 +35,9 @@ export function ImportModal() {
   const newRequest = useNewRequest();
   const show = useToast((state) => state.show);
   const api = useImport();
+  const t = useT();
   const cardRef = useRef<HTMLDivElement>(null);
-  const [tab, setTab] = useState<ImportTab>("Wklej cURL");
+  const [tab, setTab] = useState<ImportTab>("curl");
 
   const activeRequestPresent = useCollectionsStore(
     (state) => state.activeRequestId != null,
@@ -40,7 +48,7 @@ export function ImportModal() {
   useEffect(() => {
     if (open) {
       api.reset();
-      setTab("Wklej cURL");
+      setTab("curl");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -53,7 +61,7 @@ export function ImportModal() {
     // its effect; read it fresh so a "new request" placement targets the new draft.
     const apply = useWorkbenchActions.getState().importSpec ?? importSpecOnDraft;
     apply?.(spec);
-    show("Zaimportowano z cURL", "success");
+    show(t("import.importedFromCurl"), "success");
     close();
   };
 
@@ -69,15 +77,15 @@ export function ImportModal() {
         className="import-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Importuj"
+        aria-label={t("import.modalAria")}
         tabIndex={-1}
       >
         <div className="import-modal-head">
-          <span className="import-modal-title">Importuj</span>
+          <span className="import-modal-title">{t("import.modalTitle")}</span>
           <button
             type="button"
             className="import-modal-close"
-            aria-label="Zamknij"
+            aria-label={t("import.close")}
             onClick={close}
           >
             <Icon name="i-x" size={16} />
@@ -85,25 +93,28 @@ export function ImportModal() {
         </div>
 
         <TabBar
-          tabs={[...TABS]}
-          active={tab}
-          onSelect={(next) => setTab(next as ImportTab)}
+          tabs={TAB_KEYS.map((key) => t(TAB_LABEL_KEY[key]))}
+          active={t(TAB_LABEL_KEY[tab])}
+          onSelect={(label) => {
+            const key = TAB_KEYS.find((k) => t(TAB_LABEL_KEY[k]) === label);
+            if (key) setTab(key);
+          }}
         />
 
-        {tab === "Wklej cURL" && (
+        {tab === "curl" && (
           <PasteCurlTab
             api={api}
             activeRequestPresent={activeRequestPresent}
             onLoadSpec={loadSpec}
           />
         )}
-        {tab === "Importuj plik" && (
+        {tab === "file" && (
           <ImportFileTab
             api={api}
             onSaved={(requests, collections) => {
               void load();
               show(
-                `Zaimportowano ${requests} requestów do ${collections} kolekcji`,
+                t("import.done", { requests, collections }),
                 "success",
               );
               close();
@@ -111,7 +122,7 @@ export function ImportModal() {
             onError={(message) => show(message, "danger")}
           />
         )}
-        {tab === "Skanuj historię" && (
+        {tab === "history" && (
           <ScanHistoryTab
             api={api}
             activeRequestPresent={activeRequestPresent}

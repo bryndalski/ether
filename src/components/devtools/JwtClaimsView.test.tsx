@@ -23,18 +23,18 @@ describe("JwtClaimsView", () => {
   it("always shows the unverified-signature banner", () => {
     render(<JwtClaimsView token={VALID_TOKEN} />);
     expect(
-      screen.getByText(/podpis niezweryfikowany/i),
+      screen.getByText(/signature unverified/i),
     ).toBeInTheDocument();
   });
 
   it("shows the Ważny badge for a valid token", () => {
     render(<JwtClaimsView token={VALID_TOKEN} />);
-    expect(screen.getByText("Ważny")).toBeInTheDocument();
+    expect(screen.getByText("Valid")).toBeInTheDocument();
   });
 
   it("shows the Wygasł badge for an expired token", () => {
     render(<JwtClaimsView token={EXPIRED_TOKEN} />);
-    expect(screen.getByText("Wygasł")).toBeInTheDocument();
+    expect(screen.getByText("Expired")).toBeInTheDocument();
   });
 
   it("SECURITY: never logs the token and never fires an IPC call", () => {
@@ -55,7 +55,7 @@ describe("JwtClaimsView", () => {
     Object.assign(navigator, { clipboard: { writeText } });
     render(<JwtClaimsView token={VALID_TOKEN} />);
     screen
-      .getByRole("button", { name: /kopiuj zdekodowany json/i })
+      .getByRole("button", { name: /copy decoded json/i })
       .click();
     expect(writeText).toHaveBeenCalledTimes(1);
     const copied = writeText.mock.calls[0][0] as string;

@@ -67,9 +67,9 @@ describe("GraphQL single toolbar (no duplicate RequestBar)", () => {
   it("keeps the request-type toggle, Save and Copy in the single toolbar", () => {
     render(<RequestWorkbench />);
     expect(screen.getByRole("tablist", { name: "Typ requestu" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Zapisz request" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save request" })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Kopiuj jako cURL" }),
+      screen.getByRole("button", { name: "Copy as cURL" }),
     ).toBeInTheDocument();
   });
 });

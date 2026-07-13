@@ -1,3 +1,5 @@
+import { useT } from "../../i18n/useT";
+
 interface BenchmarkProgressProps {
   completed: number;
   iterations: number;
@@ -12,6 +14,7 @@ export function BenchmarkProgress({
   iterations,
   onCancel,
 }: BenchmarkProgressProps) {
+  const t = useT();
   const pct = iterations > 0 ? Math.round((completed / iterations) * 100) : 0;
   return (
     <div className="dv-progress" aria-live="polite">
@@ -24,7 +27,7 @@ export function BenchmarkProgress({
           className="dv-btn dv-btn-danger"
           onClick={onCancel}
         >
-          Anuluj
+          {t("devtools.cancel")}
         </button>
       </div>
       <div className="dv-meter" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>

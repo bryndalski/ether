@@ -47,7 +47,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
-  useUiStore.setState({ paletteOpen: false });
+  useUiStore.setState({ paletteOpen: false, locale: "en" });
   vi.clearAllMocks();
 });
 
@@ -55,43 +55,53 @@ describe("CommandPalette", () => {
   it("renders as a dialog with grouped, real actions", () => {
     openPalette();
     render(<CommandPalette />);
-    expect(screen.getByRole("dialog", { name: "Paleta poleceń" })).toBeInTheDocument();
-    expect(screen.getByText("Nowy request")).toBeInTheDocument();
-    expect(screen.getByText("Importuj…")).toBeInTheDocument();
-    expect(screen.getByText("Kopiuj jako cURL")).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Command palette" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("New request")).toBeInTheDocument();
+    expect(screen.getByText("Import…")).toBeInTheDocument();
+    expect(screen.getByText("Copy as cURL")).toBeInTheDocument();
   });
 
-  it("'Importuj…' opens the import modal via the ui store", () => {
+  it("'Import…' opens the import modal via the ui store", () => {
     openPalette();
     render(<CommandPalette />);
-    fireEvent.click(screen.getByText("Importuj…"));
+    fireEvent.click(screen.getByText("Import…"));
     expect(useUiStore.getState().importOpen).toBe(true);
   });
 
-  it("'Przełącz środowisko → Prod' switches the env via set_active_environment", async () => {
+  it("'Switch environment → Prod' switches the env via set_active_environment", async () => {
     openPalette();
     mockInvoke.mockResolvedValue(undefined);
     render(<CommandPalette />);
-    fireEvent.click(screen.getByText("Przełącz środowisko → Prod"));
+    fireEvent.click(screen.getByText("Switch environment → Prod"));
     expect(mockInvoke).toHaveBeenCalledWith("set_active_environment", {
       id: "env-prod",
     });
   });
 
-  it("'Zapisz request' invokes the workbench-bus save closure", () => {
+  it("'Save request' invokes the workbench-bus save closure", () => {
     openPalette();
     const save = vi.fn();
     useWorkbenchActions.getState().register({ save, canSave: true });
     render(<CommandPalette />);
-    fireEvent.click(screen.getByText("Zapisz request"));
+    fireEvent.click(screen.getByText("Save request"));
     expect(save).toHaveBeenCalledTimes(1);
   });
 
-  it("'Historia' opens the history drawer", () => {
+  it("'History' opens the history drawer", () => {
     openPalette();
     useHistoryStore.setState({ drawerOpen: false });
     render(<CommandPalette />);
-    fireEvent.click(screen.getByText("Historia"));
+    fireEvent.click(screen.getByText("History"));
     expect(useHistoryStore.getState().drawerOpen).toBe(true);
+  });
+
+  it("switches the app language to Polish from the palette", () => {
+    openPalette();
+    useUiStore.setState({ locale: "en" });
+    render(<CommandPalette />);
+    fireEvent.click(screen.getByText("Language: Polski"));
+    expect(useUiStore.getState().locale).toBe("pl");
   });
 });

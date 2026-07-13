@@ -3,6 +3,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { lintGutter, linter } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
+import { useT } from "../../i18n/useT";
 
 interface BodyEditorProps {
   value: string;
@@ -28,6 +29,7 @@ const editorTheme = EditorView.theme({
 /** CodeMirror 6 body editor. JSON content types get a non-blocking parse
  *  linter (Send is still allowed; Rust validates). */
 export function BodyEditor({ value, contentType, onChange }: BodyEditorProps) {
+  const t = useT();
   const isJson = contentType.includes("json");
   const extensions = useMemo(() => {
     if (!isJson) return [editorTheme];
@@ -35,7 +37,7 @@ export function BodyEditor({ value, contentType, onChange }: BodyEditorProps) {
   }, [isJson]);
 
   return (
-    <div aria-label="Treść requestu">
+    <div aria-label={t("workbench.requestBody")}>
       <CodeMirror
         value={value}
         theme="dark"

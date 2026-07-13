@@ -1,5 +1,6 @@
 import type { KeyValue } from "../../lib/types";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface KeyValueTableProps {
   rows: KeyValue[];
@@ -25,6 +26,7 @@ export function KeyValueTable({
   valuePlaceholder = "Value",
   keyClassName = "k",
 }: KeyValueTableProps) {
+  const t = useT();
   // Render the real rows plus one ghost row for adding the next entry.
   const displayRows = [...rows, EMPTY];
 
@@ -52,13 +54,13 @@ export function KeyValueTable({
       </div>
       {displayRows.map((row, index) => {
         const isGhost = index === rows.length;
-        const label = row.name || (isGhost ? "nowy wpis" : keyPlaceholder);
+        const label = row.name || (isGhost ? t("sidebar.newEntry") : keyPlaceholder);
         return (
           <div className="kv" key={index}>
             <input
               type="checkbox"
               checked={row.enabled}
-              aria-label={`Włącz ${label}`}
+              aria-label={t("workbench.enable", { label })}
               onChange={(event) =>
                 patchRow(index, { enabled: event.target.checked })
               }
@@ -88,7 +90,7 @@ export function KeyValueTable({
               <button
                 type="button"
                 className="rm"
-                aria-label={`Usuń ${label}`}
+                aria-label={t("workbench.remove", { label })}
                 onClick={() => removeRow(index)}
               >
                 <Icon name="i-x" size={13} />

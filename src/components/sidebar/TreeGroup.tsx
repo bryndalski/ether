@@ -5,6 +5,7 @@ import { Icon } from "../common/Icon";
 import { RowContextMenu, type MenuItem } from "./RowContextMenu";
 import { InlineRename } from "./InlineRename";
 import { RequestRow } from "./RequestRow";
+import { useT } from "../../i18n/useT";
 import type { SidebarTreeApi } from "../../hooks/useSidebarTree";
 import type { SidebarDnDApi } from "../../hooks/useSidebarDnD";
 
@@ -35,6 +36,7 @@ export function TreeGroup({
   const removeCollection = useCollectionsStore(
     (state) => state.removeCollection,
   );
+  const t = useT();
 
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const expanded = view.isExpanded(node.collection.id);
@@ -42,22 +44,22 @@ export function TreeGroup({
 
   const items: MenuItem[] = [
     {
-      label: "Zmień nazwę",
+      label: t("common.rename"),
       icon: "i-copy",
       onSelect: () => view.startRename(node.collection.id),
     },
     {
-      label: "Nowy request",
+      label: t("palette.newRequest"),
       icon: "i-plus",
       onSelect: () => void createRequest(node.collection.id),
     },
     {
-      label: "Nowa podkolekcja",
+      label: t("sidebar.newSubcollection"),
       icon: "i-folder",
       onSelect: () => void createCollection(node.collection.id),
     },
     {
-      label: "Usuń",
+      label: t("common.delete"),
       icon: "i-trash",
       danger: true,
       onSelect: () => void removeCollection(node.collection.id),
@@ -104,7 +106,7 @@ export function TreeGroup({
           <button
             type="button"
             className="tree-kebab"
-            aria-label={`Akcje dla ${node.collection.name}`}
+            aria-label={t("sidebar.rowActions", { name: node.collection.name })}
             onClick={(event) => {
               event.stopPropagation();
               const rect = event.currentTarget.getBoundingClientRect();
@@ -148,7 +150,7 @@ export function TreeGroup({
               style={{ paddingLeft: 8 + (depth + 1) * 14 }}
               onClick={() => void createRequest(node.collection.id)}
             >
-              Pusto — dodaj request
+              {t("sidebar.emptyAddRequest")}
             </button>
           )}
         </>

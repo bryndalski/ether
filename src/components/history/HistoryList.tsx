@@ -2,6 +2,7 @@ import { useHistoryStore } from "../../state/useHistoryStore";
 import { EmptyState } from "../common/EmptyState";
 import { Icon } from "../common/Icon";
 import { HistoryRow } from "./HistoryRow";
+import { useT } from "../../i18n/useT";
 
 interface HistoryListProps {
   now: number;
@@ -18,12 +19,13 @@ export function HistoryList({ now, onReplay }: HistoryListProps) {
   const selectedIds = useHistoryStore((state) => state.selectedIds);
   const openEntry = useHistoryStore((state) => state.openEntry);
   const toggleSelect = useHistoryStore((state) => state.toggleSelect);
+  const t = useT();
 
   if (error) {
     return (
       <div className="hist-list">
         <div className="hist-banner" role="alert" aria-live="polite">
-          Nie udało się wczytać historii: {error}
+          {t("history.loadError", { error })}
         </div>
       </div>
     );
@@ -45,8 +47,8 @@ export function HistoryList({ now, onReplay }: HistoryListProps) {
     return (
       <div className="hist-list">
         <EmptyState
-          headline="Brak historii"
-          hint="Wyślij request, żeby zobaczyć go tutaj."
+          headline={t("history.emptyHeadline")}
+          hint={t("history.emptyHint")}
           icon={<Icon name="i-history" size={28} />}
         />
       </div>

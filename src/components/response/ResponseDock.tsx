@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useUiStore } from "../../state/useUiStore";
+import { useT } from "../../i18n/useT";
 import type { SendState } from "../../hooks/useSendRequest";
 import type { BenchConfig, BenchState } from "../../hooks/useBenchmark";
 import type { UseWatchMode } from "../../hooks/useWatchMode";
@@ -73,6 +74,7 @@ function contentType(headers: { name: string; value: string }[]): string | undef
 export function ResponseDock({ sendState, snapshot, devTools, testing }: ResponseDockProps) {
   const placement = useUiStore((state) => state.responsePlacement);
   const responseSize = useUiStore((state) => state.responseSize);
+  const t = useT();
   const [tab, setTab] = useState<ResponseTabKey>("Body");
 
   const sizeStyle =
@@ -88,6 +90,7 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
   // Benchmark is live-only, so a snapshot never gets a Bench tab.
   if (snapshot) {
     return renderResponse(
+      t,
       snapshot.response,
       tab,
       setTab,
@@ -104,7 +107,7 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
   if (phase === "idle" || phase === "interpolating" || phase === "in-flight") {
     return (
       <section
-        aria-label="Odpowiedź"
+        aria-label={t("response.title")}
         className="response"
         style={{ ...sizeStyle, ...borderStyle }}
       >
@@ -112,10 +115,10 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
           <EmptyState
             headline={
               phase === "in-flight"
-                ? "Wysyłam request…"
-                : "Naciśnij Send i zobacz waterfall"
+                ? t("response.sending")
+                : t("response.pressSend")
             }
-            hint="Odpowiedź, nagłówki i oś czasu pojawią się tutaj."
+            hint={t("response.emptyHint")}
             shortcut="⌘↵"
             icon="~"
           />
@@ -128,7 +131,7 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
     const isError = phase === "error";
     return (
       <section
-        aria-label="Odpowiedź"
+        aria-label={t("response.title")}
         className="response"
         style={{ ...sizeStyle, ...borderStyle }}
       >
@@ -149,7 +152,7 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
               fontSize: "var(--lok-fs-sm)",
             }}
           >
-            {isError ? error : "Request anulowany."}
+            {isError ? error : t("response.canceled")}
           </div>
         </div>
       </section>
@@ -159,6 +162,7 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
   // success
   if (!response) return null;
   return renderResponse(
+    t,
     response,
     tab,
     setTab,
@@ -174,6 +178,7 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
  *  History snapshot. When `executedAt` is set a "History · {when}" ribbon marks
  *  the response as a stored snapshot, not a live one. */
 function renderResponse(
+  t: ReturnType<typeof useT>,
   response: ResponseData,
   tab: ResponseTabKey,
   setTab: (tab: ResponseTabKey) => void,
@@ -206,7 +211,7 @@ function renderResponse(
 
   return (
     <section
-      aria-label="Odpowiedź"
+      aria-label={t("response.title")}
       className="response"
       style={{ ...sizeStyle, ...borderStyle }}
     >
@@ -230,7 +235,7 @@ function renderResponse(
             }}
             title={executedAt}
           >
-            History · {relativeTimeLabel(executedAt)}
+            {t("history.snapshotRibbon", { when: relativeTimeLabel(executedAt) })}
           </span>
         )}
       </div>

@@ -2,6 +2,7 @@ import type { Assertion } from "../../../lib/types";
 import { defaultAssertion } from "../../../lib/assertionDefaults";
 import { Icon } from "../../common/Icon";
 import { AssertionRow } from "./AssertionRow";
+import { useT } from "../../../i18n/useT";
 
 interface AssertionListProps {
   assertions: Assertion[];
@@ -10,6 +11,7 @@ interface AssertionListProps {
 
 /** The editable list of assertions. Add appends a default `status_equals`. */
 export function AssertionList({ assertions, onChange }: AssertionListProps) {
+  const t = useT();
   function patch(index: number, next: Assertion) {
     onChange(assertions.map((a, i) => (i === index ? next : a)));
   }
@@ -33,7 +35,7 @@ export function AssertionList({ assertions, onChange }: AssertionListProps) {
       ))}
       <button type="button" className="test-add" onClick={add}>
         <Icon name="i-plus" size={13} />
-        Dodaj asercję
+        {t("tests.addAssertion")}
       </button>
     </div>
   );

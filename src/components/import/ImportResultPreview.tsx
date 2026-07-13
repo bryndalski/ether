@@ -1,6 +1,7 @@
 import { MethodBadge } from "../common/MethodBadge";
 import { Icon } from "../common/Icon";
 import type { ImportResult } from "../../lib/types";
+import { useT } from "../../i18n/useT";
 
 interface ImportResultPreviewProps {
   result: ImportResult;
@@ -18,11 +19,15 @@ function hostOf(url: string): string {
  *  prominent warnings block (skipped scripts / detected secrets), never
  *  color-only (icon + text), announced via aria-live. */
 export function ImportResultPreview({ result }: ImportResultPreviewProps) {
+  const t = useT();
   return (
     <div className="import-modal-body" style={{ paddingTop: 0 }}>
       <p className="import-counts lok-tnums">
-        {result.collections.length} kolekcji · {result.requests.length} requestów ·{" "}
-        {result.environments.length} środowisk
+        {t("import.previewSummary", {
+          collections: result.collections.length,
+          requests: result.requests.length,
+          environments: result.environments.length,
+        })}
       </p>
 
       {result.warnings.length > 0 && (

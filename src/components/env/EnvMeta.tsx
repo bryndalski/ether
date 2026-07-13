@@ -1,6 +1,7 @@
 import type { Environment, EnvKind } from "../../lib/types";
 import { envKind } from "../../state/useEnvStore";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface EnvMetaProps {
   environment: Environment;
@@ -18,11 +19,12 @@ export function EnvMeta({
   onPatch,
 }: EnvMetaProps) {
   const kind = envKind(environment);
+  const t = useT();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div className="env-field">
-        <label htmlFor="env-name">Nazwa</label>
+        <label htmlFor="env-name">{t("env.name")}</label>
         <input
           id="env-name"
           type="text"
@@ -33,7 +35,7 @@ export function EnvMeta({
       </div>
 
       <div className="env-field">
-        <label htmlFor="env-parent">Baza (dziedziczenie)</label>
+        <label htmlFor="env-parent">{t("env.baseInheritance")}</label>
         <select
           id="env-parent"
           value={environment.parent_id ?? ""}
@@ -41,7 +43,7 @@ export function EnvMeta({
             onPatch({ parent_id: event.target.value || null })
           }
         >
-          <option value="">— (to jest baza)</option>
+          <option value="">{t("env.isBaseOption")}</option>
           {baseEnvironments
             .filter((base) => base.id !== environment.id)
             .map((base) => (
@@ -53,7 +55,7 @@ export function EnvMeta({
       </div>
 
       <div className="env-field">
-        <label htmlFor="env-kind">Rodzaj / kolor</label>
+        <label htmlFor="env-kind">{t("env.kindColor")}</label>
         <select
           id="env-kind"
           value={kind}
@@ -70,7 +72,7 @@ export function EnvMeta({
       {kind === "prod" && (
         <div className="env-prod-warn" role="note">
           <Icon name="i-shield" size={15} />
-          Środowisko produkcyjne — działaj ostrożnie.
+          {t("env.prodWarning")}
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import type { BenchStats } from "../../lib/percentile";
 import { formatMs } from "../../lib/format";
+import { useT } from "../../i18n/useT";
 
 interface BenchmarkStatsProps {
   stats: BenchStats;
@@ -18,6 +19,7 @@ const CARDS: { key: keyof BenchStats; label: string }[] = [
 /** Six stat cards (p50/p95/p99/min/max/avg), all tabular-nums, plus a small
  *  count/error footer. Pure view — numbers come from benchStats. */
 export function BenchmarkStats({ stats, errorCount }: BenchmarkStatsProps) {
+  const t = useT();
   return (
     <div>
       <div className="dv-statgrid">
@@ -32,9 +34,9 @@ export function BenchmarkStats({ stats, errorCount }: BenchmarkStatsProps) {
         ))}
       </div>
       <div className="dv-statfoot lok-tnums">
-        {stats.count} prób
+        {t("devtools.samples", { count: stats.count })}
         {errorCount > 0 && (
-          <span className="dv-staterr"> · {errorCount} błędów</span>
+          <span className="dv-staterr">{t("devtools.errors", { count: errorCount })}</span>
         )}
       </div>
     </div>

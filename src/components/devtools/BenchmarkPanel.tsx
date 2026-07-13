@@ -4,6 +4,7 @@ import { BenchmarkLauncher } from "./BenchmarkLauncher";
 import { BenchmarkProgress } from "./BenchmarkProgress";
 import { BenchmarkStats } from "./BenchmarkStats";
 import { LatencyHistogram } from "./LatencyHistogram";
+import { useT } from "../../i18n/useT";
 
 interface BenchmarkPanelProps {
   benchState: BenchState;
@@ -26,6 +27,7 @@ export function BenchmarkPanel({
   onCancel,
   onSelectSample,
 }: BenchmarkPanelProps) {
+  const t = useT();
   const { phase, config, completed, samples, stats, selectedIndex } = benchState;
   const errorCount = samples.filter((sample) => !sample.ok).length;
   const selectedSample =
@@ -55,7 +57,7 @@ export function BenchmarkPanel({
       {(phase === "done" || phase === "canceled") && stats && (
         <>
           {phase === "canceled" && (
-            <p className="dv-note">Anulowano — statystyki z {stats.count} prób.</p>
+            <p className="dv-note">{t("devtools.canceledWithStats", { count: stats.count })}</p>
           )}
           <BenchmarkStats stats={stats} errorCount={errorCount} />
           <LatencyHistogram
@@ -67,7 +69,10 @@ export function BenchmarkPanel({
           {selectedSample && (
             <div className="dv-sample-waterfall">
               <div className="dv-sample-head lok-tnums">
-                Próba {selectedSample.index + 1} · {selectedSample.status}
+                {t("devtools.sample", {
+                  index: selectedSample.index + 1,
+                  status: selectedSample.status,
+                })}
               </div>
               <TimelineWaterfall timings={selectedSample.timings} />
             </div>
@@ -77,7 +82,7 @@ export function BenchmarkPanel({
 
       {phase === "error" && (
         <p className="dv-note dv-note-danger">
-          Benchmark nie powiódł się: {benchState.error}
+          {t("devtools.benchmarkFailed", { error: benchState.error ?? "" })}
         </p>
       )}
     </div>

@@ -43,7 +43,7 @@ pub fn init(app: &AppHandle) -> Result<(), String> {
         .app_data_dir()
         .map_err(|e| format!("app_data_dir: {e}"))?;
     std::fs::create_dir_all(&dir).map_err(|e| format!("create app dir: {e}"))?;
-    let db_path = dir.join("lokowka.db");
+    let db_path = dir.join("ether.db");
     let conn = Connection::open(&db_path).map_err(sql_err)?;
     conn.pragma_update(None, "journal_mode", "WAL")
         .map_err(sql_err)?;

@@ -21,8 +21,8 @@ describe("TestsPanel", () => {
         onScrubConfigChange={() => {}}
       />,
     );
-    expect(screen.getByLabelText("Typ asercji 1")).toBeInTheDocument();
-    expect(screen.getByLabelText("Typ asercji 2")).toBeInTheDocument();
+    expect(screen.getByLabelText("Assertion type 1")).toBeInTheDocument();
+    expect(screen.getByLabelText("Assertion type 2")).toBeInTheDocument();
   });
 
   it("adding a row dispatches a new default status_equals", () => {
@@ -35,7 +35,7 @@ describe("TestsPanel", () => {
         onScrubConfigChange={() => {}}
       />,
     );
-    fireEvent.click(screen.getByText("Dodaj asercję"));
+    fireEvent.click(screen.getByText("Add assertion"));
     expect(onChange).toHaveBeenCalledWith([
       { type: "status_equals", expected: 200, enabled: true },
     ]);
@@ -50,7 +50,7 @@ describe("TestsPanel", () => {
         onScrubConfigChange={() => {}}
       />,
     );
-    const select = screen.getByLabelText("Typ asercji 1") as HTMLSelectElement;
+    const select = screen.getByLabelText("Assertion type 1") as HTMLSelectElement;
     expect(select.options).toHaveLength(9);
   });
 });

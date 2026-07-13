@@ -33,21 +33,21 @@ describe("JsonDiffView", () => {
     expect(screen.getByText("Changed")).toBeInTheDocument();
     // type-changed shows the number → string transition + a Type pill.
     // The line text lives in the row's aria-label (split across spans in the DOM).
-    expect(screen.getByLabelText(/Zmieniono typ \$\.n:.*number → string/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Type changed \$\.n:.*number → string/)).toBeInTheDocument();
     // Both the kind badge ("Type") and the extra Type pill render.
     expect(screen.getAllByText("Type").length).toBeGreaterThanOrEqual(1);
     // aria-labels carry meaning for screen readers
-    expect(screen.getByLabelText(/Dodano \$\.a/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Added \$\.a/)).toBeInTheDocument();
   });
 
   it("shows the identical-body state for an empty diff", () => {
     render(<JsonDiffView entries={[]} />);
-    expect(screen.getByText("Odpowiedzi identyczne (body).")).toBeInTheDocument();
+    expect(screen.getByText("Responses are identical (body).")).toBeInTheDocument();
   });
 
   it("falls back to a text diff for non-JSON bodies", () => {
     render(<JsonDiffView entries={[]} fallback={{ before: "<a>", after: "<b>" }} />);
-    expect(screen.getByText(/diff tekstowy/)).toBeInTheDocument();
+    expect(screen.getByText(/text diff/)).toBeInTheDocument();
   });
 });
 
@@ -62,7 +62,7 @@ describe("TimingDiffView", () => {
     expect(screen.getByText("Total")).toBeInTheDocument();
     // faster row: -20% (pctChange uses an ASCII minus) and faster-classed cells
     expect(screen.getByText("-20%")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Total: szybszy o 20 ms/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Total: faster by 20 ms/)).toBeInTheDocument();
     // before === 0 phase shows "—" (guarded pct)
     expect(screen.getByText("—")).toBeInTheDocument();
   });

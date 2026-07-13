@@ -1,4 +1,6 @@
 import type { AssertionType } from "../../../lib/types";
+import { useT, type TranslateFn } from "../../../i18n/useT";
+import type { TKey } from "../../../i18n";
 
 interface AssertionTypeSelectProps {
   value: AssertionType;
@@ -6,32 +8,36 @@ interface AssertionTypeSelectProps {
   index: number;
 }
 
-/** The fixed menu of the 9 scriptless assertion types. */
-const TYPE_LABELS: Record<AssertionType, string> = {
-  status_equals: "Status =",
-  status_in_range: "Status w zakresie",
-  header_exists: "Nagłówek istnieje",
-  header_equals: "Nagłówek =",
-  json_path_exists: "JSONPath istnieje",
-  json_path_equals: "JSONPath =",
-  json_path_type: "JSONPath typ",
-  body_contains: "Body zawiera",
-  response_time_below: "Czas < ms",
+/** The fixed menu of the 9 scriptless assertion types, keyed to i18n. */
+const TYPE_KEYS: Record<AssertionType, TKey> = {
+  status_equals: "tests.typeStatusEquals",
+  status_in_range: "tests.typeStatusInRange",
+  header_exists: "tests.typeHeaderExists",
+  header_equals: "tests.typeHeaderEquals",
+  json_path_exists: "tests.typeJsonPathExists",
+  json_path_equals: "tests.typeJsonPathEquals",
+  json_path_type: "tests.typeJsonPathType",
+  body_contains: "tests.typeBodyContains",
+  response_time_below: "tests.typeResponseTimeBelow",
 };
 
-const TYPES = Object.keys(TYPE_LABELS) as AssertionType[];
+const TYPES = Object.keys(TYPE_KEYS) as AssertionType[];
+
+const typeLabel = (t: TranslateFn, type: AssertionType): string =>
+  t(TYPE_KEYS[type]);
 
 export function AssertionTypeSelect({ value, onChange, index }: AssertionTypeSelectProps) {
+  const t = useT();
   return (
     <select
       className="test-type"
       value={value}
-      aria-label={`Typ asercji ${index + 1}`}
+      aria-label={t("tests.assertionType", { index: index + 1 })}
       onChange={(event) => onChange(event.target.value as AssertionType)}
     >
       {TYPES.map((type) => (
         <option key={type} value={type}>
-          {TYPE_LABELS[type]}
+          {typeLabel(t, type)}
         </option>
       ))}
     </select>

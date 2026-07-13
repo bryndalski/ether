@@ -22,9 +22,9 @@ describe("WatchPanel", () => {
     const watch = makeWatch({ watching: false });
     render(<WatchPanel watch={watch} />);
 
-    const startButton = screen.getByRole("button", { name: "Uruchom watch" });
+    const startButton = screen.getByRole("button", { name: "Start watch" });
     expect(startButton).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Zatrzymaj watch" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Stop watch" })).toBeNull();
 
     fireEvent.click(startButton);
     expect(watch.start).toHaveBeenCalledTimes(1);
@@ -34,8 +34,8 @@ describe("WatchPanel", () => {
     const watch = makeWatch({ watching: true });
     render(<WatchPanel watch={watch} />);
 
-    expect(screen.queryByRole("button", { name: "Uruchom watch" })).toBeNull();
-    const stopButton = screen.getByRole("button", { name: "Zatrzymaj watch" });
+    expect(screen.queryByRole("button", { name: "Start watch" })).toBeNull();
+    const stopButton = screen.getByRole("button", { name: "Stop watch" });
 
     fireEvent.click(stopButton);
     expect(watch.stop).toHaveBeenCalledTimes(1);

@@ -1,5 +1,6 @@
 import type { MultipartPart } from "../../lib/types";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface MultipartTableProps {
   parts: MultipartPart[];
@@ -11,6 +12,7 @@ const EMPTY_TEXT: MultipartPart = { kind: "text", name: "", value: "" };
 /** Multipart parts grid (text parts; file parts show their path read-only —
  *  the file picker is a later milestone). Controlled by useRequestDraft. */
 export function MultipartTable({ parts, onChange }: MultipartTableProps) {
+  const t = useT();
   const displayParts = [...parts, EMPTY_TEXT];
 
   function patchTextPart(index: number, patch: Partial<{ name: string; value: string }>) {
@@ -48,7 +50,7 @@ export function MultipartTable({ parts, onChange }: MultipartTableProps) {
               className="k"
               value={part.name}
               placeholder="Field"
-              aria-label={`Pole ${index + 1}`}
+              aria-label={t("workbench.fieldIndex", { index: index + 1 })}
               spellCheck={false}
               autoComplete="off"
               onChange={(event) =>
@@ -60,7 +62,7 @@ export function MultipartTable({ parts, onChange }: MultipartTableProps) {
               type="text"
               value={isFile ? part.path : part.value}
               placeholder="Value"
-              aria-label={`Wartość ${index + 1}`}
+              aria-label={t("workbench.valueIndex", { index: index + 1 })}
               spellCheck={false}
               autoComplete="off"
               onChange={(event) =>
@@ -74,7 +76,9 @@ export function MultipartTable({ parts, onChange }: MultipartTableProps) {
               <button
                 type="button"
                 className="rm"
-                aria-label={`Usuń ${part.name || "część"}`}
+                aria-label={t("workbench.removePart", {
+                  name: part.name || t("workbench.part"),
+                })}
                 onClick={() => removePart(index)}
               >
                 <Icon name="i-x" size={13} />

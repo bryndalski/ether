@@ -1,5 +1,6 @@
 import type { KeyValue, ScrubConfig } from "../../../lib/types";
 import { KeyValueTable } from "../KeyValueTable";
+import { useT } from "../../../i18n/useT";
 
 interface SnapshotConfigCardProps {
   config: ScrubConfig;
@@ -10,6 +11,7 @@ interface SnapshotConfigCardProps {
  *  paths are edited as a single-column KV list (value only). Persisted with the
  *  snapshot on Save/Accept, not here. */
 export function SnapshotConfigCard({ config, onChange }: SnapshotConfigCardProps) {
+  const t = useT();
   const rows: KeyValue[] = config.paths.map((path) => ({
     name: path,
     value: "",
@@ -18,10 +20,8 @@ export function SnapshotConfigCard({ config, onChange }: SnapshotConfigCardProps
 
   return (
     <div className="snap-config">
-      <h3 className="test-heading">Snapshot — pola do scrubowania</h3>
-      <p className="test-hint">
-        Ścieżki JSONPath pomijane przy porównaniu wzorca (np. znaczniki czasu, id).
-      </p>
+      <h3 className="test-heading">{t("snapshot.scrubHeading")}</h3>
+      <p className="test-hint">{t("snapshot.scrubPaths")}</p>
       <KeyValueTable
         rows={rows}
         keyHeader="JSONPath"
@@ -38,7 +38,7 @@ export function SnapshotConfigCard({ config, onChange }: SnapshotConfigCardProps
           checked={config.auto_timestamps}
           onChange={(event) => onChange({ ...config, auto_timestamps: event.target.checked })}
         />
-        Auto-scrub znaczników czasu (ISO-8601)
+        {t("snapshot.autoScrubTimestamps")}
       </label>
       <label className="snap-toggle">
         <input
@@ -46,7 +46,7 @@ export function SnapshotConfigCard({ config, onChange }: SnapshotConfigCardProps
           checked={config.auto_uuids}
           onChange={(event) => onChange({ ...config, auto_uuids: event.target.checked })}
         />
-        Auto-scrub UUID (RFC-4122)
+        {t("snapshot.autoScrubUuids")}
       </label>
     </div>
   );

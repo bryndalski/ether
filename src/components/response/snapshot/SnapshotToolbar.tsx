@@ -1,5 +1,6 @@
 import type { SnapshotVerdict } from "../../../lib/snapshot";
 import { relativeTimeLabel } from "../../../lib/relativeTime";
+import { useT } from "../../../i18n/useT";
 
 interface SnapshotToolbarProps {
   verdict: SnapshotVerdict;
@@ -17,31 +18,32 @@ export function SnapshotToolbar({
   onAccept,
   onDelete,
 }: SnapshotToolbarProps) {
+  const t = useT();
   const hasBaseline = verdict.status !== "no-baseline";
   return (
     <div className="snap-toolbar">
       {!hasBaseline ? (
         <button type="button" className="snap-btn primary" onClick={onSave}>
-          Zapisz snapshot
+          {t("snapshot.saveSnapshot")}
         </button>
       ) : (
         <>
           <button
             type="button"
             className="snap-btn"
-            aria-label="Zaakceptuj bieżącą odpowiedź jako nowy wzorzec"
+            aria-label={t("snapshot.acceptCurrentAria")}
             disabled={verdict.status === "pass"}
             onClick={onAccept}
           >
-            Akceptuj zmianę
+            {t("snapshot.acceptChange")}
           </button>
           <button
             type="button"
             className="snap-btn danger"
-            aria-label="Usuń wzorzec snapshotu"
+            aria-label={t("snapshot.deleteBaselineAria")}
             onClick={onDelete}
           >
-            Usuń wzorzec
+            {t("snapshot.deleteBaseline")}
           </button>
           {createdAt && (
             <span className="snap-when lok-tnums" title={createdAt}>

@@ -1,6 +1,7 @@
 import type { StreamEvent, SubConnState } from "../../hooks/useSubscription";
 import { StreamEventRow } from "./StreamEventRow";
 import { EmptyState } from "../common/EmptyState";
+import { useT } from "../../i18n/useT";
 
 interface StreamEventListProps {
   events: StreamEvent[]; // newest-first
@@ -11,14 +12,17 @@ interface StreamEventListProps {
  *  panel (the shell never scrolls) and an aria-live region so screen readers
  *  hear new events as the server pushes them. */
 export function StreamEventList({ events, connState }: StreamEventListProps) {
+  const t = useT();
   if (events.length === 0) {
     return (
       <div className="sub-event-list lok-scroll">
         <EmptyState
           headline={
-            connState === "connecting" ? "Connecting…" : "Waiting for events…"
+            connState === "connecting"
+              ? t("stream.connecting")
+              : t("stream.waitingForEvents")
           }
-          hint="Events stream in as the server pushes them."
+          hint={t("stream.eventsHint")}
           icon="~"
         />
       </div>
@@ -26,7 +30,7 @@ export function StreamEventList({ events, connState }: StreamEventListProps) {
   }
 
   return (
-    <ul className="sub-event-list lok-scroll" aria-live="polite" aria-label="Strumień zdarzeń subskrypcji">
+    <ul className="sub-event-list lok-scroll" aria-live="polite" aria-label={t("stream.subscriptionEvents")}>
       {events.map((event) => (
         <StreamEventRow key={event.seq} event={event} />
       ))}

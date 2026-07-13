@@ -1,5 +1,6 @@
 import type { KeyValue } from "../../lib/types";
 import { KeyValueTable } from "../workbench/KeyValueTable";
+import { useT } from "../../i18n/useT";
 
 interface HeadersPanelProps {
   headers: KeyValue[];
@@ -10,11 +11,12 @@ interface HeadersPanelProps {
  *  one place. Reuses the workbench KeyValueTable so an Authorization/X-Api-Key
  *  header configured here powers both the schema fetch and the operation. */
 export function HeadersPanel({ headers, onChange }: HeadersPanelProps) {
+  const t = useT();
   return (
     <div
       className="vars-body lok-scroll"
       role="tabpanel"
-      aria-label="Nagłówki operacji"
+      aria-label={t("graphql.operationHeaders")}
     >
       <KeyValueTable
         rows={headers}

@@ -1,5 +1,6 @@
 import type { WatchRun } from "../../../hooks/useWatchMode";
 import { relativeTimeLabel } from "../../../lib/relativeTime";
+import { useT } from "../../../i18n/useT";
 
 interface WatchRunRowProps {
   run: WatchRun;
@@ -7,12 +8,16 @@ interface WatchRunRowProps {
 
 /** One watch run: overall verdict + status + ms + assertions p/t + snapshot. */
 export function WatchRunRow({ run }: WatchRunRowProps) {
+  const t = useT();
   const verdict = run.ok ? "✓" : "✗";
   const verdictWord = run.ok ? "OK" : "Fail";
   return (
     <div
       className={`watch-run ${run.ok ? "pass" : "fail"}`}
-      aria-label={`Przebieg ${verdictWord}, status ${run.status ?? "błąd"}`}
+      aria-label={t("watch.runAria", {
+        verdict: verdictWord,
+        status: run.status ?? t("watch.runError"),
+      })}
     >
       <span className="watch-sigil" aria-hidden="true">
         {verdict}
@@ -30,7 +35,7 @@ export function WatchRunRow({ run }: WatchRunRowProps) {
         </span>
       )}
       {run.snapshot && (
-        <span className="watch-snap" aria-label={`snapshot ${run.snapshot}`}>
+        <span className="watch-snap" aria-label={t("watch.snapshotAria", { status: run.snapshot })}>
           {run.snapshot === "pass" ? "snap ✓" : "snap ✗"}
         </span>
       )}

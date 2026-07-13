@@ -3,6 +3,7 @@ import { Icon } from "../common/Icon";
 import { ConfirmDialog } from "../env/ConfirmDialog";
 import { HistoryScopeToggle } from "./HistoryScopeToggle";
 import type { HistoryScope } from "../../state/useHistoryStore";
+import { useT } from "../../i18n/useT";
 
 interface HistoryDrawerHeaderProps {
   scope: HistoryScope;
@@ -23,11 +24,12 @@ export function HistoryDrawerHeader({
   onClose,
 }: HistoryDrawerHeaderProps) {
   const [confirming, setConfirming] = useState(false);
+  const t = useT();
 
   return (
     <div className="hist-head">
       <span id="hist-title" className="hist-title">
-        Historia
+        {t("statusbar.history")}
       </span>
       <HistoryScopeToggle
         scope={scope}
@@ -37,8 +39,8 @@ export function HistoryDrawerHeader({
       <button
         type="button"
         className="hist-iconbtn danger"
-        aria-label="Wyczyść historię"
-        title="Wyczyść całą historię"
+        aria-label={t("history.clearHistory")}
+        title={t("history.clearAllHistory")}
         style={{ marginLeft: "auto" }}
         onClick={() => setConfirming(true)}
       >
@@ -47,16 +49,16 @@ export function HistoryDrawerHeader({
       <button
         type="button"
         className="hist-iconbtn"
-        aria-label="Zamknij historię"
+        aria-label={t("history.closeHistory")}
         onClick={onClose}
       >
         <Icon name="i-x" size={15} />
       </button>
       {confirming && (
         <ConfirmDialog
-          title="Wyczyścić historię?"
-          message="Usunąć całą historię? Tej operacji nie można cofnąć."
-          confirmLabel="Usuń wszystko"
+          title={t("history.clearConfirmTitle")}
+          message={t("history.clearConfirmMessage")}
+          confirmLabel={t("history.clearConfirmButton")}
           onConfirm={() => {
             setConfirming(false);
             onClear();

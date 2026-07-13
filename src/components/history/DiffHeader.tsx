@@ -2,6 +2,7 @@ import { statusText } from "../../lib/httpStatus";
 import { relativeTimeLabel } from "../../lib/relativeTime";
 import type { HistoryEntry } from "../../lib/types";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface DiffHeaderProps {
   a: HistoryEntry;
@@ -22,6 +23,7 @@ function chip(label: string, entry: HistoryEntry, now: number) {
 
 /** A/B chips labeled by executed_at, plus close. */
 export function DiffHeader({ a, b, now, onClose }: DiffHeaderProps) {
+  const t = useT();
   return (
     <div className="diff-head">
       {chip("A ", a, now)}
@@ -30,7 +32,7 @@ export function DiffHeader({ a, b, now, onClose }: DiffHeaderProps) {
       <button
         type="button"
         className="hist-iconbtn"
-        aria-label="Zamknij porównanie"
+        aria-label={t("diff.closeCompare")}
         style={{ marginLeft: "auto" }}
         onClick={onClose}
       >

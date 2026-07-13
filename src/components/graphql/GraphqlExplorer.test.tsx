@@ -109,7 +109,7 @@ describe("GraphqlExplorer", () => {
     render(<Harness />);
     await screen.findByRole("tree");
 
-    fireEvent.click(screen.getByLabelText("Zaznacz pole user"));
+    fireEvent.click(screen.getByLabelText("Select field user"));
 
     await waitFor(() =>
       expect(screen.getByTestId("query").textContent).toContain("user"),
@@ -126,11 +126,11 @@ describe("GraphqlExplorer", () => {
 
     await waitFor(() =>
       expect(
-        (screen.getByLabelText("Zaznacz pole user") as HTMLInputElement).checked,
+        (screen.getByLabelText("Select field user") as HTMLInputElement).checked,
       ).toBe(true),
     );
     expect(
-      (screen.getByLabelText("Zaznacz pole users") as HTMLInputElement).checked,
+      (screen.getByLabelText("Select field users") as HTMLInputElement).checked,
     ).toBe(false);
   });
 
@@ -144,10 +144,10 @@ describe("GraphqlExplorer", () => {
     render(<Harness />);
     await screen.findByRole("tree");
     expect(
-      screen.getByRole("button", { name: "Uruchom operację GraphQL" }),
+      screen.getByRole("button", { name: "Run GraphQL operation" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Odśwież schemat" }),
+      screen.getByRole("button", { name: "Refresh schema" }),
     ).toBeInTheDocument();
   });
 
@@ -177,9 +177,9 @@ describe("GraphqlExplorer", () => {
     render(<Harness />);
     await screen.findByRole("tree");
 
-    fireEvent.click(screen.getByLabelText("Zaznacz pole user"));
+    fireEvent.click(screen.getByLabelText("Select field user"));
 
-    const run = screen.getByRole("button", { name: "Uruchom operację GraphQL" });
+    const run = screen.getByRole("button", { name: "Run GraphQL operation" });
     await waitFor(() => expect(run).not.toBeDisabled());
     fireEvent.click(run);
     expect(screen.getByTestId("runs").textContent).toBe("1");

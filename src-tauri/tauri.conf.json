@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Lokówka",
+  "productName": "Ether",
   "version": "0.1.0",
-  "identifier": "com.bryndalski.lokowka",
+  "identifier": "com.bryndalski.ether",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Lokówka",
+        "title": "Ether",
         "width": 1280,
         "height": 820,
         "minWidth": 1024,
@@ -30,8 +30,8 @@
     "targets": ["dmg", "app"],
     "category": "public.app-category.developer-tools",
     "copyright": "© 2026 Jakub Bryndal",
-    "shortDescription": "Local-first API client with curl under the hood",
-    "longDescription": "Lokówka is a local-first API client that runs curl under the hood. Compose, send, and inspect HTTP and GraphQL requests from a native macOS desktop app — no cloud, no telemetry, your requests stay on your machine.",
+    "shortDescription": "Local-first API client — requests into the void",
+    "longDescription": "Ether is a local-first API client that runs curl under the hood. Compose, send, and inspect HTTP and GraphQL requests from a native macOS desktop app — requests go into the void, nothing escapes your machine: no cloud, no telemetry.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

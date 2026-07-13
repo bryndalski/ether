@@ -1,5 +1,8 @@
+import { useT } from "../../i18n/useT";
+
 /** Brand wordmark painted with the heat gradient. */
 export function Wordmark() {
+  const t = useT();
   return (
     <div className="flex items-center gap-2 pl-2">
       <span
@@ -15,7 +18,7 @@ export function Wordmark() {
           letterSpacing: "var(--lok-tracking-tight)",
         }}
       >
-        Lokówka
+        {t("brand.name")}
       </span>
     </div>
   );

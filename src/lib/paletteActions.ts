@@ -1,9 +1,12 @@
 // Pure ⌘K action registry. Given the live context, returns a flat list of
 // PaletteAction descriptors whose `run` closures call the injected store/IPC
 // path (never a private re-implementation). No React, no module-scope effects —
-// so the whole registry is unit-testable in isolation.
+// so the whole registry is unit-testable in isolation. Labels are localized via
+// the injected `t` translator so the palette follows the active language.
 
 import type { Environment } from "./types";
+import type { Locale } from "../i18n";
+import type { TranslateFn } from "../i18n/useT";
 
 export type PaletteGroup = "Request" | "Environments" | "Tools" | "View";
 
@@ -19,6 +22,8 @@ export interface PaletteAction {
 }
 
 export interface PaletteContext {
+  t: TranslateFn;
+  locale: Locale;
   environments: Environment[];
   activeEnvironmentId: string | null;
   activeRequestPresent: boolean;
@@ -35,14 +40,17 @@ export interface PaletteContext {
   openHistory: () => void;
   runBenchmark: () => void;
   toggleTheme: () => void;
+  setLocale: (locale: Locale) => void;
 }
 
 export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
+  const { t } = ctx;
+
   const envRows: PaletteAction[] = ctx.environments.map((environment) => ({
     id: `env-switch-${environment.id}`,
     group: "Environments",
-    label: `Przełącz środowisko → ${environment.name}`,
-    keywords: ["env", "środowisko", environment.name],
+    label: t("palette.switchEnvironment", { name: environment.name }),
+    keywords: ["env", "środowisko", "environment", environment.name],
     active: environment.id === ctx.activeEnvironmentId,
     run: () => ctx.switchEnvironment(environment.id),
   }));
@@ -51,7 +59,7 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "new-request",
       group: "Request",
-      label: "Nowy request",
+      label: t("palette.newRequest"),
       shortcut: "⌘N",
       keywords: ["new", "nowy"],
       run: ctx.newRequest,
@@ -59,7 +67,7 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "save-request",
       group: "Request",
-      label: "Zapisz request",
+      label: t("palette.saveRequest"),
       shortcut: "⌘S",
       keywords: ["save", "zapisz"],
       disabled: !ctx.dirty,
@@ -68,7 +76,7 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "send-request",
       group: "Request",
-      label: "Wyślij",
+      label: t("palette.send"),
       shortcut: "⌘↵",
       keywords: ["send", "wyślij", "run"],
       disabled: !ctx.canSend,
@@ -77,7 +85,7 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "copy-as-curl",
       group: "Request",
-      label: "Kopiuj jako cURL",
+      label: t("palette.copyAsCurl"),
       shortcut: "⌘⇧C",
       keywords: ["curl", "kopiuj", "copy"],
       disabled: !ctx.activeRequestPresent,
@@ -87,14 +95,14 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "open-env-manager",
       group: "Environments",
-      label: "Otwórz menedżer środowisk",
+      label: t("palette.openEnvManager"),
       keywords: ["env", "środowiska", "manager"],
       run: ctx.openEnvManager,
     },
     {
       id: "open-import",
       group: "Tools",
-      label: "Importuj…",
+      label: t("palette.import"),
       shortcut: "⌘I",
       keywords: ["import", "postman", "insomnia", "har", "curl"],
       run: ctx.openImport,
@@ -102,7 +110,7 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "open-history",
       group: "Tools",
-      label: "Historia",
+      label: t("palette.history"),
       shortcut: "⌘Y",
       keywords: ["history", "historia"],
       run: ctx.openHistory,
@@ -110,7 +118,7 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "run-benchmark",
       group: "Tools",
-      label: "Uruchom benchmark",
+      label: t("palette.runBenchmark"),
       keywords: ["benchmark", "bench"],
       disabled: !ctx.canSend,
       run: ctx.runBenchmark,
@@ -118,9 +126,25 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
     {
       id: "toggle-theme",
       group: "View",
-      label: "Przełącz motyw",
+      label: t("palette.toggleTheme"),
       keywords: ["theme", "motyw", "dark", "light"],
       run: ctx.toggleTheme,
+    },
+    {
+      id: "language-en",
+      group: "View",
+      label: t("palette.languageEnglish"),
+      keywords: ["language", "english", "język", "en"],
+      active: ctx.locale === "en",
+      run: () => ctx.setLocale("en"),
+    },
+    {
+      id: "language-pl",
+      group: "View",
+      label: t("palette.languagePolish"),
+      keywords: ["language", "polski", "polish", "język", "pl"],
+      active: ctx.locale === "pl",
+      run: () => ctx.setLocale("pl"),
     },
   ];
 }

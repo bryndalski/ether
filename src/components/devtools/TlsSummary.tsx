@@ -1,5 +1,6 @@
 import type { TlsInfo } from "../../lib/types";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface TlsSummaryProps {
   tls: TlsInfo;
@@ -8,6 +9,7 @@ interface TlsSummaryProps {
 
 /** Protocol / cipher / verify badges — each icon + text, never color-only. */
 export function TlsSummary({ tls, insecure }: TlsSummaryProps) {
+  const t = useT();
   return (
     <div className="dv-tls-summary">
       <span className="dv-chip lok-tnums" title={tls.protocol ?? ""}>
@@ -19,18 +21,18 @@ export function TlsSummary({ tls, insecure }: TlsSummaryProps) {
       {tls.verify_ok ? (
         <span className="dv-badge" style={{ color: "var(--lok-status-success)" }}>
           <Icon name="i-lock" size={14} />
-          Zweryfikowany
+          {t("devtools.tlsVerified")}
         </span>
       ) : (
         <span className="dv-badge" style={{ color: "var(--lok-status-danger)" }}>
           <Icon name="i-unlock" size={14} />
-          Niezweryfikowany
+          {t("devtools.tlsNotVerified")}
         </span>
       )}
       {insecure && (
         <span className="dv-badge" style={{ color: "var(--lok-status-warn)" }}>
           <Icon name="i-alert" size={14} />
-          weryfikacja pominięta (--insecure)
+          {t("devtools.verifySkipped")}
         </span>
       )}
     </div>

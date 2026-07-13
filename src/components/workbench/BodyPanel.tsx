@@ -5,6 +5,7 @@ import { BodyModeSelect } from "./BodyModeSelect";
 import { BodyEditor } from "./BodyEditor";
 import { KeyValueTable } from "./KeyValueTable";
 import { MultipartTable } from "./MultipartTable";
+import { useT } from "../../i18n/useT";
 
 interface BodyPanelProps {
   body: Body;
@@ -14,6 +15,7 @@ interface BodyPanelProps {
 /** Choose the body mode and render the matching editor. Raw text is cached in a
  *  ref so toggling away and back to a raw variant restores what was typed. */
 export function BodyPanel({ body, onChange }: BodyPanelProps) {
+  const t = useT();
   const cache = useRef({
     rawText: "",
     fields: [] as KeyValue[],
@@ -29,11 +31,11 @@ export function BodyPanel({ body, onChange }: BodyPanelProps) {
   }
 
   return (
-    <div className="pane" role="tabpanel" aria-label="Treść">
+    <div className="pane" role="tabpanel" aria-label={t("workbench.bodyPane")}>
       <div className="pane-inner">
         <BodyModeSelect mode={bodyModeOf(body)} onChange={changeMode} />
         {body.type === "none" && (
-          <p className="wb-label">Brak treści dla tego requestu.</p>
+          <p className="wb-label">{t("workbench.noBody")}</p>
         )}
         {body.type === "raw" && (
           <BodyEditor

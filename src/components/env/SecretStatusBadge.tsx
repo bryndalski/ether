@@ -1,19 +1,22 @@
 import type { SecretStatus } from "../../hooks/useSecrets";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
+import type { TKey } from "../../i18n";
 
 interface SecretStatusBadgeProps {
   status: SecretStatus;
 }
 
-const LABEL: Record<SecretStatus, string> = {
-  set: "Ustawiony",
-  empty: "Pusty — ustaw wartość",
-  checking: "Sprawdzam…",
+const LABEL_KEY: Record<SecretStatus, TKey> = {
+  set: "secrets.statusSet",
+  empty: "secrets.statusEmpty",
+  checking: "secrets.statusChecking",
 };
 
 /** Never color-only: a dot + icon + text label for the secret's Keychain
  *  status. Values are never involved — this reflects secret_exists only. */
 export function SecretStatusBadge({ status }: SecretStatusBadgeProps) {
+  const t = useT();
   return (
     <span
       className={`secret-badge ${status}`}
@@ -23,7 +26,7 @@ export function SecretStatusBadge({ status }: SecretStatusBadgeProps) {
       <span className="status-dot" aria-hidden />
       {status === "set" && <Icon name="i-lock" size={13} />}
       {status === "empty" && <Icon name="i-unlock" size={13} />}
-      {LABEL[status]}
+      {t(LABEL_KEY[status])}
     </span>
   );
 }

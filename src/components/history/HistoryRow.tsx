@@ -4,6 +4,7 @@ import type { HistoryEntry } from "../../lib/types";
 import { Icon } from "../common/Icon";
 import { MethodBadge } from "../common/MethodBadge";
 import { HistoryRowMeta } from "./HistoryRowMeta";
+import { useT } from "../../i18n/useT";
 
 interface HistoryRowProps {
   entry: HistoryEntry;
@@ -29,9 +30,16 @@ export function HistoryRow({
   onToggleSelect,
   onReplay,
 }: HistoryRowProps) {
+  const t = useT();
   const { method, url } = entry.request;
   const { status } = entry.response;
-  const summary = `${method} ${url} — ${status} ${statusText(status)}, ${relativeTimeLabel(entry.executed_at, now)}`;
+  const summary = t("history.rowSummary", {
+    method,
+    url,
+    status,
+    statusText: statusText(status),
+    when: relativeTimeLabel(entry.executed_at, now),
+  });
   const selected = selectionIndex !== null;
 
   return (
@@ -60,8 +68,8 @@ export function HistoryRow({
         <button
           type="button"
           className="hist-iconbtn"
-          aria-label="Ponów request"
-          title="Ponów request (Replay)"
+          aria-label={t("history.replayRequest")}
+          title={t("history.replayRequestTitle")}
           onClick={onReplay}
         >
           <Icon name="i-replay" size={14} />
@@ -70,7 +78,7 @@ export function HistoryRow({
           type="button"
           className="hist-select"
           aria-pressed={selected}
-          aria-label={`Zaznacz do porównania: ${method} ${url}`}
+          aria-label={t("history.selectToCompare", { method, url })}
           onClick={onToggleSelect}
         >
           {selected ? ORDINAL[selectionIndex] : ""}

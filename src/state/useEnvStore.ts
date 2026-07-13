@@ -8,6 +8,8 @@ import {
 } from "../lib/ipc";
 import type { EnvKind, Environment } from "../lib/types";
 import { mergedVars, type MergedVar } from "../lib/envMerge";
+import { translate } from "../i18n";
+import { currentLocale } from "../i18n/useT";
 import { makeId } from "../lib/ids";
 
 /** Map an environment onto one of the five design-system accent kinds. The
@@ -92,7 +94,7 @@ export const useEnvStore = create<EnvState>((set, get) => ({
     };
     const environment: Environment = {
       id: makeId("env"),
-      name: "Nowe środowisko",
+      name: translate(currentLocale(), "env.newEnvironmentDefault"),
       parent_id: parentId,
       color: null,
       variables: [],

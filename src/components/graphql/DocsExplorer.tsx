@@ -3,6 +3,7 @@ import { DocsBreadcrumb } from "./DocsBreadcrumb";
 import { DocsTypePanel } from "./DocsTypePanel";
 import type { DocsNav } from "../../hooks/useDocsNav";
 import { EmptyState } from "../common/EmptyState";
+import { useT } from "../../i18n/useT";
 
 interface DocsExplorerProps {
   schema: GraphQLSchema;
@@ -13,6 +14,7 @@ interface DocsExplorerProps {
  *  root Query type is focused on open. Focusing a type (click a field type here,
  *  or a `.ftype` in the tree) pushes it onto the breadcrumb. */
 export function DocsExplorer({ schema, nav }: DocsExplorerProps) {
+  const t = useT();
   const focused = nav.focus ? schema.getType(nav.focus) : null;
 
   return (
@@ -24,8 +26,8 @@ export function DocsExplorer({ schema, nav }: DocsExplorerProps) {
           <DocsTypePanel type={focused} onFocusType={nav.focusType} />
         ) : (
           <EmptyState
-            headline="Wybierz typ"
-            hint="Kliknij typ pola, by zobaczyć jego dokumentację."
+            headline={t("graphql.pickTypeHeadline")}
+            hint={t("graphql.docsHint")}
             icon="~"
           />
         )}

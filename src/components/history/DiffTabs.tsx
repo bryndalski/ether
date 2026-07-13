@@ -1,3 +1,5 @@
+import { useT } from "../../i18n/useT";
+
 export type DiffTabKey = "Body" | "Headers" | "Timing";
 
 interface DiffTabsProps {
@@ -10,6 +12,7 @@ const TABS: DiffTabKey[] = ["Body", "Headers", "Timing"];
 
 /** Body | Headers | Timing tablist with per-tab change counts. */
 export function DiffTabs({ active, counts, onSelect }: DiffTabsProps) {
+  const t = useT();
   function onKeyDown(event: React.KeyboardEvent) {
     const index = TABS.indexOf(active);
     if (event.key === "ArrowRight") onSelect(TABS[(index + 1) % TABS.length]);
@@ -18,7 +21,7 @@ export function DiffTabs({ active, counts, onSelect }: DiffTabsProps) {
   }
 
   return (
-    <div className="diff-tabs" role="tablist" aria-label="Zakres porównania" onKeyDown={onKeyDown}>
+    <div className="diff-tabs" role="tablist" aria-label={t("diff.compareScope")} onKeyDown={onKeyDown}>
       {TABS.map((tab) => (
         <button
           key={tab}

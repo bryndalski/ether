@@ -45,7 +45,7 @@ describe("AssertionResultsView", () => {
       />,
     );
     expect(
-      screen.getByLabelText("Asercja spełniona: status = 200"),
+      screen.getByLabelText("Assertion passed: status = 200"),
     ).toBeInTheDocument();
   });
 
@@ -56,7 +56,7 @@ describe("AssertionResultsView", () => {
         assertions={[{ type: "status_equals", expected: 201, enabled: true }]}
       />,
     );
-    expect(screen.getByText(/oczekiwano 201/)).toBeInTheDocument();
-    expect(screen.getByText(/otrzymano 200/)).toBeInTheDocument();
+    expect(screen.getByText(/expected 201/)).toBeInTheDocument();
+    expect(screen.getByText(/got 200/)).toBeInTheDocument();
   });
 });

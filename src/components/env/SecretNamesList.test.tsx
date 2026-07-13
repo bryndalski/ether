@@ -46,9 +46,9 @@ describe("SecretNamesList — status, set, delete, and the never-render guard", 
     });
     setup(["A", "B"]);
     await waitFor(() => {
-      expect(screen.getByText("Ustawiony")).toBeInTheDocument();
+      expect(screen.getByText("Set")).toBeInTheDocument();
     });
-    expect(screen.getByText("Pusty — ustaw wartość")).toBeInTheDocument();
+    expect(screen.getByText("Empty — set a value")).toBeInTheDocument();
   });
 
   it("set calls secret_set exactly once with the typed value, then clears it", async () => {
@@ -59,17 +59,17 @@ describe("SecretNamesList — status, set, delete, and the never-render guard", 
     setup(["TOKEN"]);
 
     fireEvent.click(
-      screen.getByRole("button", { name: /ustaw wartość token/i }),
+      screen.getByRole("button", { name: /set value for token/i }),
     );
     const dialog = screen.getByRole("dialog", {
-      name: /zapisz sekret token/i,
+      name: /save secret token/i,
     });
     const input = within(dialog).getByLabelText(
-      /wartość sekretu token/i,
+      /value of secret token/i,
     ) as HTMLInputElement;
     fireEvent.change(input, { target: { value: SECRET_VALUE } });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: /zapisz do keychain/i }),
+      within(dialog).getByRole("button", { name: /save to keychain/i }),
     );
 
     await waitFor(() => {
@@ -83,7 +83,7 @@ describe("SecretNamesList — status, set, delete, and the never-render guard", 
 
   it("delete calls secret_delete and purges when the name is removed", async () => {
     const { onNamesChange, onPurge } = setup(["TOKEN"]);
-    fireEvent.click(screen.getByRole("button", { name: /usuń sekret token/i }));
+    fireEvent.click(screen.getByRole("button", { name: /delete secret token/i }));
     expect(onNamesChange).toHaveBeenCalledWith([]);
     await waitFor(() => expect(onPurge).toHaveBeenCalledWith("TOKEN"));
   });
@@ -102,14 +102,14 @@ describe("SecretNamesList — status, set, delete, and the never-render guard", 
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: /ustaw wartość token/i }),
+      screen.getByRole("button", { name: /set value for token/i }),
     );
     const input = screen.getByLabelText(
-      /wartość sekretu token/i,
+      /value of secret token/i,
     ) as HTMLInputElement;
     fireEvent.change(input, { target: { value: SECRET_VALUE } });
     fireEvent.click(
-      screen.getByRole("button", { name: /zapisz do keychain/i }),
+      screen.getByRole("button", { name: /save to keychain/i }),
     );
 
     await waitFor(() => {
@@ -131,7 +131,7 @@ describe("SecretNamesList — status, set, delete, and the never-render guard", 
   it("always surfaces the Keychain warning where secrets live (a11y honesty)", () => {
     setup(["TOKEN"]);
     expect(
-      screen.getByText(/nigdy odczytać ich wartości/i),
+      screen.getByText(/never read their values/i),
     ).toBeInTheDocument();
   });
 });

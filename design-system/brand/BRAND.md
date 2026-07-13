@@ -1,22 +1,30 @@
-# Lokówka — Brand Mark
+# Ether — Brand Mark
 
 > Local API client for macOS. `curl` under the hood, a precision instrument on top.
 
+> **Rebrand note (Lokówka → Ether).** The product is now **Ether** — "requests
+> into the void, nothing escapes your machine." The **coil/spiral mark survives
+> the reframe unchanged**: it now reads as a spiral drawn in the void / the arc
+> of a request that leaves and returns. Do **not** redraw the mark for the
+> rename. The full "glow in the void" OLED re-theme and heat-ramp palette rename
+> below are a **separate follow-up epic**; this doc keeps the current palette and
+> updates the name + thesis only.
+
 ## The mark
 
-A single **heated filament that coils into one tight curl** — a curling iron
-(*lokówka*) caught mid-heat. It rises as a cool magenta barrel and coils into a
-white-hot amber tip: the brand's [**heat ramp**](../MASTER.md#14-the-heat-ramp--the-brand),
-"rozgrzana lokówka," made literal. A short slash crosses the barrel base to nail
-the Polish **ł** and give the mark a struck, engraved, instrument-precise read.
+A single **heated filament that coils into one tight curl**. It rises as a cool
+magenta barrel and coils into a white-hot amber tip: the brand's
+[**heat ramp**](../MASTER.md#14-the-heat-ramp--the-brand) made literal. A short
+slash crosses the barrel base, giving the mark a struck, engraved,
+instrument-precise read.
 
 The mark carries three readings at once, on purpose:
 
-1. **A curl / coil** — the product name, *Lokówka*.
-2. **A Polish ł** — spine + slash, the letter the name turns on.
-3. **A request arc** — a signal that leaves cool and comes back hot, the shape of
-   an API round-trip (Send → Wait/TTFB → Download), which is exactly what the app
-   colors with this same gradient in its waterfall.
+1. **A spiral / coil** — an arc drawn in the void, the *Ether* thesis.
+2. **A crossed spine** — spine + slash, an engraved, instrument-precise mark.
+3. **A request arc** — a signal that leaves and comes back, the shape of an API
+   round-trip (Send → Wait/TTFB → Download), which is exactly what the app colors
+   with this same gradient in its waterfall.
 
 It sits on a **deep OLED squircle body** (`#05070b → #141824`, cool-tilted so it
 never reads as flat black) with one quiet **heat bloom** anchored top-right — the

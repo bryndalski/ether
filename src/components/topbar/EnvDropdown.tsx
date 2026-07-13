@@ -3,6 +3,7 @@ import { envKind } from "../../state/useEnvStore";
 import type { Environment } from "../../lib/types";
 import { HealthDot } from "../common/HealthDot";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface EnvDropdownProps {
   environments: Environment[];
@@ -27,10 +28,11 @@ export function EnvDropdown({
   onSelect,
   onManage,
 }: EnvDropdownProps) {
+  const t = useT();
   return (
     <ul
       role="listbox"
-      aria-label="Wybierz środowisko"
+      aria-label={t("topbar.selectEnvironment")}
       className="absolute right-0 top-full z-[var(--lok-z-dropdown)] mt-2 p-1"
       style={surface}
     >
@@ -101,7 +103,7 @@ export function EnvDropdown({
           }}
         >
           <Icon name="i-settings" size={14} />
-          Zarządzaj środowiskami…
+          {t("topbar.manageEnvironments")}
         </button>
       </li>
     </ul>

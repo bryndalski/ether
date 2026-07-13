@@ -6,6 +6,7 @@ import { useSnapshotStore } from "../../state/useSnapshotStore";
 import { useWorkbenchActions } from "../../state/useWorkbenchActions";
 import { useCopyAsCurl } from "../../hooks/useCopyAsCurl";
 import { useNewRequest } from "../../hooks/useNewRequest";
+import { useT } from "../../i18n/useT";
 import { useRequestDraft } from "../../hooks/useRequestDraft";
 import { useSendRequest } from "../../hooks/useSendRequest";
 import { useWatchMode } from "../../hooks/useWatchMode";
@@ -42,6 +43,7 @@ export function RequestWorkbench() {
   const activeKind = useEnvStore((state) => state.activeKind);
   const saveRequest = useCollectionsStore((state) => state.saveRequest);
   const newRequest = useNewRequest();
+  const t = useT();
 
   const { draft, dispatch, counts } = useRequestDraft(activeRequest);
   const { sendState, send, cancel } = useSendRequest();
@@ -217,11 +219,11 @@ export function RequestWorkbench() {
 
   if (!activeRequest) {
     return (
-      <section className="editor" aria-label="Edytor requestu">
+      <section className="editor" aria-label={t("workbench.editorAria")}>
         <EmptyState
-          headline="Wklej curl albo zacznij od GET"
-          hint="Wybierz request z kolekcji lub utwórz nowy, by zacząć."
-          actionLabel="Nowy request"
+          headline={t("workbench.emptyHeadline")}
+          hint={t("workbench.emptyHint")}
+          actionLabel={t("palette.newRequest")}
           shortcut="⌘N"
           onAction={newRequest}
           icon="~"
@@ -234,7 +236,7 @@ export function RequestWorkbench() {
   return (
     <section
       className="editor"
-      aria-label="Edytor requestu"
+      aria-label={t("workbench.editorAria")}
       onKeyDown={(event) => {
         if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
           event.preventDefault();

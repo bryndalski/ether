@@ -2,6 +2,7 @@ import { useCollectionsStore } from "../../state/useCollectionsStore";
 import { useUiStore } from "../../state/useUiStore";
 import { useNewRequest } from "../../hooks/useNewRequest";
 import { useSidebarTree } from "../../hooks/useSidebarTree";
+import { useT } from "../../i18n/useT";
 import { EmptyState } from "../common/EmptyState";
 import { SidebarHeader } from "./SidebarHeader";
 import { CollectionTree } from "./CollectionTree";
@@ -19,6 +20,7 @@ export function Sidebar() {
   const sidebarWidth = useUiStore((state) => state.sidebarWidth);
   const newRequest = useNewRequest();
   const view = useSidebarTree();
+  const t = useT();
 
   const isEmpty =
     !loading && requests.length === 0 && collections.length === 0;
@@ -39,13 +41,13 @@ export function Sidebar() {
       <div className="lok-scroll flex-1" style={{ minHeight: 0 }}>
         {isEmpty ? (
           <EmptyState
-            headline="Rozgrzej pierwszą lokówkę"
+            headline={t("sidebar.emptyHeadline")}
             hint={
               loadFailed
-                ? "Backend niedostępny — pracujesz lokalnie."
-                : "Nie masz jeszcze żadnych requestów. Zacznij od nowego."
+                ? t("sidebar.emptyBackendOffline")
+                : t("sidebar.emptyHint")
             }
-            actionLabel="Nowy request"
+            actionLabel={t("palette.newRequest")}
             shortcut="⌘N"
             onAction={newRequest}
             icon="🌀"

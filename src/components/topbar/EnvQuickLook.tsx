@@ -2,6 +2,7 @@ import { useMemo, type CSSProperties } from "react";
 import type { Environment } from "../../lib/types";
 import { useEnvStore } from "../../state/useEnvStore";
 import { mergedVars } from "../../lib/envMerge";
+import { useT } from "../../i18n/useT";
 
 interface EnvQuickLookProps {
   environment: Environment;
@@ -21,6 +22,7 @@ const surface: CSSProperties = {
  *  child-overrides-parent precedence — display only, never a real send source. */
 export function EnvQuickLook({ environment }: EnvQuickLookProps) {
   const environments = useEnvStore((state) => state.environments);
+  const t = useT();
   const rows = useMemo(
     () => mergedVars(environments, environment.id),
     [environments, environment.id],
@@ -29,7 +31,7 @@ export function EnvQuickLook({ environment }: EnvQuickLookProps) {
   return (
     <div
       role="dialog"
-      aria-label={`Zmienne środowiska ${environment.name}`}
+      aria-label={t("topbar.envVariablesAria", { name: environment.name })}
       className="absolute right-0 top-full z-[var(--lok-z-dropdown)] mt-2 p-2"
       style={surface}
     >
@@ -51,7 +53,7 @@ export function EnvQuickLook({ environment }: EnvQuickLookProps) {
             fontSize: "var(--lok-fs-xs)",
           }}
         >
-          Brak zmiennych
+          {t("topbar.noVariables")}
         </p>
       ) : (
         <ul className="lok-mono flex flex-col gap-1">
@@ -75,7 +77,7 @@ export function EnvQuickLook({ environment }: EnvQuickLookProps) {
                       letterSpacing: "var(--lok-tracking-caps)",
                     }}
                   >
-                    dziedziczone
+                    {t("topbar.inherited")}
                   </span>
                 )}
               </span>

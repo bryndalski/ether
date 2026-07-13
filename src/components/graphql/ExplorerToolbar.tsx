@@ -7,6 +7,7 @@ import { UrlInput } from "../workbench/UrlInput";
 import { RefreshSchemaButton } from "./RefreshSchemaButton";
 import { RunButton } from "./RunButton";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface ExplorerToolbarProps {
   opType: OperationType;
@@ -53,8 +54,9 @@ export function ExplorerToolbar({
   onCopyCurl,
   dirty,
 }: ExplorerToolbarProps) {
+  const t = useT();
   return (
-    <div className="toolbar" role="toolbar" aria-label="Pasek GraphQL">
+    <div className="toolbar" role="toolbar" aria-label={t("graphql.toolbar")}>
       {requestTypeToggle}
       <OperationPicker opType={opType} available={availableOps} onChange={onOpType} />
       <UrlInput url={url} onChange={onUrl} onEnter={onRun} />
@@ -63,8 +65,8 @@ export function ExplorerToolbar({
         <button
           type="button"
           className="btn-save"
-          aria-label="Zapisz request"
-          title="Zapisz request (⌘S)"
+          aria-label={t("palette.saveRequest")}
+          title={t("workbench.saveRequestTitle")}
           disabled={!dirty}
           onClick={onSave}
         >
@@ -75,8 +77,8 @@ export function ExplorerToolbar({
         <button
           type="button"
           className="btn-save"
-          aria-label="Kopiuj jako cURL"
-          title="Kopiuj jako cURL (⌘⇧C)"
+          aria-label={t("workbench.copyAsCurlAria")}
+          title={t("workbench.copyAsCurl")}
           disabled={url.trim() === ""}
           onClick={onCopyCurl}
         >

@@ -1,4 +1,5 @@
 import type { BodyMode } from "../../lib/bodyMode";
+import { useT } from "../../i18n/useT";
 
 interface BodyModeSelectProps {
   mode: BodyMode;
@@ -16,13 +17,14 @@ const MODES: { value: BodyMode; label: string }[] = [
 
 /** Body mode select styled like the method chip container. */
 export function BodyModeSelect({ mode, onChange }: BodyModeSelectProps) {
+  const t = useT();
   return (
     <div className="method-select" style={{ marginBottom: "var(--lok-space-3)" }}>
       <span className="method" style={{ color: "var(--lok-text-secondary)" }}>
         {MODES.find((entry) => entry.value === mode)?.label ?? "None"}
       </span>
       <select
-        aria-label="Tryb treści"
+        aria-label={t("workbench.bodyMode")}
         value={mode}
         onChange={(event) => onChange(event.target.value as BodyMode)}
       >

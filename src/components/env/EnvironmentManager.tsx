@@ -6,6 +6,7 @@ import { Icon } from "../common/Icon";
 import { EnvList } from "./EnvList";
 import { EnvEditor } from "./EnvEditor";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { useT } from "../../i18n/useT";
 import "./env.css";
 
 /** Modal panel to manage environments (base + sub), their public variables, and
@@ -15,6 +16,7 @@ export function EnvironmentManager() {
   const open = useUiStore((state) => state.envManagerOpen);
   const close = useUiStore((state) => state.closeEnvManager);
   const manager = useEnvManager();
+  const t = useT();
   const cardRef = useRef<HTMLDivElement>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -36,15 +38,15 @@ export function EnvironmentManager() {
         className="env-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Zarządzanie środowiskami"
+        aria-label={t("env.manageAria")}
         tabIndex={-1}
       >
         <div className="env-modal-head">
-          <span className="env-modal-title">Środowiska</span>
+          <span className="env-modal-title">{t("env.title")}</span>
           <button
             type="button"
             className="env-modal-close"
-            aria-label="Zamknij"
+            aria-label={t("env.close")}
             onClick={close}
           >
             <Icon name="i-x" size={16} />
@@ -68,7 +70,7 @@ export function EnvironmentManager() {
           ) : (
             <div className="env-editor">
               <p style={{ color: "var(--lok-text-tertiary)" }}>
-                Wybierz lub utwórz środowisko, by je edytować.
+                {t("env.pickOrCreate")}
               </p>
             </div>
           )}
@@ -77,8 +79,8 @@ export function EnvironmentManager() {
 
       {deleteTarget && (
         <ConfirmDialog
-          title={`Usunąć środowisko „${deleteTarget.name}"?`}
-          message="Podśrodowiska i zmienne zostaną usunięte. Sekretów nie usuwa się automatycznie z Keychain."
+          title={t("env.deleteConfirmTitle", { name: deleteTarget.name })}
+          message={t("env.deleteConfirmMessage")}
           onConfirm={() => {
             void manager.removeEnvironment(deleteTarget.id);
             setDeleteId(null);

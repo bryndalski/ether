@@ -10,6 +10,8 @@ import {
 import type { Collection, RequestOptions, StoredRequest } from "../lib/types";
 import { descendantCollectionIds } from "../lib/collectionTree";
 import { makeId } from "../lib/ids";
+import { translate } from "../i18n";
+import { currentLocale } from "../i18n/useT";
 
 const DEFAULT_OPTIONS: RequestOptions = {
   follow_redirects: true,
@@ -128,7 +130,7 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => {
       );
       const collection: Collection = {
         id: makeId("col"),
-        name: "Nowa kolekcja",
+        name: translate(currentLocale(), "sidebar.defaultCollectionName"),
         parent_id: parentId,
         sort_order: siblings.length,
         docs_md: null,
@@ -191,7 +193,7 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => {
       const request: StoredRequest = {
         id: makeId("req"),
         collection_id: collectionId,
-        name: "Nowy request",
+        name: translate(currentLocale(), "sidebar.defaultRequestName"),
         method: "GET",
         url: "",
         headers: [],
@@ -241,7 +243,9 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => {
       const copy: StoredRequest = {
         ...structuredClone(original),
         id: makeId("req"),
-        name: `${original.name} (kopia)`,
+        name: translate(currentLocale(), "sidebar.copySuffix", {
+          name: original.name,
+        }),
         sort_order: original.sort_order + 1,
       };
       set({

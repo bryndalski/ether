@@ -1,14 +1,14 @@
-# Lokówka 🔥
+# Ether
 
 **A fully local API client for macOS with curl under the hood — literally.**
 
 Postman ∪ Insomnia, minus the cloud: no account, no sync, no telemetry. Your collections live in a local SQLite database, your secrets live in the macOS Keychain, and every request you send is executed by libcurl — so "Copy as curl" is not an approximation, it *is* the request.
 
-> _Lokówka_ (Polish: "curling iron") — the tool that does curl.
+> _Ether_ — requests into the void: they leave, they return, and **nothing escapes your machine**.
 
 ## Why
 
-| Pain | Lokówka |
+| Pain | Ether |
 |---|---|
 | Postman forces an account for collections & environments | 100% local, zero account |
 | Insomnia's 2023 cloud migration drama | One storage mode: your disk |
@@ -27,7 +27,7 @@ Postman ∪ Insomnia, minus the cloud: no account, no sync, no telemetry. Your c
 - **Import**: curl commands, your `~/.zsh_history`, Postman v2.1, Insomnia, HAR (with review screen), `.http` files (JetBrains/VS Code interop)
 - **Testing**: scriptless assertions, QuickJS sandboxed scripts, snapshot testing with dynamic-field scrubbing, watch mode
 - **Analysis**: response diff (structural + timing), mini-benchmark with p50/p95/p99 histograms, JWT decoder with live expiry countdown, TLS chain viewer
-- **macOS native**: ⌘K command palette, global hotkey, `lokowka://` deep links, menu bar, Touch ID for secrets
+- **macOS native**: ⌘K command palette, global hotkey, `ether://` deep links, menu bar, Touch ID for secrets
 - **CLI `lok`**: headless runner with JUnit/JSON/HTML reporters — same libcurl core as the GUI
 - **Optional local AI** (OFF by default): Ollama on localhost, ⌘K commands that materialize artifacts, secrets always redacted from prompts
 
@@ -44,6 +44,14 @@ npm run typecheck     # tsc --noEmit
 npm run test:unit     # vitest
 cd src-tauri && cargo test && cargo clippy
 ```
+
+> **Rebrand note (Lokówka → Ether).** The rebrand relocates the macOS Keychain
+> service and the on-disk data directory to `com.bryndalski.ether`. Existing
+> local Lokówka data will **not** appear in Ether — re-create your dev data, or
+> move the folder manually once:
+> `mv ~/Library/Application\ Support/com.bryndalski.lokowka ~/Library/Application\ Support/com.bryndalski.ether`.
+> The interface is English by default; switch to Polish from the ⌘K palette
+> (`Language: Polski`).
 
 ## Principles
 

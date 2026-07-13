@@ -85,12 +85,12 @@ describe("ImportFileTab", () => {
     mockInvoke.mockResolvedValue(importResult);
     renderTab();
 
-    fireEvent.change(screen.getByLabelText(/Wklej zawartość pliku/), {
+    fireEvent.change(screen.getByLabelText(/Paste the file contents/), {
       target: { value: postmanJson },
     });
-    expect(screen.getByText(/Wykryto: Postman/)).toBeInTheDocument();
+    expect(screen.getByText(/Detected: Postman/)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Importuj" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import" }));
 
     await waitFor(() =>
       expect(mockInvoke).toHaveBeenCalledWith("import_postman", {
@@ -105,10 +105,10 @@ describe("ImportFileTab", () => {
   it("renders the counts and the warnings block after import", async () => {
     mockInvoke.mockResolvedValue(importResult);
     renderTab();
-    fireEvent.change(screen.getByLabelText(/Wklej zawartość pliku/), {
+    fireEvent.change(screen.getByLabelText(/Paste the file contents/), {
       target: { value: postmanJson },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Importuj" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import" }));
 
     expect(await screen.findByText("Pominięto skrypt pm.*")).toBeInTheDocument();
     expect(
@@ -119,13 +119,13 @@ describe("ImportFileTab", () => {
   it("saves collections before requests (order asserted)", async () => {
     mockInvoke.mockResolvedValue(importResult);
     const { onSaved } = renderTab();
-    fireEvent.change(screen.getByLabelText(/Wklej zawartość pliku/), {
+    fireEvent.change(screen.getByLabelText(/Paste the file contents/), {
       target: { value: postmanJson },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Importuj" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import" }));
     await screen.findByText("Pominięto skrypt pm.*");
 
-    fireEvent.click(screen.getByRole("button", { name: "Zapisz do kolekcji" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save to collection" }));
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith(1, 1));
     const persistCalls = mockInvoke.mock.calls

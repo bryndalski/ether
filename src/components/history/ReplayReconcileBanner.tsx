@@ -1,5 +1,6 @@
 import type { RedactionHole } from "../../lib/replay";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface ReplayReconcileBannerProps {
   holes: RedactionHole[];
@@ -9,6 +10,7 @@ interface ReplayReconcileBannerProps {
 /** Surfaced in the workbench after replaying an entry with redacted secrets. It
  *  lists each hole; Send stays blocked until the user re-supplies templates. */
 export function ReplayReconcileBanner({ holes, onDismiss }: ReplayReconcileBannerProps) {
+  const t = useT();
   if (holes.length === 0) return null;
   const names = holes.map((hole) => hole.name).join(", ");
   return (
@@ -26,14 +28,15 @@ export function ReplayReconcileBanner({ holes, onDismiss }: ReplayReconcileBanne
     >
       <Icon name="i-shield" size={15} />
       <span>
-        Ten request pochodzi z historii — sekrety zostały zredagowane. Uzupełnij z
-        aktualnego środowiska (np. <code>{"{{secret.NAZWA}}"}</code>) przed wysłaniem:{" "}
+        {t("history.replayHintBefore")}
+        <code>{"{{secret.NAME}}"}</code>
+        {t("history.replayHintAfter")}{" "}
         <strong>{names}</strong>.
       </span>
       <button
         type="button"
         className="hist-iconbtn"
-        aria-label="Zamknij komunikat"
+        aria-label={t("diff.dismissMessage")}
         style={{ marginLeft: "auto" }}
         onClick={onDismiss}
       >

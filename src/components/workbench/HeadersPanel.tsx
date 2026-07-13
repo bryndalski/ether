@@ -1,5 +1,6 @@
 import type { KeyValue } from "../../lib/types";
 import { KeyValueTable } from "./KeyValueTable";
+import { useT } from "../../i18n/useT";
 
 interface HeadersPanelProps {
   headers: KeyValue[];
@@ -8,8 +9,9 @@ interface HeadersPanelProps {
 
 /** Request headers grid (header column tinted via .kv input.k). */
 export function HeadersPanel({ headers, onChange }: HeadersPanelProps) {
+  const t = useT();
   return (
-    <div className="pane" role="tabpanel" aria-label="Nagłówki">
+    <div className="pane" role="tabpanel" aria-label={t("workbench.headersPane")}>
       <div className="pane-inner">
         <KeyValueTable
           rows={headers}

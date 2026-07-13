@@ -1,4 +1,5 @@
 import type { Assertion, JsonType } from "../../../lib/types";
+import { useT } from "../../../i18n/useT";
 
 interface AssertionFieldsProps {
   assertion: Assertion;
@@ -11,6 +12,7 @@ const JSON_TYPES: JsonType[] = ["null", "boolean", "number", "string", "array", 
 /** Type-driven input set for one assertion. Numeric inputs use tabular-nums;
  *  JSONPath inputs are mono. Every input carries an aria-label. */
 export function AssertionFields({ assertion, index, onChange }: AssertionFieldsProps) {
+  const t = useT();
   const num = (label: string, value: number, patch: (v: number) => Assertion) => (
     <input
       type="number"
@@ -39,21 +41,21 @@ export function AssertionFields({ assertion, index, onChange }: AssertionFieldsP
 
   switch (assertion.type) {
     case "status_equals":
-      return num("Oczekiwany status", assertion.expected, (v) => ({ ...assertion, expected: v }));
+      return num(t("tests.expectedStatus"), assertion.expected, (v) => ({ ...assertion, expected: v }));
     case "status_in_range":
       return (
         <>
-          {num("Min status", assertion.min, (v) => ({ ...assertion, min: v }))}
-          {num("Max status", assertion.max, (v) => ({ ...assertion, max: v }))}
+          {num(t("tests.minStatus"), assertion.min, (v) => ({ ...assertion, min: v }))}
+          {num(t("tests.maxStatus"), assertion.max, (v) => ({ ...assertion, max: v }))}
         </>
       );
     case "header_exists":
-      return text("Nazwa nagłówka", assertion.name, (v) => ({ ...assertion, name: v }));
+      return text(t("tests.headerName"), assertion.name, (v) => ({ ...assertion, name: v }));
     case "header_equals":
       return (
         <>
-          {text("Nazwa nagłówka", assertion.name, (v) => ({ ...assertion, name: v }))}
-          {text("Oczekiwana wartość", assertion.expected, (v) => ({ ...assertion, expected: v }))}
+          {text(t("tests.headerName"), assertion.name, (v) => ({ ...assertion, name: v }))}
+          {text(t("tests.expectedValue"), assertion.expected, (v) => ({ ...assertion, expected: v }))}
         </>
       );
     case "json_path_exists":
@@ -62,7 +64,7 @@ export function AssertionFields({ assertion, index, onChange }: AssertionFieldsP
       return (
         <>
           {text("JSONPath", assertion.path, (v) => ({ ...assertion, path: v }), true)}
-          {text("Oczekiwana wartość", assertion.expected, (v) => ({ ...assertion, expected: v }))}
+          {text(t("tests.expectedValue"), assertion.expected, (v) => ({ ...assertion, expected: v }))}
         </>
       );
     case "json_path_type":
@@ -72,7 +74,7 @@ export function AssertionFields({ assertion, index, onChange }: AssertionFieldsP
           <select
             className="test-field"
             value={assertion.expected_type}
-            aria-label={`Oczekiwany typ ${index + 1}`}
+            aria-label={`${t("tests.expectedType")} ${index + 1}`}
             onChange={(event) =>
               onChange({ ...assertion, expected_type: event.target.value as JsonType })
             }
@@ -86,8 +88,8 @@ export function AssertionFields({ assertion, index, onChange }: AssertionFieldsP
         </>
       );
     case "body_contains":
-      return text("Szukany tekst", assertion.substring, (v) => ({ ...assertion, substring: v }));
+      return text(t("tests.searchText"), assertion.substring, (v) => ({ ...assertion, substring: v }));
     case "response_time_below":
-      return num("Maks. ms", assertion.max_ms, (v) => ({ ...assertion, max_ms: v }));
+      return num(t("tests.maxMs"), assertion.max_ms, (v) => ({ ...assertion, max_ms: v }));
   }
 }

@@ -1,4 +1,6 @@
 import type { HeaderDiffEntry } from "../../lib/jsonDiff";
+import { useT } from "../../i18n/useT";
+import type { TKey } from "../../i18n";
 
 interface HeadersDiffViewProps {
   entries: HeaderDiffEntry[];
@@ -10,10 +12,10 @@ const KIND_LABEL: Record<string, string> = {
   removed: "Removed",
   changed: "Changed",
 };
-const ACTION_PL: Record<string, string> = {
-  added: "Dodano",
-  removed: "Usunięto",
-  changed: "Zmieniono",
+const ACTION_KEY: Record<string, TKey> = {
+  added: "diff.actionAdded",
+  removed: "diff.actionRemoved",
+  changed: "diff.actionChanged",
 };
 
 function lineText(entry: HeaderDiffEntry): string {
@@ -23,16 +25,22 @@ function lineText(entry: HeaderDiffEntry): string {
 
 /** Header diff — added/removed/changed, never color-only (sigil + badge). */
 export function HeadersDiffView({ entries }: HeadersDiffViewProps) {
+  const t = useT();
+  const actionText = (kind: string): string => t(ACTION_KEY[kind]);
   if (entries.length === 0) {
-    return <div className="diff-empty">Nagłówki identyczne.</div>;
+    return <div className="diff-empty">{t("diff.headersIdentical")}</div>;
   }
   return (
-    <div className="diff-body lok-scroll" role="region" aria-label="Diff nagłówków">
+    <div className="diff-body lok-scroll" role="region" aria-label={t("diff.headersDiffRegion")}>
       {entries.map((entry) => (
         <div
           key={entry.name}
           className={`diff-line ${entry.kind}`}
-          aria-label={`${ACTION_PL[entry.kind]} ${entry.name}: ${lineText(entry)}`}
+          aria-label={t("diff.diffLineAria", {
+            action: actionText(entry.kind),
+            path: entry.name,
+            text: lineText(entry),
+          })}
         >
           <span className="diff-sigil" aria-hidden="true">
             {SIGIL[entry.kind]}

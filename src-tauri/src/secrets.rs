@@ -4,7 +4,7 @@
 
 use keyring::{Entry, Error as KeyringError};
 
-const SERVICE: &str = "com.bryndalski.lokowka";
+const SERVICE: &str = "com.bryndalski.ether";
 
 fn entry(name: &str) -> Result<Entry, String> {
     Entry::new(SERVICE, name).map_err(|e| e.to_string())
@@ -45,9 +45,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn service_namespace_is_ether() {
+        // The Keychain service string is part of the rebrand contract.
+        assert_eq!(SERVICE, "com.bryndalski.ether");
+    }
+
+    #[test]
     fn entry_construction_does_not_touch_keychain() {
         // Building an Entry is pure; no Keychain prompt or write happens.
-        assert!(entry("lokowka-unit-noop").is_ok());
+        assert!(entry("ether-unit-noop").is_ok());
     }
 
     /// Full round-trip against the real macOS Keychain. Ignored by default so CI
@@ -55,7 +61,7 @@ mod tests {
     #[test]
     #[ignore = "touches the real macOS Keychain"]
     fn set_get_exists_delete_roundtrip() {
-        let name = "lokowka-test-secret";
+        let name = "ether-test-secret";
         secret_set(name.into(), "sk-live-xyz".into()).unwrap();
         assert!(secret_exists(name.into()).unwrap());
         assert_eq!(secret_get(name).unwrap(), "sk-live-xyz");
@@ -66,7 +72,7 @@ mod tests {
     #[test]
     #[ignore = "touches the real macOS Keychain"]
     fn delete_absent_is_ok() {
-        secret_delete("lokowka-absent-secret".into()).unwrap();
-        assert!(!secret_exists("lokowka-absent-secret".into()).unwrap());
+        secret_delete("ether-absent-secret".into()).unwrap();
+        assert!(!secret_exists("ether-absent-secret".into()).unwrap());
     }
 }

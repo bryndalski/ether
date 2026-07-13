@@ -54,7 +54,7 @@ describe("EnvPill env switch + QuickLook", () => {
     render(<EnvPill />);
     fireEvent.click(screen.getByRole("button", { name: /local/i }));
     fireEvent.click(
-      screen.getByRole("button", { name: /zarządzaj środowiskami/i }),
+      screen.getByRole("button", { name: /manage environments/i }),
     );
     expect(useUiStore.getState().envManagerOpen).toBe(true);
   });
@@ -72,7 +72,7 @@ describe("EnvPill env switch + QuickLook", () => {
     fireEvent.mouseEnter(screen.getByText("sub").closest("div")!);
 
     const popover = screen.getByRole("dialog", {
-      name: /zmienne środowiska sub/i,
+      name: /variables for environment sub/i,
     });
     // Child override wins for host.
     expect(popover).toHaveTextContent("api.sub");

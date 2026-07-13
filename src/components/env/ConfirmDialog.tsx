@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useT } from "../../i18n/useT";
 
 interface ConfirmDialogProps {
   title: string;
@@ -14,11 +15,13 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({
   title,
   message,
-  confirmLabel = "Usuń",
+  confirmLabel,
   danger = true,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const t = useT();
+  const confirmLabelText = confirmLabel ?? t("common.delete");
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -40,7 +43,7 @@ export function ConfirmDialog({
         </p>
         <div className="env-dialog-actions">
           <button type="button" className="env-btn ghost" onClick={onCancel}>
-            Anuluj
+            {t("common.cancel")}
           </button>
           <button
             ref={confirmRef}
@@ -48,7 +51,7 @@ export function ConfirmDialog({
             className={`env-btn ${danger ? "danger" : "primary"}`}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {confirmLabelText}
           </button>
         </div>
       </div>

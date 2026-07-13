@@ -3,6 +3,8 @@ import { useCollectionsStore } from "../state/useCollectionsStore";
 import { useUiStore } from "../state/useUiStore";
 import type { RequestOptions, StoredRequest } from "../lib/types";
 import { makeId } from "../lib/ids";
+import { translate } from "../i18n";
+import { currentLocale } from "../i18n/useT";
 
 const DEFAULT_OPTIONS: RequestOptions = {
   follow_redirects: true,
@@ -24,7 +26,7 @@ export function useNewRequest() {
     const request: StoredRequest = {
       id: makeId("req"),
       collection_id: store.collections[0]?.id ?? "",
-      name: "Nowy request",
+      name: translate(currentLocale(), "sidebar.defaultRequestName"),
       method: "GET",
       url: "",
       headers: [],

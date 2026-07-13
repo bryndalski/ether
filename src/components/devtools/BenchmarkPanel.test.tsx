@@ -31,18 +31,18 @@ describe("BenchmarkPanel warning gate", () => {
   it("shows the 'wykona N realnych requestów' warning before any run", () => {
     renderPanel(baseState);
     expect(
-      screen.getByText(/wykona/i),
+      screen.getByText(/will run/i),
     ).toBeInTheDocument();
     expect(screen.getByText("api.example.com")).toBeInTheDocument();
     // The only start control is the explicit "Uruchom benchmark".
     expect(
-      screen.getByRole("button", { name: /uruchom benchmark/i }),
+      screen.getByRole("button", { name: /run benchmark/i }),
     ).toBeInTheDocument();
   });
 
   it("shows x/N progress and a Cancel button while running", () => {
     renderPanel({ ...baseState, phase: "running", completed: 7 });
     expect(screen.getByText("7 / 20")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /anuluj/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
   });
 });

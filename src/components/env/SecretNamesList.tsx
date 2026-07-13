@@ -3,6 +3,7 @@ import { useSecrets } from "../../hooks/useSecrets";
 import { Icon } from "../common/Icon";
 import { SecretStatusBadge } from "./SecretStatusBadge";
 import { SetSecretDialog } from "./SetSecretDialog";
+import { useT } from "../../i18n/useT";
 
 interface SecretNamesListProps {
   names: string[];
@@ -19,6 +20,7 @@ export function SecretNamesList({
   onPurge,
 }: SecretNamesListProps) {
   const secrets = useSecrets(names);
+  const t = useT();
   const [newName, setNewName] = useState("");
   const [settingFor, setSettingFor] = useState<string | null>(null);
 
@@ -35,18 +37,15 @@ export function SecretNamesList({
   }
 
   return (
-    <section aria-label="Sekrety środowiska">
+    <section aria-label={t("secrets.envSecrets")}>
       <div className="keychain-warn" role="note" style={{ marginBottom: 8 }}>
         <Icon name="i-shield" size={16} />
-        <span>
-          Sekrety żyją w macOS Keychain — Lokówka może je ustawić lub usunąć,
-          ale nigdy odczytać ich wartości.
-        </span>
+        <span>{t("secrets.livesInKeychain")}</span>
       </div>
 
       {names.length === 0 && (
         <p style={{ color: "var(--lok-text-tertiary)", fontSize: "var(--lok-fs-xs)" }}>
-          Brak sekretów.
+          {t("secrets.noSecrets")}
         </p>
       )}
 
@@ -57,7 +56,7 @@ export function SecretNamesList({
           <button
             type="button"
             className="icon-btn"
-            aria-label={`Ustaw wartość ${name}`}
+            aria-label={t("secrets.setValue", { name })}
             onClick={() => setSettingFor(name)}
           >
             <Icon name="i-lock" size={14} />
@@ -65,7 +64,7 @@ export function SecretNamesList({
           <button
             type="button"
             className="icon-btn danger"
-            aria-label={`Usuń sekret ${name}`}
+            aria-label={t("secrets.deleteSecret", { name })}
             onClick={() => void removeName(name)}
           >
             <Icon name="i-trash" size={14} />
@@ -76,8 +75,8 @@ export function SecretNamesList({
       <div className="secret-add">
         <input
           type="text"
-          aria-label="Nazwa nowego sekretu"
-          placeholder="NAZWA_SEKRETU"
+          aria-label={t("secrets.newSecretName")}
+          placeholder={t("secrets.newSecretPlaceholder")}
           spellCheck={false}
           autoComplete="off"
           value={newName}
@@ -92,7 +91,7 @@ export function SecretNamesList({
         <button
           type="button"
           className="env-btn ghost"
-          aria-label="Dodaj sekret"
+          aria-label={t("secrets.addSecret")}
           onClick={addName}
         >
           <Icon name="i-plus" size={14} />

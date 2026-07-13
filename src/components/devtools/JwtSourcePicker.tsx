@@ -1,4 +1,5 @@
 import type { JwtCandidate } from "../../lib/jwt";
+import { useT } from "../../i18n/useT";
 
 interface JwtSourcePickerProps {
   candidates: JwtCandidate[];
@@ -12,10 +13,11 @@ export function JwtSourcePicker({
   selectedIndex,
   onSelect,
 }: JwtSourcePickerProps) {
+  const t = useT();
   if (candidates.length <= 1) return null;
   return (
     <label className="dv-field dv-field-inline">
-      <span className="dv-field-label">Źródło tokenu</span>
+      <span className="dv-field-label">{t("devtools.tokenSource")}</span>
       <select
         className="dv-select"
         value={selectedIndex}

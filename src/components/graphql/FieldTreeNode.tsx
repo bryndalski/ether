@@ -6,6 +6,7 @@ import {
   isExpandable,
 } from "../../lib/graphqlSchemaTree";
 import type { FieldPath } from "../../lib/graphqlSelection";
+import { useT } from "../../i18n/useT";
 
 interface FieldTreeNodeProps {
   field: GraphQLField<unknown, unknown>;
@@ -30,6 +31,7 @@ export function FieldTreeNode({
   onExpand,
   onFocusType,
 }: FieldTreeNodeProps) {
+  const t = useT();
   const expandable = isExpandable(field);
   const withArgs = fieldHasArgs(field);
   const indentClass = depth === 1 ? "indent" : depth >= 2 ? "indent2" : "";
@@ -56,7 +58,7 @@ export function FieldTreeNode({
         <button
           type="button"
           className={expanded ? "chev" : "chevr"}
-          aria-label={expanded ? "Zwiń pole" : "Rozwiń pole"}
+          aria-label={expanded ? t("graphql.collapseField") : t("graphql.expandField")}
           onClick={() => onExpand(path)}
         >
           <Icon name={expanded ? "i-chev" : "i-chevr"} size={12} />
@@ -67,14 +69,14 @@ export function FieldTreeNode({
       <input
         type="checkbox"
         checked={selected}
-        aria-label={`Zaznacz pole ${field.name}`}
+        aria-label={t("graphql.selectField", { name: field.name })}
         onChange={(event) => onToggle(path, event.target.checked)}
       />
       <span className="fname">{field.name}</span>
       <button
         type="button"
         className="ftype"
-        title={withArgs ? "Pokaż typ w dokumentacji" : "Pokaż typ"}
+        title={withArgs ? t("graphql.showTypeInDocs") : t("graphql.showType")}
         onClick={() => onFocusType(typeName)}
       >
         {fieldTypeLabel(field)}

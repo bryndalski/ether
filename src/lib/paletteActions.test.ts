@@ -5,6 +5,11 @@ import {
   type PaletteContext,
 } from "./paletteActions";
 import type { Environment } from "./types";
+import { translate } from "../i18n";
+import type { TranslateFn } from "../i18n/useT";
+
+// Bind the real EN translator so labels are exercised end-to-end in the test.
+const t: TranslateFn = (key, vars) => translate("en", key, vars);
 
 const environments: Environment[] = [
   {
@@ -27,6 +32,8 @@ const environments: Environment[] = [
 
 function makeCtx(overrides: Partial<PaletteContext> = {}): PaletteContext {
   return {
+    t,
+    locale: "en",
     environments,
     activeEnvironmentId: "env-dev",
     activeRequestPresent: true,
@@ -42,6 +49,7 @@ function makeCtx(overrides: Partial<PaletteContext> = {}): PaletteContext {
     openHistory: vi.fn(),
     runBenchmark: vi.fn(),
     toggleTheme: vi.fn(),
+    setLocale: vi.fn(),
     ...overrides,
   };
 }

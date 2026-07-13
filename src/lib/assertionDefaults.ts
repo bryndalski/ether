@@ -3,6 +3,12 @@
 // assertions.ts (evaluation) to keep each file single-responsibility.
 
 import type { Assertion, AssertionType } from "./types";
+import { translate, type TKey } from "../i18n";
+import { currentLocale } from "../i18n/useT";
+import type { InterpolationVars } from "../i18n/interpolate";
+
+const m = (key: TKey, vars?: InterpolationVars): string =>
+  translate(currentLocale(), key, vars);
 
 /** A sensible blank assertion for a freshly-added or type-switched row. */
 export function defaultAssertion(type: AssertionType): Assertion {
@@ -32,22 +38,22 @@ export function defaultAssertion(type: AssertionType): Assertion {
 export function assertionLabel(assertion: Assertion): string {
   switch (assertion.type) {
     case "status_equals":
-      return `status = ${assertion.expected}`;
+      return m("assertions.labelStatusEqual", { expected: assertion.expected });
     case "status_in_range":
-      return `status w [${assertion.min}, ${assertion.max}]`;
+      return m("assertions.labelStatusInRange", { min: assertion.min, max: assertion.max });
     case "header_exists":
-      return `nagłówek ${assertion.name || "?"} istnieje`;
+      return m("assertions.labelHeaderExists", { name: assertion.name || "?" });
     case "header_equals":
-      return `${assertion.name || "?"} = ${assertion.expected}`;
+      return m("assertions.labelHeaderEqual", { name: assertion.name || "?", expected: assertion.expected });
     case "json_path_exists":
-      return `${assertion.path} istnieje`;
+      return m("assertions.labelPathExists", { path: assertion.path });
     case "json_path_equals":
-      return `${assertion.path} = ${assertion.expected}`;
+      return m("assertions.labelPathEqual", { path: assertion.path, expected: assertion.expected });
     case "json_path_type":
-      return `${assertion.path} : ${assertion.expected_type}`;
+      return m("assertions.labelPathType", { path: assertion.path, type: assertion.expected_type });
     case "body_contains":
-      return `body zawiera "${assertion.substring}"`;
+      return m("assertions.labelBodyContains", { substring: assertion.substring });
     case "response_time_below":
-      return `czas < ${assertion.max_ms} ms`;
+      return m("assertions.labelTimeBelow", { max: assertion.max_ms });
   }
 }

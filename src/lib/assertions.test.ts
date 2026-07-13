@@ -113,7 +113,7 @@ describe("evalAssertions — robustness", () => {
       { body: "AAAA", body_is_base64: true },
     );
     expect(result.status).toBe("fail");
-    expect(result.message).toContain("binarne");
+    expect(result.message).toContain("binary");
   });
 
   it("disabled assertion becomes skipped", () => {

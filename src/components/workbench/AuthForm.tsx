@@ -1,5 +1,6 @@
 import type { Auth } from "../../lib/types";
 import { AuthField } from "./AuthField";
+import { useT } from "../../i18n/useT";
 
 interface AuthFormProps {
   auth: Auth;
@@ -11,13 +12,14 @@ const SECRET_HINT = "{{secret.NAME}}";
 /** Render the fields for the selected Auth variant. Secret-bearing fields hint
  *  at {{secret.NAME}}; the FE stores templates only. */
 export function AuthForm({ auth, onChange }: AuthFormProps) {
+  const t = useT();
   switch (auth.type) {
     case "none":
-      return <p className="wb-label">Request wysyłany bez autoryzacji.</p>;
+      return <p className="wb-label">{t("auth.noAuth")}</p>;
     case "bearer":
       return (
         <AuthField
-          label="Token"
+          label={t("auth.token")}
           value={auth.token}
           secret
           hint={SECRET_HINT}
@@ -28,12 +30,12 @@ export function AuthForm({ auth, onChange }: AuthFormProps) {
       return (
         <>
           <AuthField
-            label="Użytkownik"
+            label={t("auth.username")}
             value={auth.username}
             onChange={(username) => onChange({ ...auth, username })}
           />
           <AuthField
-            label="Hasło"
+            label={t("auth.password")}
             value={auth.password}
             secret
             hint={SECRET_HINT}
@@ -45,12 +47,12 @@ export function AuthForm({ auth, onChange }: AuthFormProps) {
       return (
         <>
           <AuthField
-            label="Nazwa"
+            label={t("auth.name")}
             value={auth.name}
             onChange={(name) => onChange({ ...auth, name })}
           />
           <AuthField
-            label="Wartość"
+            label={t("auth.value")}
             value={auth.value}
             secret
             hint={SECRET_HINT}
@@ -61,10 +63,10 @@ export function AuthForm({ auth, onChange }: AuthFormProps) {
             style={{ gridTemplateColumns: "120px 1fr auto" }}
           >
             <span className="wb-label" style={{ alignSelf: "center" }}>
-              Umiejscowienie
+              {t("auth.placement")}
             </span>
             <select
-              aria-label="Umiejscowienie klucza API"
+              aria-label={t("auth.placementAria")}
               value={auth.placement}
               onChange={(event) =>
                 onChange({
@@ -84,17 +86,17 @@ export function AuthForm({ auth, onChange }: AuthFormProps) {
       return (
         <>
           <AuthField
-            label="Profil"
+            label={t("auth.profile")}
             value={auth.profile}
             onChange={(profile) => onChange({ ...auth, profile })}
           />
           <AuthField
-            label="Region"
+            label={t("auth.region")}
             value={auth.region}
             onChange={(region) => onChange({ ...auth, region })}
           />
           <AuthField
-            label="Usługa"
+            label={t("auth.service")}
             value={auth.service}
             onChange={(service) => onChange({ ...auth, service })}
           />

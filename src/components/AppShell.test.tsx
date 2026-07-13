@@ -12,7 +12,7 @@ vi.mock("@tauri-apps/api/core", () => ({
 }));
 
 function resetStores() {
-  useUiStore.setState({ theme: "dark", paletteOpen: false });
+  useUiStore.setState({ theme: "dark", paletteOpen: false, locale: "en" });
   useCollectionsStore.setState({
     collections: [],
     requests: [],
@@ -43,12 +43,12 @@ describe("AppShell", () => {
     // With no active request the workbench (Zone 2+3) shows its own empty state;
     // the response dock nests inside it and only mounts once a request is open.
     await waitFor(() =>
-      expect(screen.getByText("Rozgrzej pierwszą lokówkę")).toBeInTheDocument(),
+      expect(screen.getByText("Send your first request")).toBeInTheDocument(),
     );
     expect(
-      screen.getByText("Wklej curl albo zacznij od GET"),
+      screen.getByText("Paste a curl or start with a GET"),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Otwórz paletę poleceń")).toBeInTheDocument();
+    expect(screen.getByLabelText("Open command palette")).toBeInTheDocument();
   });
 
   it("opens the command palette on ⌘K", async () => {
@@ -61,11 +61,11 @@ describe("AppShell", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByPlaceholderText("Szukaj requestów, akcji, env…"),
+        screen.getByPlaceholderText("Search requests, actions, env…"),
       ).toBeInTheDocument(),
     );
     // "Toggle theme" is unique to the palette, proving its action list rendered.
-    expect(screen.getByText("Przełącz motyw")).toBeInTheDocument();
+    expect(screen.getByText("Toggle theme")).toBeInTheDocument();
   });
 
   it("runs a palette action and closes the palette", async () => {
@@ -73,7 +73,7 @@ describe("AppShell", () => {
     render(<AppShell />);
 
     fireEvent.keyDown(window, { key: "k", metaKey: true });
-    const toggle = await screen.findByText("Przełącz motyw");
+    const toggle = await screen.findByText("Toggle theme");
 
     expect(useUiStore.getState().theme).toBe("dark");
     fireEvent.click(toggle);

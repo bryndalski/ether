@@ -5,6 +5,7 @@ import { MethodBadge } from "../common/MethodBadge";
 import { Icon } from "../common/Icon";
 import { RowContextMenu, type MenuItem } from "./RowContextMenu";
 import { InlineRename } from "./InlineRename";
+import { useT } from "../../i18n/useT";
 import type { SidebarDnDApi } from "../../hooks/useSidebarDnD";
 
 interface RequestRowProps {
@@ -38,6 +39,7 @@ export function RequestRow({
   const removeRequest = useCollectionsStore((state) => state.removeRequest);
   const requests = useCollectionsStore((state) => state.requests);
   const reorder = useCollectionsStore((state) => state.reorder);
+  const t = useT();
 
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
@@ -59,11 +61,11 @@ export function RequestRow({
   }
 
   const items: MenuItem[] = [
-    { label: "Zmień nazwę", icon: "i-copy", onSelect: () => onStartRename(request.id) },
-    { label: "Duplikuj", icon: "i-copy", onSelect: () => void duplicateRequest(request.id) },
-    { label: "Przenieś w górę", icon: "i-arrow-up", onSelect: () => moveBy(-1) },
-    { label: "Przenieś w dół", icon: "i-arrow-down", onSelect: () => moveBy(1) },
-    { label: "Usuń", icon: "i-trash", danger: true, onSelect: () => void removeRequest(request.id) },
+    { label: t("common.rename"), icon: "i-copy", onSelect: () => onStartRename(request.id) },
+    { label: t("sidebar.duplicate"), icon: "i-copy", onSelect: () => void duplicateRequest(request.id) },
+    { label: t("common.moveUp"), icon: "i-arrow-up", onSelect: () => moveBy(-1) },
+    { label: t("common.moveDown"), icon: "i-arrow-down", onSelect: () => moveBy(1) },
+    { label: t("common.delete"), icon: "i-trash", danger: true, onSelect: () => void removeRequest(request.id) },
   ];
 
   const isDropTarget = dnd.dropTargetId === request.id && dnd.draggingId !== null;

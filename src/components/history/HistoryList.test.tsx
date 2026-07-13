@@ -83,15 +83,15 @@ describe("HistoryList", () => {
 
   it("toggling select marks the row for diff (max 2 FIFO)", () => {
     render(<HistoryList now={Date.now()} onReplay={() => {}} />);
-    fireEvent.click(screen.getByLabelText(/Zaznacz do porównania: GET/));
-    fireEvent.click(screen.getByLabelText(/Zaznacz do porównania: POST/));
+    fireEvent.click(screen.getByLabelText(/Select for comparison: GET/));
+    fireEvent.click(screen.getByLabelText(/Select for comparison: POST/));
     expect(useHistoryStore.getState().selectedIds).toEqual(["a", "b"]);
   });
 
   it("calls onReplay with the entry id for its Replay button", () => {
     const onReplay = vi.fn();
     render(<HistoryList now={Date.now()} onReplay={onReplay} />);
-    const replayButtons = screen.getAllByLabelText("Ponów request");
+    const replayButtons = screen.getAllByLabelText("Replay request");
     fireEvent.click(replayButtons[0]);
     expect(onReplay).toHaveBeenCalledWith("a");
   });
@@ -99,7 +99,7 @@ describe("HistoryList", () => {
   it("shows the empty state when there are no entries", () => {
     useHistoryStore.setState({ entries: [] });
     render(<HistoryList now={Date.now()} onReplay={() => {}} />);
-    expect(screen.getByText("Brak historii")).toBeInTheDocument();
+    expect(screen.getByText("No history")).toBeInTheDocument();
   });
 
   it("shows an error banner when load failed", () => {

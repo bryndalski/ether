@@ -6,6 +6,7 @@ import { UrlInput } from "./UrlInput";
 import { SendButton } from "./SendButton";
 import { BenchmarkButton } from "../devtools/BenchmarkButton";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface RequestBarProps {
   draft: RequestDraft;
@@ -36,6 +37,7 @@ export function RequestBar({
   dirty,
   requestTypeToggle,
 }: RequestBarProps) {
+  const t = useT();
   const isGraphql = draft.graphql != null;
   const inFlight =
     sendState.phase === "in-flight" || sendState.phase === "interpolating";
@@ -49,8 +51,8 @@ export function RequestBar({
       <button
         type="button"
         className="btn-save"
-        aria-label="Zapisz request"
-        title="Zapisz request (⌘S)"
+        aria-label={t("palette.saveRequest")}
+        title={t("workbench.saveRequestTitle")}
         disabled={!dirty}
         onClick={onSave}
       >
@@ -59,8 +61,8 @@ export function RequestBar({
       <button
         type="button"
         className="btn-save"
-        aria-label="Kopiuj jako cURL"
-        title="Kopiuj jako cURL (⌘⇧C)"
+        aria-label={t("workbench.copyAsCurlAria")}
+        title={t("workbench.copyAsCurl")}
         disabled={draft.url.trim() === ""}
         onClick={onCopyCurl}
       >

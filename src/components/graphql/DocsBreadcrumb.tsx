@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { useT } from "../../i18n/useT";
 
 interface DocsBreadcrumbProps {
   stack: string[];
@@ -7,9 +8,10 @@ interface DocsBreadcrumbProps {
 
 /** A `Query › User › Role` trail; clicking an ancestor pops back to it. */
 export function DocsBreadcrumb({ stack, onNavigate }: DocsBreadcrumbProps) {
+  const t = useT();
   if (stack.length <= 1) return null;
   return (
-    <nav className="docs-breadcrumb" aria-label="Ścieżka dokumentacji">
+    <nav className="docs-breadcrumb" aria-label={t("graphql.docsPath")}>
       {stack.map((name, index) => (
         <Fragment key={`${name}-${index}`}>
           {index > 0 && (

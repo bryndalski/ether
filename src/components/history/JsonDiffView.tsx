@@ -1,4 +1,6 @@
 import type { JsonDiffEntry } from "../../lib/jsonDiff";
+import { useT } from "../../i18n/useT";
+import type { TKey } from "../../i18n";
 
 interface JsonDiffViewProps {
   entries: JsonDiffEntry[];
@@ -20,11 +22,11 @@ const KIND_LABEL: Record<string, string> = {
   "type-changed": "Type",
 };
 
-const ACTION_PL: Record<string, string> = {
-  added: "Dodano",
-  removed: "Usunięto",
-  changed: "Zmieniono",
-  "type-changed": "Zmieniono typ",
+const ACTION_KEY: Record<string, TKey> = {
+  added: "diff.actionAdded",
+  removed: "diff.actionRemoved",
+  changed: "diff.actionChanged",
+  "type-changed": "diff.actionTypeChanged",
 };
 
 function preview(value: unknown): string {
@@ -48,10 +50,12 @@ function lineText(entry: JsonDiffEntry): string {
 /** Structural JSON body diff. Never color-only: every row carries a +/−/~ sigil,
  *  a kind badge, and an aria-label. type-changed adds a "Type" pill. */
 export function JsonDiffView({ entries, fallback }: JsonDiffViewProps) {
+  const t = useT();
+  const actionText = (kind: string): string => t(ACTION_KEY[kind]);
   if (fallback) {
     return (
-      <div className="diff-body lok-scroll" role="region" aria-label="Diff body (tekstowy)">
-        <p className="diff-empty">Nie-JSON body — diff tekstowy.</p>
+      <div className="diff-body lok-scroll" role="region" aria-label={t("diff.bodyDiffTextRegion")}>
+        <p className="diff-empty">{t("diff.nonJsonBody")}</p>
         <pre style={{ whiteSpace: "pre-wrap" }}>{fallback.before}</pre>
         <pre style={{ whiteSpace: "pre-wrap", opacity: 0.7 }}>{fallback.after}</pre>
       </div>
@@ -59,16 +63,20 @@ export function JsonDiffView({ entries, fallback }: JsonDiffViewProps) {
   }
 
   if (entries.length === 0) {
-    return <div className="diff-empty">Odpowiedzi identyczne (body).</div>;
+    return <div className="diff-empty">{t("diff.bodyIdentical")}</div>;
   }
 
   return (
-    <div className="diff-body lok-scroll" role="region" aria-label="Diff body">
+    <div className="diff-body lok-scroll" role="region" aria-label={t("diff.bodyDiffRegion")}>
       {entries.map((entry) => (
         <div
           key={entry.path}
           className={`diff-line ${entry.kind}`}
-          aria-label={`${ACTION_PL[entry.kind]} ${entry.path}: ${lineText(entry)}`}
+          aria-label={t("diff.diffLineAria", {
+            action: actionText(entry.kind),
+            path: entry.path,
+            text: lineText(entry),
+          })}
         >
           <span className="diff-sigil" aria-hidden="true">
             {SIGIL[entry.kind]}

@@ -286,18 +286,20 @@ fn encode(value: &str) -> String {
     utf8_percent_encode(value, NON_ALPHANUMERIC).to_string()
 }
 
-/// Base directory for on-disk app data. `LOKOWKA_DATA_DIR`, when set, overrides
-/// the default so tests can redirect writes into a temp dir instead of the real
-/// Application Support tree.
+/// Base directory for on-disk app data. `ETHER_DATA_DIR` (or the legacy
+/// `LOKOWKA_DATA_DIR` alias), when set, overrides the default so tests can
+/// redirect writes into a temp dir instead of the real Application Support tree.
 fn data_dir() -> Result<PathBuf, String> {
-    if let Some(override_dir) = std::env::var_os("LOKOWKA_DATA_DIR") {
+    if let Some(override_dir) =
+        std::env::var_os("ETHER_DATA_DIR").or_else(|| std::env::var_os("LOKOWKA_DATA_DIR"))
+    {
         return Ok(PathBuf::from(override_dir));
     }
     let home = dirs::home_dir().ok_or("cannot resolve home directory")?;
     Ok(home
         .join("Library")
         .join("Application Support")
-        .join("com.bryndalski.lokowka"))
+        .join("com.bryndalski.ether"))
 }
 
 /// Path to the persistent cookie jar for a scope key, creating the directory.
@@ -966,5 +968,40 @@ mod tests {
     fn encode_body_reports_truncation() {
         let (_, _, truncated) = encode_body(b"partial", (MAX_BODY_BYTES as u64) + 10);
         assert_eq!(truncated, Some(MAX_BODY_BYTES as u64));
+    }
+
+    // Serialize the env-var mutating tests: they share the process environment.
+    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    #[test]
+    fn data_dir_defaults_to_ether_namespace() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        std::env::remove_var("ETHER_DATA_DIR");
+        std::env::remove_var("LOKOWKA_DATA_DIR");
+        let dir = data_dir().unwrap();
+        assert!(
+            dir.ends_with("com.bryndalski.ether"),
+            "default data dir must live under the ether namespace, got {dir:?}"
+        );
+    }
+
+    #[test]
+    fn data_dir_honours_ether_override() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        std::env::remove_var("LOKOWKA_DATA_DIR");
+        std::env::set_var("ETHER_DATA_DIR", "/tmp/ether-test-dir");
+        let dir = data_dir().unwrap();
+        std::env::remove_var("ETHER_DATA_DIR");
+        assert_eq!(dir, PathBuf::from("/tmp/ether-test-dir"));
+    }
+
+    #[test]
+    fn data_dir_honours_legacy_lokowka_override_alias() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        std::env::remove_var("ETHER_DATA_DIR");
+        std::env::set_var("LOKOWKA_DATA_DIR", "/tmp/legacy-lokowka-dir");
+        let dir = data_dir().unwrap();
+        std::env::remove_var("LOKOWKA_DATA_DIR");
+        assert_eq!(dir, PathBuf::from("/tmp/legacy-lokowka-dir"));
     }
 }

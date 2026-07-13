@@ -7,7 +7,7 @@ afterEach(cleanup);
 describe("SidebarHeader", () => {
   it("applies the .sidebar-search-input class and a search-labelled input", () => {
     render(<SidebarHeader query="" onQueryChange={vi.fn()} />);
-    const input = screen.getByLabelText("Szukaj requestów");
+    const input = screen.getByLabelText("Search requests");
     expect(input).toHaveClass("sidebar-search-input");
     expect(input).toHaveAttribute("type", "search");
   });
@@ -18,6 +18,6 @@ describe("SidebarHeader", () => {
     );
     const icon = container.querySelector(".sidebar-search-icon");
     expect(icon).toHaveAttribute("aria-hidden");
-    expect(screen.getByLabelText("Szukaj requestów")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search requests")).toBeInTheDocument();
   });
 });

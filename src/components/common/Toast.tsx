@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useToast, type ToastItem } from "../../state/useToast";
 import { Icon, type IconName } from "./Icon";
+import { useT } from "../../i18n/useT";
 import "./toast.css";
 
 const AUTO_DISMISS_MS = 2400;
@@ -14,6 +15,7 @@ const ICON_BY_VARIANT: Record<ToastItem["variant"], IconName> = {
 
 function ToastRow({ toast }: { toast: ToastItem }) {
   const dismiss = useToast((state) => state.dismiss);
+  const t = useT();
 
   useEffect(() => {
     const timer = setTimeout(() => dismiss(toast.id), AUTO_DISMISS_MS);
@@ -35,7 +37,7 @@ function ToastRow({ toast }: { toast: ToastItem }) {
       <button
         type="button"
         className="lok-toast-close"
-        aria-label="Zamknij powiadomienie"
+        aria-label={t("toast.dismissNotification")}
         onClick={() => dismiss(toast.id)}
       >
         <Icon name="i-x" size={13} />

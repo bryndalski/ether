@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ImportApi } from "../../hooks/useImport";
 import type { RequestSpec } from "../../lib/types";
+import { useT } from "../../i18n/useT";
 
 interface PasteCurlTabProps {
   api: ImportApi;
@@ -15,6 +16,7 @@ export function PasteCurlTab({
   activeRequestPresent,
   onLoadSpec,
 }: PasteCurlTabProps) {
+  const t = useT();
   const [command, setCommand] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -22,16 +24,16 @@ export function PasteCurlTab({
     setError(null);
     const spec = await api.parseCurl(command);
     if (!spec) {
-      setError("Nie udało się sparsować cURL.");
+      setError(t("import.parseFailed"));
       return;
     }
     onLoadSpec(spec, mode);
   }
 
   return (
-    <div className="import-modal-body" role="tabpanel" aria-label="Wklej cURL">
+    <div className="import-modal-body" role="tabpanel" aria-label={t("import.pasteCurlTab")}>
       <label className="import-label" htmlFor="import-paste-curl">
-        Wklej polecenie cURL
+        {t("import.pasteCurlCommand")}
       </label>
       <textarea
         id="import-paste-curl"
@@ -48,7 +50,9 @@ export function PasteCurlTab({
           disabled={command.trim() === ""}
           onClick={() => void run(activeRequestPresent ? "current" : "new")}
         >
-          {activeRequestPresent ? "Wczytaj do requestu" : "Nowy request z cURL"}
+          {activeRequestPresent
+            ? t("import.loadIntoRequest")
+            : t("import.newRequestFromCurl")}
         </button>
         {activeRequestPresent && (
           <button
@@ -57,7 +61,7 @@ export function PasteCurlTab({
             disabled={command.trim() === ""}
             onClick={() => void run("new")}
           >
-            Nowy request z cURL
+            {t("import.newRequestFromCurl")}
           </button>
         )}
       </div>

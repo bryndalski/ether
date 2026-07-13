@@ -48,14 +48,14 @@ describe("EnvironmentManager modal", () => {
   it("is a labelled modal dialog (role=dialog, aria-modal)", () => {
     render(<EnvironmentManager />);
     const dialog = screen.getByRole("dialog", {
-      name: /zarządzanie środowiskami/i,
+      name: /manage environments/i,
     });
     expect(dialog).toHaveAttribute("aria-modal", "true");
   });
 
   it("creating an env upserts with parent_id:null and selects it", async () => {
     render(<EnvironmentManager />);
-    fireEvent.click(screen.getByRole("button", { name: /nowe środowisko/i }));
+    fireEvent.click(screen.getByRole("button", { name: /new environment/i }));
     await waitFor(() => {
       const calls = invokeMock.mock.calls.filter(
         (call) => call[0] === "upsert_environment",
@@ -70,7 +70,7 @@ describe("EnvironmentManager modal", () => {
   it("closing via the Esc key hides the modal", () => {
     render(<EnvironmentManager />);
     fireEvent.keyDown(
-      screen.getByRole("dialog", { name: /zarządzanie środowiskami/i }),
+      screen.getByRole("dialog", { name: /manage environments/i }),
       { key: "Escape" },
     );
     expect(useUiStore.getState().envManagerOpen).toBe(false);

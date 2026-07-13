@@ -5,6 +5,13 @@
 
 import type { Assertion, ResponseData } from "./types";
 import { jsonType, parseJsonBody, type JsonType } from "./jsonDiff";
+import { translate, type TKey } from "../i18n";
+import { currentLocale } from "../i18n/useT";
+import type { InterpolationVars } from "../i18n/interpolate";
+
+// Localized message helper for evaluation results (locale read at call time).
+const m = (key: TKey, vars?: InterpolationVars): string =>
+  translate(currentLocale(), key, vars);
 
 export type AssertionStatus = "pass" | "fail" | "skipped";
 
@@ -127,11 +134,11 @@ function evalOne(
     case "status_equals": {
       const ok = response.status === assertion.expected;
       return ok
-        ? pass(assertion, index, `status ${response.status} = ${assertion.expected}`)
+        ? pass(assertion, index, m("assertions.statusEqual", { status: response.status, expected: assertion.expected }))
         : fail(
             assertion,
             index,
-            `oczekiwano ${assertion.expected}, otrzymano ${response.status}`,
+            m("assertions.statusExpectedGot", { expected: assertion.expected, status: response.status }),
             String(assertion.expected),
             String(response.status),
           );
@@ -143,12 +150,12 @@ function evalOne(
         ? pass(
             assertion,
             index,
-            `status ${response.status} w [${assertion.min}, ${assertion.max}]`,
+            m("assertions.statusInRange", { status: response.status, min: assertion.min, max: assertion.max }),
           )
         : fail(
             assertion,
             index,
-            `status ${response.status} poza [${assertion.min}, ${assertion.max}]`,
+            m("assertions.statusOutOfRange", { status: response.status, min: assertion.min, max: assertion.max }),
             `${assertion.min}–${assertion.max}`,
             String(response.status),
           );
@@ -156,92 +163,92 @@ function evalOne(
     case "header_exists": {
       const { present } = joinHeader(response.headers, assertion.name);
       return present
-        ? pass(assertion, index, `nagłówek ${assertion.name} istnieje`)
-        : fail(assertion, index, `brak nagłówka ${assertion.name}`);
+        ? pass(assertion, index, m("assertions.headerExistsResult", { name: assertion.name }))
+        : fail(assertion, index, m("assertions.headerMissingResult", { name: assertion.name }));
     }
     case "header_equals": {
       const { present, value } = joinHeader(response.headers, assertion.name);
-      if (!present) return fail(assertion, index, `brak nagłówka ${assertion.name}`);
+      if (!present) return fail(assertion, index, m("assertions.headerMissingResult", { name: assertion.name }));
       const ok = value === assertion.expected;
       return ok
-        ? pass(assertion, index, `${assertion.name} = ${assertion.expected}`)
+        ? pass(assertion, index, m("assertions.headerEqual", { name: assertion.name, expected: assertion.expected }))
         : fail(
             assertion,
             index,
-            `${assertion.name}: oczekiwano "${assertion.expected}"`,
+            m("assertions.headerExpected", { name: assertion.name, expected: assertion.expected }),
             assertion.expected,
             value,
           );
     }
     case "json_path_exists": {
       if (bodyIsBinary(response))
-        return fail(assertion, index, `binarne body — nie można sprawdzić ${assertion.path}`);
+        return fail(assertion, index, m("assertions.binaryCannotCheck", { path: assertion.path }));
       const parsed = json();
       if (!parsed.ok)
-        return fail(assertion, index, `body nie jest JSON — nie można sprawdzić ${assertion.path}`);
+        return fail(assertion, index, m("assertions.notJsonCannotCheck", { path: assertion.path }));
       const { found } = resolveJsonPath(parsed.value, assertion.path);
       return found
-        ? pass(assertion, index, `${assertion.path} istnieje`)
-        : fail(assertion, index, `${assertion.path} nie znaleziono`);
+        ? pass(assertion, index, m("assertions.pathExists", { path: assertion.path }))
+        : fail(assertion, index, m("assertions.pathNotFound", { path: assertion.path }));
     }
     case "json_path_equals": {
       if (bodyIsBinary(response))
-        return fail(assertion, index, `binarne body — nie można sprawdzić ${assertion.path}`);
+        return fail(assertion, index, m("assertions.binaryCannotCheck", { path: assertion.path }));
       const parsed = json();
       if (!parsed.ok)
-        return fail(assertion, index, `body nie jest JSON — nie można sprawdzić ${assertion.path}`);
+        return fail(assertion, index, m("assertions.notJsonCannotCheck", { path: assertion.path }));
       const { found, value } = resolveJsonPath(parsed.value, assertion.path);
       if (!found)
-        return fail(assertion, index, `${assertion.path} nie znaleziono`, assertion.expected);
+        return fail(assertion, index, m("assertions.pathNotFound", { path: assertion.path }), assertion.expected);
       const ok = valueMatchesExpected(value, assertion.expected);
       return ok
-        ? pass(assertion, index, `${assertion.path} = ${assertion.expected}`)
+        ? pass(assertion, index, m("assertions.pathEqual", { path: assertion.path, expected: assertion.expected }))
         : fail(
             assertion,
             index,
-            `${assertion.path}: oczekiwano ${assertion.expected}`,
+            m("assertions.pathExpected", { path: assertion.path, expected: assertion.expected }),
             assertion.expected,
             render(value),
           );
     }
     case "json_path_type": {
       if (bodyIsBinary(response))
-        return fail(assertion, index, `binarne body — nie można sprawdzić ${assertion.path}`);
+        return fail(assertion, index, m("assertions.binaryCannotCheck", { path: assertion.path }));
       const parsed = json();
       if (!parsed.ok)
-        return fail(assertion, index, `body nie jest JSON — nie można sprawdzić ${assertion.path}`);
+        return fail(assertion, index, m("assertions.notJsonCannotCheck", { path: assertion.path }));
       const { found, value } = resolveJsonPath(parsed.value, assertion.path);
       if (!found)
-        return fail(assertion, index, `${assertion.path} nie znaleziono`, assertion.expected_type);
+        return fail(assertion, index, m("assertions.pathNotFound", { path: assertion.path }), assertion.expected_type);
       const actualType: JsonType = jsonType(value);
       const ok = actualType === assertion.expected_type;
       return ok
-        ? pass(assertion, index, `${assertion.path}: ${actualType}`)
+        ? pass(assertion, index, m("assertions.pathType", { path: assertion.path, type: actualType }))
         : fail(
             assertion,
             index,
-            `${assertion.path}: oczekiwano ${assertion.expected_type}`,
+            m("assertions.pathExpectedType", { path: assertion.path, type: assertion.expected_type }),
             assertion.expected_type,
             actualType,
           );
     }
     case "body_contains": {
       if (bodyIsBinary(response))
-        return fail(assertion, index, `binarne body — wyszukiwanie tekstu niedostępne`);
+        return fail(assertion, index, m("assertions.binaryTextUnavailable"));
       const ok = response.body.includes(assertion.substring);
       return ok
-        ? pass(assertion, index, `body zawiera "${assertion.substring}"`)
-        : fail(assertion, index, `body nie zawiera "${assertion.substring}"`, assertion.substring);
+        ? pass(assertion, index, m("assertions.bodyContainsResult", { substring: assertion.substring }))
+        : fail(assertion, index, m("assertions.bodyNotContains", { substring: assertion.substring }), assertion.substring);
     }
     case "response_time_below": {
       const total = response.timings.total_ms;
       const ok = total < assertion.max_ms;
       return ok
-        ? pass(assertion, index, `${total.toFixed(0)} ms < ${assertion.max_ms} ms`)
+        ? pass(assertion, index, m("assertions.timeBelow", { ms: total.toFixed(0), max: assertion.max_ms }))
         : fail(
             assertion,
             index,
-            `${total.toFixed(0)} ms >= ${assertion.max_ms} ms`,
+            m("assertions.timeAbove", { ms: total.toFixed(0), max: assertion.max_ms }),
             `< ${assertion.max_ms} ms`,
             `${total.toFixed(0)} ms`,
           );
@@ -264,7 +271,7 @@ export function evalAssertions(
 
   return assertions.map((assertion, index) => {
     if (assertion.enabled === false) {
-      return { assertion, index, status: "skipped", message: "wyłączone" };
+      return { assertion, index, status: "skipped", message: m("assertions.disabledResult") };
     }
     return evalOne(response, assertion, index, json);
   });

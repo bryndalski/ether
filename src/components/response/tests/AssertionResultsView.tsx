@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { Assertion, ResponseData } from "../../../lib/types";
 import { evalAssertions, summarize } from "../../../lib/assertions";
 import { AssertionResultRow } from "./AssertionResultRow";
+import { useT } from "../../../i18n/useT";
 
 interface AssertionResultsViewProps {
   response: ResponseData;
@@ -11,6 +12,7 @@ interface AssertionResultsViewProps {
 /** Runs evalAssertions against the response and renders a summary + one row per
  *  result. Pure display — memoized on [response, assertions]. */
 export function AssertionResultsView({ response, assertions }: AssertionResultsViewProps) {
+  const t = useT();
   const results = useMemo(
     () => evalAssertions(response, assertions),
     [response, assertions],
@@ -18,10 +20,10 @@ export function AssertionResultsView({ response, assertions }: AssertionResultsV
   const summary = summarize(results);
 
   return (
-    <div className="assert-view" role="tabpanel" aria-label="Wyniki asercji">
+    <div className="assert-view" role="tabpanel" aria-label={t("assertions.resultsAria")}>
       <div className="assert-summary lok-tnums" role="status" aria-live="polite">
         <span className={summary.allPassed ? "assert-word pass" : "assert-word fail"}>
-          {summary.allPassed ? "✓ Wszystkie spełnione" : "✗ Są niespełnione"}
+          {summary.allPassed ? t("assertions.allPassed") : t("assertions.someFailed")}
         </span>
         <span>
           {summary.passed}/{summary.total} pass

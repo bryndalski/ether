@@ -8,6 +8,7 @@ import {
 } from "../../lib/graphqlSchemaTree";
 import { pathKey, type FieldPath } from "../../lib/graphqlSelection";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface FieldTreeProps {
   rootType: GraphQLObjectType;
@@ -25,6 +26,7 @@ export function FieldTree({
   onToggle,
   onFocusType,
 }: FieldTreeProps) {
+  const t = useT();
   const expansion = useFieldTreeExpansion();
 
   function renderNodes(
@@ -73,7 +75,7 @@ export function FieldTree({
         <span className="spacer" />
         <Icon name="i-book" size={13} />
       </div>
-      <div className="col-body lok-scroll" role="tree" aria-label="Pola schematu">
+      <div className="col-body lok-scroll" role="tree" aria-label={t("graphql.schemaFields")}>
         <div className="f field-type" aria-hidden="true">
           <Icon name="i-chev" size={12} />
           {rootType.name}
