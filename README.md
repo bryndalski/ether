@@ -35,13 +35,25 @@ See [docs/specs/2026-07-12-lokowka-design.md](docs/specs/2026-07-12-lokowka-desi
 
 ## Install
 
-Grab the DMG from [Releases](https://github.com/bryndalski/lokowka/releases), drag **Ether.app** to `/Applications`, then clear the quarantine flag:
+One line, no Gatekeeper friction (curl downloads carry no quarantine flag):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/bryndalski/lokowka/main/install.sh | sh
+```
+
+The script fetches the latest release, verifies the code signature, and puts **Ether.app** in `/Applications`. Add `-s -- --open` to launch it right away.
+
+<details>
+<summary>Prefer the DMG?</summary>
+
+Grab it from [Releases](https://github.com/bryndalski/lokowka/releases), drag **Ether.app** to `/Applications`, then clear the quarantine flag once:
 
 ```sh
 xattr -cr /Applications/Ether.app
 ```
 
-macOS shows *"Ether is damaged and can't be opened"* for any downloaded app that isn't notarized by Apple — Ether is ad-hoc signed (no Apple Developer account, by design: no cloud, no accounts). The `xattr` step is required once per download; right-click → Open does **not** work for ad-hoc-signed apps. Building from source (below) needs no such step.
+macOS blocks any browser-downloaded app that isn't notarized by Apple — Ether is ad-hoc signed (no Apple Developer account, by design: no cloud, no accounts). Right-click → Open does **not** work for ad-hoc-signed apps. Building from source needs no such step.
+</details>
 
 ## Development
 
