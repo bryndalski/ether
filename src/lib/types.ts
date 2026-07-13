@@ -114,6 +114,7 @@ export interface StoredRequest {
   sort_order: number;
   docs_md: string | null;
   graphql: GraphqlMeta | null;
+  assertions: Assertion[];
 }
 
 export interface Environment {
@@ -138,6 +139,41 @@ export interface ImportResult {
   requests: StoredRequest[];
   environments: Environment[];
   warnings: string[];
+}
+
+// ---- scriptless assertions (mirror models.rs::Assertion) ----
+
+/** JSON runtime type — the single source of truth lives in jsonDiff.ts and is
+ *  re-exported here so `json_path_type` and the diff share one detector. */
+export type { JsonType } from "./jsonDiff";
+import type { JsonType } from "./jsonDiff";
+
+export type Assertion =
+  | { type: "status_equals"; expected: number; enabled: boolean }
+  | { type: "status_in_range"; min: number; max: number; enabled: boolean }
+  | { type: "header_exists"; name: string; enabled: boolean }
+  | { type: "header_equals"; name: string; expected: string; enabled: boolean }
+  | { type: "json_path_exists"; path: string; enabled: boolean }
+  | { type: "json_path_equals"; path: string; expected: string; enabled: boolean }
+  | { type: "json_path_type"; path: string; expected_type: JsonType; enabled: boolean }
+  | { type: "body_contains"; substring: string; enabled: boolean }
+  | { type: "response_time_below"; max_ms: number; enabled: boolean };
+
+export type AssertionType = Assertion["type"];
+
+// ---- snapshots (mirror models.rs::SnapshotRecord / ScrubConfig) ----
+
+export interface ScrubConfig {
+  paths: string[];
+  auto_timestamps: boolean;
+  auto_uuids: boolean;
+}
+
+export interface SnapshotRecord {
+  request_id: string;
+  baseline: ResponseData;
+  scrub_config: ScrubConfig;
+  created_at: string;
 }
 
 /** The five env kinds the design system colors via [data-env]. */

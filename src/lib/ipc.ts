@@ -10,6 +10,7 @@ import type {
   ImportResult,
   RequestSpec,
   ResponseData,
+  SnapshotRecord,
   StoredRequest,
 } from "./types";
 
@@ -130,6 +131,20 @@ export function gqlSchemaPut(
   introspectionJson: string,
 ): Promise<void> {
   return invoke("gql_schema_put", { endpointUrl, introspectionJson });
+}
+
+// ---- snapshots (one baseline per request) ----
+
+export function snapshotGet(requestId: string): Promise<SnapshotRecord | null> {
+  return invoke("snapshot_get", { requestId });
+}
+
+export function snapshotPut(record: SnapshotRecord): Promise<SnapshotRecord> {
+  return invoke("snapshot_put", { record });
+}
+
+export function snapshotDelete(requestId: string): Promise<void> {
+  return invoke("snapshot_delete", { requestId });
 }
 
 // ---- secrets (Keychain) ----

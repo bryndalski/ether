@@ -2,17 +2,21 @@ import { useCallback, useEffect, useState } from "react";
 import { useCollectionsStore } from "../../state/useCollectionsStore";
 import { useEnvStore } from "../../state/useEnvStore";
 import { useHistoryStore } from "../../state/useHistoryStore";
+import { useSnapshotStore } from "../../state/useSnapshotStore";
 import { useWorkbenchActions } from "../../state/useWorkbenchActions";
 import { useCopyAsCurl } from "../../hooks/useCopyAsCurl";
 import { useNewRequest } from "../../hooks/useNewRequest";
 import { useRequestDraft } from "../../hooks/useRequestDraft";
 import { useSendRequest } from "../../hooks/useSendRequest";
+import { useWatchMode } from "../../hooks/useWatchMode";
+import { resolveAndSend } from "../../lib/ipc";
 import { useBenchmark, type BenchConfig } from "../../hooks/useBenchmark";
 import { useHistoryReplay } from "../../hooks/useHistoryReplay";
 import { isRequestDirty } from "../../lib/dirty";
 import { buildOperationRequest } from "../../lib/graphqlBody";
 import { hasRedactedSecrets } from "../../lib/replay";
-import type { StoredRequest } from "../../lib/types";
+import type { ScrubConfig, StoredRequest } from "../../lib/types";
+import { TestsPanel } from "./tests/TestsPanel";
 import { RequestTypeToggle } from "../graphql/RequestTypeToggle";
 import { EmptyState } from "../common/EmptyState";
 import { ResponseDock } from "../response/ResponseDock";
@@ -55,6 +59,48 @@ export function RequestWorkbench() {
   const snapshotEntry = useHistoryStore((state) =>
     openedId ? state.entryById(openedId) : null,
   );
+
+  // Snapshot baseline for the active request + the editable scrub config.
+  const snapshotRecord = useSnapshotStore((state) => state.record);
+  const loadSnapshot = useSnapshotStore((state) => state.load);
+  const saveSnapshotStore = useSnapshotStore((state) => state.save);
+  const removeSnapshot = useSnapshotStore((state) => state.remove);
+  const resetSnapshot = useSnapshotStore((state) => state.reset);
+  const [scrubConfig, setScrubConfig] = useState<ScrubConfig>({
+    paths: [],
+    auto_timestamps: true,
+    auto_uuids: true,
+  });
+
+  useEffect(() => {
+    if (activeRequestId) void loadSnapshot(activeRequestId);
+    else resetSnapshot();
+  }, [activeRequestId, loadSnapshot, resetSnapshot]);
+
+  // Adopt a saved snapshot's scrub config when one loads for this request.
+  useEffect(() => {
+    if (snapshotRecord) setScrubConfig(snapshotRecord.scrub_config);
+  }, [snapshotRecord]);
+
+  // Watch-mode runs the same real resolve_and_send path (no mocks, live endpoint).
+  const watch = useWatchMode({
+    draft,
+    environmentId: activeEnvironmentId,
+    send: (outgoing, env) => resolveAndSend(buildOperationRequest(outgoing), env),
+    assertions: draft.assertions,
+    snapshotConfig: snapshotRecord?.scrub_config ?? scrubConfig,
+    baseline: snapshotRecord?.baseline ?? null,
+  });
+
+  const onSaveSnapshot = useCallback(() => {
+    if (activeRequestId && sendState.response) {
+      void saveSnapshotStore(activeRequestId, sendState.response, scrubConfig);
+    }
+  }, [activeRequestId, sendState.response, scrubConfig, saveSnapshotStore]);
+
+  const onDeleteSnapshot = useCallback(() => {
+    if (activeRequestId) void removeSnapshot(activeRequestId);
+  }, [activeRequestId, removeSnapshot]);
 
   const dirty = isRequestDirty(draft, activeRequest);
   const isGraphql = draft.graphql != null;
@@ -261,6 +307,16 @@ export function RequestWorkbench() {
               onChange={(auth) => dispatch({ kind: "setAuth", auth })}
             />
           )}
+          {tab === "Tests" && (
+            <TestsPanel
+              assertions={draft.assertions}
+              onAssertionsChange={(assertions) =>
+                dispatch({ kind: "setAssertions", assertions })
+              }
+              scrubConfig={scrubConfig}
+              onScrubConfigChange={setScrubConfig}
+            />
+          )}
           {tab === "cURL" && (
             <CurlTab
               draft={draft}
@@ -290,6 +346,15 @@ export function RequestWorkbench() {
           onRunBenchmark,
           onCancelBenchmark: cancelBenchmark,
           onSelectSample: selectSample,
+        }}
+        testing={{
+          assertions: draft.assertions,
+          snapshotRecord,
+          scrubConfig,
+          watch,
+          onSaveSnapshot,
+          onAcceptSnapshot: onSaveSnapshot,
+          onDeleteSnapshot,
         }}
       />
       <HistoryDrawer activeRequestId={activeRequestId} onReplay={onReplay} />

@@ -62,6 +62,7 @@ function seed(): StoredRequest {
     sort_order: 0,
     docs_md: null,
     graphql: { operation_type: "query", query: "", variables_json: "{}" },
+    assertions: [],
   };
 }
 

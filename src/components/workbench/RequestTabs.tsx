@@ -1,8 +1,14 @@
 import type { DraftCounts } from "../../hooks/useRequestDraft";
 
-export type RequestTabKey = "Params" | "Headers" | "Body" | "Auth" | "cURL";
+export type RequestTabKey =
+  | "Params"
+  | "Headers"
+  | "Body"
+  | "Auth"
+  | "Tests"
+  | "cURL";
 
-const TABS: RequestTabKey[] = ["Params", "Headers", "Body", "Auth", "cURL"];
+const TABS: RequestTabKey[] = ["Params", "Headers", "Body", "Auth", "Tests", "cURL"];
 
 interface RequestTabsProps {
   active: RequestTabKey;
@@ -21,6 +27,8 @@ function countFor(tab: RequestTabKey, counts: DraftCounts): number {
       return counts.body;
     case "Auth":
       return counts.auth;
+    case "Tests":
+      return counts.assertions;
     case "cURL":
       return 0;
   }

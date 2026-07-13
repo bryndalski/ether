@@ -457,6 +457,7 @@ mod tests {
             sort_order: 0,
             docs_md: None,
             graphql: None,
+            assertions: vec![],
         }
     }
 

@@ -46,6 +46,7 @@ function req(
     sort_order,
     docs_md: null,
     graphql: null,
+    assertions: [],
   };
 }
 

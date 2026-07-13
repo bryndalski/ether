@@ -202,6 +202,7 @@ export const useCollectionsStore = create<CollectionsState>((set, get) => {
         sort_order: siblings.length,
         docs_md: null,
         graphql: null,
+        assertions: [],
       };
       // Push + select so the workbench draft seeds from it (§5 contract).
       set({

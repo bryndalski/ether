@@ -132,6 +132,7 @@ fn parse_postman_request(
         sort_order,
         docs_md: str_field(request, "description"),
         graphql: None,
+        assertions: vec![],
     }
 }
 
@@ -528,6 +529,7 @@ fn parse_insomnia_request(resource: &Value, sort_order: i64, _warned: &mut bool)
         sort_order,
         docs_md: str_field(resource, "description"),
         graphql: None,
+        assertions: vec![],
     }
 }
 
@@ -798,6 +800,7 @@ pub(crate) fn parse_har(root: &Value) -> ImportResult {
             sort_order,
             docs_md: None,
             graphql: None,
+            assertions: vec![],
         });
     }
 
@@ -1086,6 +1089,7 @@ fn parse_http_block(block: &str, collection_id: &str, sort_order: i64) -> Option
         sort_order,
         docs_md: None,
         graphql: None,
+        assertions: vec![],
     })
 }
 

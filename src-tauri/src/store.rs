@@ -3,8 +3,8 @@
 //! mutex, migrations run at startup via `init`.
 
 use crate::models::{
-    Auth, Body, Collection, Environment, GraphqlMeta, HistoryEntry, KeyValue, RequestOptions,
-    RequestSpec, StoredRequest,
+    Assertion, Auth, Body, Collection, Environment, GraphqlMeta, HistoryEntry, KeyValue,
+    RequestOptions, RequestSpec, ScrubConfig, SnapshotRecord, StoredRequest,
 };
 use rusqlite::{params, Connection, OptionalExtension, Row};
 use std::sync::{Mutex, OnceLock};
@@ -126,6 +126,12 @@ fn migrate(conn: &Connection) -> Result<(), String> {
              endpoint_url TEXT PRIMARY KEY,
              introspection_json TEXT NOT NULL,
              fetched_at TEXT NOT NULL
+         );
+         CREATE TABLE IF NOT EXISTS snapshots (
+             request_id TEXT PRIMARY KEY REFERENCES requests(id) ON DELETE CASCADE,
+             baseline_json TEXT NOT NULL,
+             scrub_paths_json TEXT NOT NULL,
+             created_at TEXT NOT NULL
          );",
     )
     .map_err(sql_err)?;
@@ -138,6 +144,17 @@ fn migrate(conn: &Connection) -> Result<(), String> {
         .map_err(sql_err)?;
     if current.is_none() {
         conn.execute("INSERT INTO schema_version (version) VALUES (1)", [])
+            .map_err(sql_err)?;
+    }
+
+    // v2: scriptless assertions. Additive, nullable column on `requests`; an old
+    // row reads `assertions_json = NULL → assertions = []`. The `let _ =` swallows
+    // the "duplicate column name" error when a fresh DB already had the column
+    // added on a prior run, so the migration is idempotent.
+    let version = current.unwrap_or(1);
+    if version < 2 {
+        let _ = conn.execute("ALTER TABLE requests ADD COLUMN assertions_json TEXT", []);
+        conn.execute("UPDATE schema_version SET version = 2", [])
             .map_err(sql_err)?;
     }
     Ok(())
@@ -244,6 +261,11 @@ fn row_to_request(row: &Row) -> Result<StoredRequest, String> {
         Some(raw) => Some(serde_json::from_str(&raw).map_err(json_err)?),
         None => None,
     };
+    // NULL / empty (old, pre-v2 rows) → []. Never errors on a missing column value.
+    let assertions: Vec<Assertion> = match row.get::<_, Option<String>>(13).map_err(sql_err)? {
+        Some(raw) if !raw.is_empty() => serde_json::from_str(&raw).map_err(json_err)?,
+        _ => Vec::new(),
+    };
     Ok(StoredRequest {
         id: row.get(0).map_err(sql_err)?,
         collection_id: row.get(1).map_err(sql_err)?,
@@ -258,6 +280,7 @@ fn row_to_request(row: &Row) -> Result<StoredRequest, String> {
         sort_order: row.get(10).map_err(sql_err)?,
         docs_md: row.get(11).map_err(sql_err)?,
         graphql,
+        assertions,
     })
 }
 
@@ -271,7 +294,8 @@ pub fn list_requests(collection_id: Option<String>) -> Result<Vec<StoredRequest>
         let mut stmt = guard
             .prepare(
                 "SELECT id, collection_id, name, method, url, headers_json, query_params_json, \
-                 body_json, auth_json, options_json, sort_order, docs_md, graphql_json \
+                 body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
+                 assertions_json \
                  FROM requests WHERE collection_id = ?1 ORDER BY sort_order, name",
             )
             .map_err(sql_err)?;
@@ -283,7 +307,8 @@ pub fn list_requests(collection_id: Option<String>) -> Result<Vec<StoredRequest>
         let mut stmt = guard
             .prepare(
                 "SELECT id, collection_id, name, method, url, headers_json, query_params_json, \
-                 body_json, auth_json, options_json, sort_order, docs_md, graphql_json \
+                 body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
+                 assertions_json \
                  FROM requests ORDER BY sort_order, name",
             )
             .map_err(sql_err)?;
@@ -308,14 +333,18 @@ pub fn upsert_request(request: StoredRequest) -> Result<StoredRequest, String> {
         Some(meta) => Some(serde_json::to_string(meta).map_err(json_err)?),
         None => None,
     };
+    // Default `[]` serializes to "[]", never NULL going forward — only genuinely
+    // pre-migration rows read as NULL.
+    let assertions_json = serde_json::to_string(&stored.assertions).map_err(json_err)?;
     let guard = connection()?
         .lock()
         .map_err(|_| "lock poisoned".to_string())?;
     guard
         .execute(
             "INSERT INTO requests (id, collection_id, name, method, url, headers_json, \
-             query_params_json, body_json, auth_json, options_json, sort_order, docs_md, graphql_json) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13) \
+             query_params_json, body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
+             assertions_json) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) \
              ON CONFLICT(id) DO UPDATE SET \
                  collection_id = excluded.collection_id, \
                  name = excluded.name, \
@@ -328,7 +357,8 @@ pub fn upsert_request(request: StoredRequest) -> Result<StoredRequest, String> {
                  options_json = excluded.options_json, \
                  sort_order = excluded.sort_order, \
                  docs_md = excluded.docs_md, \
-                 graphql_json = excluded.graphql_json",
+                 graphql_json = excluded.graphql_json, \
+                 assertions_json = excluded.assertions_json",
             params![
                 stored.id,
                 stored.collection_id,
@@ -342,7 +372,8 @@ pub fn upsert_request(request: StoredRequest) -> Result<StoredRequest, String> {
                 options_json,
                 stored.sort_order,
                 stored.docs_md,
-                graphql_json
+                graphql_json,
+                assertions_json
             ],
         )
         .map_err(sql_err)?;
@@ -693,6 +724,82 @@ pub fn gql_schema_put(endpoint_url: String, introspection_json: String) -> Resul
     Ok(())
 }
 
+// ---------- snapshots (baseline per request) ----------
+
+#[tauri::command]
+pub fn snapshot_get(request_id: String) -> Result<Option<SnapshotRecord>, String> {
+    let guard = connection()?
+        .lock()
+        .map_err(|_| "lock poisoned".to_string())?;
+    let row: Option<(String, String, String)> = guard
+        .query_row(
+            "SELECT baseline_json, scrub_paths_json, created_at FROM snapshots WHERE request_id = ?1",
+            params![request_id],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+        )
+        .optional()
+        .map_err(sql_err)?;
+    match row {
+        Some((baseline_json, scrub_paths_json, created_at)) => {
+            let baseline = serde_json::from_str(&baseline_json).map_err(json_err)?;
+            let scrub_config: ScrubConfig =
+                serde_json::from_str(&scrub_paths_json).map_err(json_err)?;
+            Ok(Some(SnapshotRecord {
+                request_id,
+                baseline,
+                scrub_config,
+                created_at,
+            }))
+        }
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
+pub fn snapshot_put(record: SnapshotRecord) -> Result<SnapshotRecord, String> {
+    let mut stored = record;
+    // A fresh Save or a re-stamp on Accept both land here; default the timestamp.
+    if stored.created_at.is_empty() {
+        stored.created_at = chrono::Utc::now().to_rfc3339();
+    }
+    let baseline_json = serde_json::to_string(&stored.baseline).map_err(json_err)?;
+    let scrub_paths_json = serde_json::to_string(&stored.scrub_config).map_err(json_err)?;
+    let guard = connection()?
+        .lock()
+        .map_err(|_| "lock poisoned".to_string())?;
+    guard
+        .execute(
+            "INSERT INTO snapshots (request_id, baseline_json, scrub_paths_json, created_at)
+             VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(request_id) DO UPDATE SET
+                 baseline_json = excluded.baseline_json,
+                 scrub_paths_json = excluded.scrub_paths_json,
+                 created_at = excluded.created_at",
+            params![
+                stored.request_id,
+                baseline_json,
+                scrub_paths_json,
+                stored.created_at
+            ],
+        )
+        .map_err(sql_err)?;
+    Ok(stored)
+}
+
+#[tauri::command]
+pub fn snapshot_delete(request_id: String) -> Result<(), String> {
+    let guard = connection()?
+        .lock()
+        .map_err(|_| "lock poisoned".to_string())?;
+    guard
+        .execute(
+            "DELETE FROM snapshots WHERE request_id = ?1",
+            params![request_id],
+        )
+        .map_err(sql_err)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -709,6 +816,7 @@ mod tests {
         let conn = connection().unwrap().lock().unwrap();
         conn.execute_batch(
             "DELETE FROM history;
+             DELETE FROM snapshots;
              DELETE FROM requests;
              DELETE FROM collections;
              DELETE FROM environments;
@@ -757,6 +865,38 @@ mod tests {
                 query: "{ me { id } }".into(),
                 variables_json: "{}".into(),
             }),
+            assertions: vec![],
+        }
+    }
+
+    fn sample_response(request_id: &str) -> ResponseData {
+        ResponseData {
+            request_id: request_id.into(),
+            status: 200,
+            http_version: "2".into(),
+            headers: vec![kv("Content-Type", "application/json")],
+            body: "{\"id\":1,\"ts\":\"2026-07-13T00:00:00Z\"}".into(),
+            body_is_base64: false,
+            body_truncated_at: None,
+            size_download_bytes: 12,
+            timings: Timings::default(),
+            effective_url: "https://example.test".into(),
+            redirect_chain: vec![],
+            verbose_log: String::new(),
+            tls: None,
+        }
+    }
+
+    fn sample_snapshot(request_id: &str) -> SnapshotRecord {
+        SnapshotRecord {
+            request_id: request_id.into(),
+            baseline: sample_response(request_id),
+            scrub_config: ScrubConfig {
+                paths: vec!["$.ts".into()],
+                auto_timestamps: true,
+                auto_uuids: false,
+            },
+            created_at: "2026-07-13T00:00:00+00:00".into(),
         }
     }
 
@@ -1213,5 +1353,169 @@ mod tests {
         assert_eq!(listed.len(), 1);
         assert_eq!(listed[0].id, child.id);
         assert_eq!(listed[0].parent_id, None, "no dangling parent reference");
+    }
+
+    // ---------- assertions (v2 migration) ----------
+
+    #[test]
+    fn request_assertions_round_trip() {
+        let _g = setup();
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        let mut req = sample_request(&coll.id, Body::None, Auth::None);
+        req.assertions = vec![
+            Assertion::StatusEquals {
+                expected: 200,
+                enabled: true,
+            },
+            Assertion::JsonPathEquals {
+                path: "$.data.id".into(),
+                expected: "42".into(),
+                enabled: false,
+            },
+            Assertion::HeaderExists {
+                name: "content-type".into(),
+                enabled: true,
+            },
+            Assertion::ResponseTimeBelow {
+                max_ms: 500.0,
+                enabled: true,
+            },
+        ];
+        let stored = upsert_request(req).unwrap();
+        let listed = list_requests(Some(coll.id)).unwrap();
+        assert_eq!(listed.len(), 1);
+        assert_eq!(
+            listed[0], stored,
+            "assertions preserved incl. order + enabled"
+        );
+        assert_eq!(listed[0].assertions.len(), 4);
+    }
+
+    #[test]
+    fn request_empty_assertions_default_to_list() {
+        let _g = setup();
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        let req = sample_request(&coll.id, Body::None, Auth::None);
+        let stored = upsert_request(req).unwrap();
+        assert!(stored.assertions.is_empty());
+        let listed = list_requests(Some(coll.id)).unwrap();
+        assert_eq!(listed[0].assertions, Vec::<Assertion>::new());
+    }
+
+    #[test]
+    fn request_backward_compat_null_assertions_column() {
+        let _g = setup();
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        // Simulate a pre-v2 row: insert raw SQL with assertions_json = NULL.
+        {
+            let conn = connection().unwrap().lock().unwrap();
+            conn.execute(
+                "INSERT INTO requests (id, collection_id, name, method, url, headers_json, \
+                 query_params_json, body_json, auth_json, options_json, sort_order, docs_md, \
+                 graphql_json, assertions_json) \
+                 VALUES ('old-1', ?1, 'legacy', 'GET', 'https://x.test', '[]', '[]', \
+                 '{\"type\":\"none\"}', '{\"type\":\"none\"}', ?2, 0, NULL, NULL, NULL)",
+                params![
+                    coll.id,
+                    serde_json::to_string(&RequestOptions::default()).unwrap()
+                ],
+            )
+            .unwrap();
+        }
+        let listed = list_requests(Some(coll.id)).unwrap();
+        assert_eq!(listed.len(), 1);
+        assert_eq!(
+            listed[0].assertions,
+            Vec::<Assertion>::new(),
+            "NULL column reads as [] without error"
+        );
+    }
+
+    #[test]
+    fn migrate_is_idempotent_and_ends_at_version_2() {
+        let _g = setup();
+        let conn = connection().unwrap().lock().unwrap();
+        // Re-running migrate must not error (the ALTER is guarded by `let _`).
+        migrate(&conn).unwrap();
+        migrate(&conn).unwrap();
+        let version: i64 = conn
+            .query_row("SELECT version FROM schema_version LIMIT 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(version, 2);
+        // The column must exist exactly once (a second ADD would have errored fatally).
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('requests') WHERE name = 'assertions_json'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 1);
+    }
+
+    // ---------- snapshots ----------
+
+    #[test]
+    fn snapshot_crud_and_overwrite() {
+        let _g = setup();
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        let req = upsert_request(sample_request(&coll.id, Body::None, Auth::None)).unwrap();
+
+        assert_eq!(
+            snapshot_get(req.id.clone()).unwrap(),
+            None,
+            "no baseline yet"
+        );
+
+        let record = SnapshotRecord {
+            request_id: req.id.clone(),
+            ..sample_snapshot(&req.id)
+        };
+        let put = snapshot_put(record.clone()).unwrap();
+        assert_eq!(snapshot_get(req.id.clone()).unwrap(), Some(put));
+
+        // A second put for the same request overwrites (Accept semantics).
+        let mut accepted = sample_snapshot(&req.id);
+        accepted.baseline.status = 201;
+        accepted.created_at = "2026-07-13T01:00:00+00:00".into();
+        snapshot_put(accepted.clone()).unwrap();
+        let got = snapshot_get(req.id.clone()).unwrap().unwrap();
+        assert_eq!(got.baseline.status, 201, "new baseline adopted");
+
+        snapshot_delete(req.id.clone()).unwrap();
+        assert_eq!(snapshot_get(req.id).unwrap(), None, "deleted");
+    }
+
+    #[test]
+    fn snapshot_cascades_on_request_delete() {
+        let _g = setup();
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        let req = upsert_request(sample_request(&coll.id, Body::None, Auth::None)).unwrap();
+        snapshot_put(sample_snapshot(&req.id)).unwrap();
+        assert!(snapshot_get(req.id.clone()).unwrap().is_some());
+        delete_request(req.id.clone()).unwrap();
+        assert_eq!(
+            snapshot_get(req.id).unwrap(),
+            None,
+            "FK ON DELETE CASCADE drops the snapshot"
+        );
+    }
+
+    #[test]
+    fn snapshot_put_defaults_created_at() {
+        let _g = setup();
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        let req = upsert_request(sample_request(&coll.id, Body::None, Auth::None)).unwrap();
+        let mut record = sample_snapshot(&req.id);
+        record.created_at = String::new();
+        let put = snapshot_put(record).unwrap();
+        assert!(
+            !put.created_at.is_empty(),
+            "empty created_at is stamped with now()"
+        );
+        // rfc3339 begins with a 4-digit year.
+        assert!(put.created_at.chars().take(4).all(|c| c.is_ascii_digit()));
     }
 }

@@ -35,6 +35,7 @@ export function useNewRequest() {
       sort_order: store.requests.length,
       docs_md: null,
       graphql: null,
+      assertions: [],
     };
     useCollectionsStore.setState({
       requests: [...store.requests, request],

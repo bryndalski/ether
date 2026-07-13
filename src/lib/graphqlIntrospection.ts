@@ -32,6 +32,7 @@ export function buildIntrospectionRequest(
       text: JSON.stringify({ query }),
     },
     graphql: null,
+    assertions: [],
   };
 }
 

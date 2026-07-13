@@ -31,6 +31,7 @@ function draft(query: string, variables: string): StoredRequest {
     sort_order: 0,
     docs_md: null,
     graphql: { operation_type: "query", query, variables_json: variables },
+    assertions: [],
   };
 }
 

@@ -133,6 +133,7 @@ describe("importSpecOntoDraft", () => {
       sort_order: 7,
       docs_md: "notes",
       graphql: null,
+      assertions: [],
     };
     const imported = importSpecOntoDraft(
       draft,

@@ -4,6 +4,7 @@
 
 import { useEffect, useReducer } from "react";
 import type {
+  Assertion,
   Auth,
   Body,
   GraphqlMeta,
@@ -32,6 +33,7 @@ export type DraftAction =
   | { kind: "setAuth"; auth: Auth }
   | { kind: "setGraphql"; graphql: Partial<GraphqlMeta> }
   | { kind: "clearGraphql" }
+  | { kind: "setAssertions"; assertions: Assertion[] }
   | { kind: "importSpec"; spec: RequestSpec };
 
 export interface DraftCounts {
@@ -39,6 +41,7 @@ export interface DraftCounts {
   headers: number;
   body: number;
   auth: number;
+  assertions: number;
 }
 
 export interface DraftApi {
@@ -100,6 +103,8 @@ export function draftReducer(
     case "clearGraphql":
       // Switching GraphQL -> REST: drop the discriminator; keep url/headers/auth.
       return { ...draft, graphql: null };
+    case "setAssertions":
+      return { ...draft, assertions: action.assertions };
     case "importSpec": {
       const { spec } = action;
       return {
@@ -135,6 +140,7 @@ export function useRequestDraft(seed: StoredRequest | null): DraftApi {
       headers: enabledCount(draft.headers),
       body: bodyCount(draft.body),
       auth: authCount(draft.auth),
+      assertions: draft.assertions.filter((a) => a.enabled).length,
     },
   };
 }
@@ -163,4 +169,5 @@ const EMPTY_DRAFT: StoredRequest = {
   sort_order: 0,
   docs_md: null,
   graphql: null,
+  assertions: [],
 };

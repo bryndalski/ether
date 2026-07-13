@@ -5,6 +5,9 @@ export type ResponseTabKey =
   | "Headers"
   | "Timeline"
   | "curl -v"
+  | "Tests"
+  | "Snapshot"
+  | "Watch"
   | "Bench"
   | "Cert"
   | "JWT";
@@ -19,6 +22,9 @@ interface ResponseTabsProps {
   showBench: boolean;
   showCert: boolean;
   jwtCount: number;
+  assertionSummary: string | null;
+  showSnapshot: boolean;
+  showWatch: boolean;
 }
 
 /** Response tab strip: Body / Headers / Timeline / curl -v plus the conditional
@@ -31,8 +37,14 @@ export function ResponseTabs({
   showBench,
   showCert,
   jwtCount,
+  assertionSummary,
+  showSnapshot,
+  showWatch,
 }: ResponseTabsProps) {
   const tabs: ResponseTabKey[] = [...BASE_TABS];
+  if (assertionSummary !== null) tabs.push("Tests");
+  if (showSnapshot) tabs.push("Snapshot");
+  if (showWatch) tabs.push("Watch");
   if (showBench) tabs.push("Bench");
   if (showCert) tabs.push("Cert");
   if (jwtCount > 0) tabs.push("JWT");
@@ -43,6 +55,7 @@ export function ResponseTabs({
         const selected = tab === active;
         const showHeaderCount = tab === "Headers" && headerCount > 0;
         const showJwtCount = tab === "JWT" && jwtCount > 0;
+        const showAssertChip = tab === "Tests" && assertionSummary !== null;
         return (
           <button
             key={tab}
@@ -56,6 +69,7 @@ export function ResponseTabs({
             {tab}
             {showHeaderCount && <span className="count">{headerCount}</span>}
             {showJwtCount && <span className="count">{jwtCount}</span>}
+            {showAssertChip && <span className="count">{assertionSummary}</span>}
           </button>
         );
       })}

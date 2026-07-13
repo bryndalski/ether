@@ -2,7 +2,14 @@ import { useState } from "react";
 import { useUiStore } from "../../state/useUiStore";
 import type { SendState } from "../../hooks/useSendRequest";
 import type { BenchConfig, BenchState } from "../../hooks/useBenchmark";
-import type { ResponseData } from "../../lib/types";
+import type { UseWatchMode } from "../../hooks/useWatchMode";
+import type {
+  Assertion,
+  ResponseData,
+  ScrubConfig,
+  SnapshotRecord,
+} from "../../lib/types";
+import { summarize, evalAssertions } from "../../lib/assertions";
 import { relativeTimeLabel } from "../../lib/relativeTime";
 import { detectJwtCandidates } from "../../lib/jwt";
 import { EmptyState } from "../common/EmptyState";
@@ -13,9 +20,23 @@ import { ResponseHeaders } from "./ResponseHeaders";
 import { TimelineWaterfall } from "./TimelineWaterfall";
 import { VerboseLog } from "./VerboseLog";
 import { ResponseTabs, type ResponseTabKey } from "./ResponseTabs";
+import { AssertionResultsView } from "./tests/AssertionResultsView";
+import { SnapshotView } from "./snapshot/SnapshotView";
+import { WatchPanel } from "./watch/WatchPanel";
 import { BenchmarkPanel } from "../devtools/BenchmarkPanel";
 import { CertPanel } from "../devtools/CertPanel";
 import { JwtPanel } from "../devtools/JwtPanel";
+
+/** Testing surface for the live response: assertions, snapshot, watch. */
+export interface TestingProps {
+  assertions: Assertion[];
+  snapshotRecord: SnapshotRecord | null;
+  scrubConfig: ScrubConfig;
+  watch: UseWatchMode;
+  onSaveSnapshot: () => void;
+  onAcceptSnapshot: () => void;
+  onDeleteSnapshot: () => void;
+}
 
 /** A stored response opened read-only from History. When present, the dock
  *  renders these bytes instead of the live send lifecycle — no re-fetch. */
@@ -40,6 +61,7 @@ interface ResponseDockProps {
   sendState: SendState;
   snapshot?: ResponseSnapshot | null;
   devTools?: DevToolsProps;
+  testing?: TestingProps;
 }
 
 function contentType(headers: { name: string; value: string }[]): string | undefined {
@@ -48,7 +70,7 @@ function contentType(headers: { name: string; value: string }[]): string | undef
 
 /** Response dock (Zone 3). Empty until the first Send; then status + meta + tabs
  *  + the active tab body. Errors/cancels show a banner instead of a response. */
-export function ResponseDock({ sendState, snapshot, devTools }: ResponseDockProps) {
+export function ResponseDock({ sendState, snapshot, devTools, testing }: ResponseDockProps) {
   const placement = useUiStore((state) => state.responsePlacement);
   const responseSize = useUiStore((state) => state.responseSize);
   const [tab, setTab] = useState<ResponseTabKey>("Body");
@@ -72,6 +94,7 @@ export function ResponseDock({ sendState, snapshot, devTools }: ResponseDockProp
       sizeStyle,
       borderStyle,
       snapshot.executedAt,
+      undefined,
       undefined,
     );
   }
@@ -143,6 +166,7 @@ export function ResponseDock({ sendState, snapshot, devTools }: ResponseDockProp
     borderStyle,
     null,
     devTools,
+    testing,
   );
 }
 
@@ -157,6 +181,7 @@ function renderResponse(
   borderStyle: React.CSSProperties,
   executedAt: string | null,
   devTools: DevToolsProps | undefined,
+  testing: TestingProps | undefined,
 ) {
   const headerContentType = contentType(response.headers);
   function copyBody() {
@@ -167,6 +192,17 @@ function renderResponse(
   const showCert = response.tls != null;
   // Bench tab is available on any live response (it hosts the warned launcher).
   const showBench = devTools != null;
+
+  const assertions = testing?.assertions ?? [];
+  const assertionSummary =
+    assertions.length > 0
+      ? (() => {
+          const s = summarize(evalAssertions(response, assertions));
+          return `${s.passed}/${s.total}`;
+        })()
+      : null;
+  const showSnapshot = testing != null;
+  const showWatch = testing != null;
 
   return (
     <section
@@ -206,6 +242,9 @@ function renderResponse(
         showBench={showBench}
         showCert={showCert}
         jwtCount={jwtCandidates.length}
+        assertionSummary={assertionSummary}
+        showSnapshot={showSnapshot}
+        showWatch={showWatch}
       />
       <div className="resp-body lok-scroll">
         {tab === "Body" && (
@@ -220,6 +259,20 @@ function renderResponse(
         {tab === "Headers" && <ResponseHeaders headers={response.headers} />}
         {tab === "Timeline" && <TimelineWaterfall timings={response.timings} />}
         {tab === "curl -v" && <VerboseLog verboseLog={response.verbose_log} />}
+        {tab === "Tests" && assertionSummary !== null && (
+          <AssertionResultsView response={response} assertions={assertions} />
+        )}
+        {tab === "Snapshot" && testing && (
+          <SnapshotView
+            response={response}
+            record={testing.snapshotRecord}
+            scrubConfig={testing.scrubConfig}
+            onSave={testing.onSaveSnapshot}
+            onAccept={testing.onAcceptSnapshot}
+            onDelete={testing.onDeleteSnapshot}
+          />
+        )}
+        {tab === "Watch" && testing && <WatchPanel watch={testing.watch} />}
         {tab === "Bench" && showBench && devTools && (
           <BenchmarkPanel
             benchState={devTools.benchState}

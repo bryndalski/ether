@@ -79,6 +79,65 @@ pub enum ApiKeyPlacement {
     Query,
 }
 
+/// A declarative, scriptless response assertion. Evaluated on the FRONTEND
+/// (pure `evalAssertions`); Rust only persists it verbatim with the request.
+/// Internally tagged like Body/Auth so the TS mirror stays a 1:1 union.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum Assertion {
+    StatusEquals {
+        expected: u16,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    StatusInRange {
+        min: u16,
+        max: u16,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    HeaderExists {
+        name: String,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    HeaderEquals {
+        name: String,
+        expected: String,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    JsonPathExists {
+        path: String,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    JsonPathEquals {
+        path: String,
+        expected: String,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    JsonPathType {
+        path: String,
+        // Rust never evaluates the type; keeping it a String avoids a second
+        // enum that must mirror the TS `JsonType` union. The FE narrows it.
+        expected_type: String,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    BodyContains {
+        substring: String,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+    ResponseTimeBelow {
+        max_ms: f64,
+        #[serde(default = "default_true")]
+        enabled: bool,
+    },
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RequestOptions {
     #[serde(default = "default_true")]
@@ -221,6 +280,10 @@ pub struct StoredRequest {
     pub docs_md: Option<String>,
     /// GraphQL requests carry operation metadata for the explorer.
     pub graphql: Option<GraphqlMeta>,
+    /// Scriptless response assertions that travel with the request definition.
+    /// `#[serde(default)]` back-fills `[]` for any pre-migration payload.
+    #[serde(default)]
+    pub assertions: Vec<Assertion>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -258,4 +321,28 @@ pub struct ImportResult {
     pub requests: Vec<StoredRequest>,
     pub environments: Vec<Environment>,
     pub warnings: Vec<String>,
+}
+
+/// Which non-deterministic fields to scrub before a snapshot compare. Stored as
+/// `snapshots.scrub_paths_json`; the FE owns the actual scrubbing (pure lib).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct ScrubConfig {
+    #[serde(default)]
+    pub paths: Vec<String>,
+    #[serde(default)]
+    pub auto_timestamps: bool,
+    #[serde(default)]
+    pub auto_uuids: bool,
+}
+
+/// A saved response baseline for a request (one per request). A distinct
+/// persistence entity — saved / accepted / deleted independently of the request.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SnapshotRecord {
+    pub request_id: String,
+    /// Serialized to `snapshots.baseline_json`.
+    pub baseline: ResponseData,
+    /// Serialized to `snapshots.scrub_paths_json`.
+    pub scrub_config: ScrubConfig,
+    pub created_at: String,
 }

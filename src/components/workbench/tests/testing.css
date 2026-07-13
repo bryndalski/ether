@@ -1,0 +1,294 @@
+/* Scriptless assertions + snapshot + watch — design-system v2 tokens only.
+ * Verdicts are never color-only (sigil + word carry meaning). Inner panes
+ * scroll via .lok-scroll; nothing grows the window. */
+
+.tests-panel,
+.assert-view,
+.snap-view,
+.watch-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-3) var(--lok-space-4);
+  min-height: 0;
+}
+
+.test-heading {
+  font-size: var(--lok-fs-sm);
+  font-weight: var(--lok-fw-semibold);
+  color: var(--lok-text-primary);
+  margin: var(--lok-space-2) 0 0;
+}
+
+.test-hint {
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-tertiary);
+}
+
+.test-row {
+  display: grid;
+  grid-template-columns: auto 150px 1fr auto;
+  align-items: center;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-1) 0;
+}
+
+.test-row[data-disabled="true"] {
+  opacity: 0.55;
+}
+
+.test-fields {
+  display: flex;
+  gap: var(--lok-space-2);
+  min-width: 0;
+}
+
+.test-type,
+.test-field {
+  padding: 4px var(--lok-space-2);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-input, var(--lok-bg-active));
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+}
+
+.test-field {
+  min-width: 0;
+  flex: 1;
+}
+
+.test-field.mono,
+.snap-config .k.mono {
+  font-family: var(--lok-font-mono);
+  color: var(--lok-syn-key, var(--lok-text-primary));
+}
+
+.test-row .rm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--lok-radius-sm);
+  color: var(--lok-text-tertiary);
+}
+
+.test-row .rm:hover {
+  color: var(--lok-status-danger);
+  background: var(--lok-bg-active);
+}
+
+.test-add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lok-space-1);
+  margin-top: var(--lok-space-2);
+  padding: 4px var(--lok-space-3);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-secondary);
+  border: 1px dashed var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+}
+
+.test-add:hover {
+  color: var(--lok-text-primary);
+  border-color: var(--lok-border-strong, var(--lok-border-default));
+}
+
+.snap-config {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-1);
+  margin-top: var(--lok-space-3);
+  padding-top: var(--lok-space-3);
+  border-top: 1px solid var(--lok-border-subtle);
+}
+
+.snap-toggle,
+.watch-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-secondary);
+}
+
+/* ---- assertion results ---- */
+
+.assert-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-3);
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  background: var(--lok-bg-active);
+  font-size: var(--lok-fs-xs);
+}
+
+.assert-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: baseline;
+  gap: var(--lok-space-2);
+  padding: 4px var(--lok-space-2);
+  font-size: var(--lok-fs-xs);
+  border-radius: var(--lok-radius-sm);
+}
+
+.assert-sigil {
+  font-weight: var(--lok-fw-bold);
+}
+
+.assert-row.pass .assert-sigil,
+.assert-word.pass {
+  color: var(--lok-status-success);
+}
+
+.assert-row.fail .assert-sigil,
+.assert-word.fail {
+  color: var(--lok-status-danger);
+}
+
+.assert-row.skipped .assert-sigil {
+  color: var(--lok-status-neutral);
+}
+
+.assert-detail {
+  grid-column: 1 / -1;
+  color: var(--lok-text-tertiary);
+  font-family: var(--lok-font-mono);
+}
+
+/* ---- snapshot ---- */
+
+.snap-banner {
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  font-size: var(--lok-fs-xs);
+  font-weight: var(--lok-fw-medium);
+}
+
+.snap-banner.pass {
+  color: var(--lok-status-success);
+  background: var(--lok-status-success-bg, color-mix(in oklab, var(--lok-status-success) 12%, transparent));
+}
+
+.snap-banner.fail {
+  color: var(--lok-status-danger);
+  background: var(--lok-status-danger-bg, color-mix(in oklab, var(--lok-status-danger) 12%, transparent));
+}
+
+.snap-banner.neutral {
+  color: var(--lok-text-secondary);
+  background: var(--lok-bg-active);
+}
+
+.snap-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+}
+
+.snap-btn {
+  padding: 4px var(--lok-space-3);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-secondary);
+  border: 1px solid var(--lok-border-default);
+  border-radius: var(--lok-radius-sm);
+}
+
+.snap-btn:hover:not(:disabled) {
+  color: var(--lok-text-primary);
+  background: var(--lok-bg-active);
+}
+
+.snap-btn:disabled {
+  opacity: 0.4;
+}
+
+.snap-btn.primary {
+  color: var(--lok-text-inverse, #fff);
+  background: var(--lok-accent, #4f46e5);
+  border-color: transparent;
+}
+
+.snap-btn.danger:hover {
+  color: var(--lok-status-danger);
+  border-color: var(--lok-status-danger);
+}
+
+.snap-when {
+  margin-left: auto;
+  font-size: var(--lok-fs-2xs);
+  color: var(--lok-text-tertiary);
+}
+
+.snap-confirm {
+  padding: var(--lok-space-3);
+  border: 1px solid var(--lok-status-danger);
+  border-radius: var(--lok-radius-sm);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-primary);
+}
+
+/* ---- watch ---- */
+
+.watch-warn {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border-radius: var(--lok-radius-sm);
+  color: var(--lok-status-warn);
+  background: var(--lok-status-warn-bg, color-mix(in oklab, var(--lok-status-warn) 14%, transparent));
+  font-size: var(--lok-fs-xs);
+}
+
+.watch-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-3);
+  flex-wrap: wrap;
+}
+
+.watch-interval {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  font-size: var(--lok-fs-xs);
+  color: var(--lok-text-secondary);
+}
+
+.watch-interval .test-field {
+  width: 64px;
+  flex: none;
+}
+
+.watch-runs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.watch-run {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-2);
+  padding: 3px var(--lok-space-2);
+  font-size: var(--lok-fs-xs);
+  border-radius: var(--lok-radius-sm);
+}
+
+.watch-run.pass .watch-sigil {
+  color: var(--lok-status-success);
+}
+
+.watch-run.fail .watch-sigil {
+  color: var(--lok-status-danger);
+}
+
+.watch-err {
+  color: var(--lok-status-danger);
+  font-family: var(--lok-font-mono);
+}
