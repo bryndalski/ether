@@ -4,7 +4,8 @@
 
 use crate::models::{
     Assertion, Auth, Body, Collection, Environment, GraphqlMeta, HistoryEntry, KeyValue,
-    RequestOptions, RequestSpec, ScrubConfig, SnapshotRecord, StoredRequest,
+    RequestOptions, RequestSpec, ScrubConfig, SnapshotRecord, StoredRequest, Workflow,
+    WorkflowEdge, WorkflowNode,
 };
 use rusqlite::{params, Connection, OptionalExtension, Row};
 use std::sync::{Mutex, OnceLock};
@@ -155,6 +156,22 @@ fn migrate(conn: &Connection) -> Result<(), String> {
     if version < 2 {
         let _ = conn.execute("ALTER TABLE requests ADD COLUMN assertions_json TEXT", []);
         conn.execute("UPDATE schema_version SET version = 2", [])
+            .map_err(sql_err)?;
+    }
+
+    // v3: visual workflows. New standalone table; no change to existing tables, so a
+    // downgrade just ignores it (backward-compatible). Idempotent CREATE IF NOT EXISTS.
+    if version < 3 {
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS workflows (
+                 id TEXT PRIMARY KEY,
+                 name TEXT NOT NULL,
+                 graph_json TEXT NOT NULL,
+                 created_at TEXT NOT NULL
+             );",
+        )
+        .map_err(sql_err)?;
+        conn.execute("UPDATE schema_version SET version = 3", [])
             .map_err(sql_err)?;
     }
     Ok(())
@@ -800,6 +817,110 @@ pub fn snapshot_delete(request_id: String) -> Result<(), String> {
     Ok(())
 }
 
+// ---------- workflows (visual graph) ----------
+
+/// The `{ nodes, edges }` blob persisted in `workflows.graph_json`. `id`/`name`/
+/// `created_at` live in their own columns (keeps list/rename cheap and mirrors how
+/// `snapshots` splits `request_id` out of the blob).
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
+struct WorkflowGraph {
+    #[serde(default)]
+    nodes: Vec<WorkflowNode>,
+    #[serde(default)]
+    edges: Vec<WorkflowEdge>,
+}
+
+fn row_to_workflow(row: &Row) -> rusqlite::Result<Workflow> {
+    let id: String = row.get(0)?;
+    let name: String = row.get(1)?;
+    let graph_json: String = row.get(2)?;
+    // graph_json holds { nodes, edges }; id/name come from their own columns. A
+    // corrupt blob degrades to an empty graph rather than failing the whole list.
+    let graph: WorkflowGraph = serde_json::from_str(&graph_json).unwrap_or_default();
+    Ok(Workflow {
+        id,
+        name,
+        nodes: graph.nodes,
+        edges: graph.edges,
+    })
+}
+
+#[tauri::command]
+pub fn workflow_list() -> Result<Vec<Workflow>, String> {
+    let guard = connection()?
+        .lock()
+        .map_err(|_| "lock poisoned".to_string())?;
+    let mut stmt = guard
+        .prepare("SELECT id, name, graph_json FROM workflows ORDER BY name")
+        .map_err(sql_err)?;
+    let rows = stmt
+        .query_map([], row_to_workflow)
+        .map_err(sql_err)?
+        .collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(sql_err)?;
+    Ok(rows)
+}
+
+#[tauri::command]
+pub fn workflow_upsert(workflow: Workflow) -> Result<Workflow, String> {
+    let mut stored = workflow;
+    stored.id = new_id(&stored.id);
+    let created_at = chrono::Utc::now().to_rfc3339();
+    let graph_json = serde_json::to_string(&WorkflowGraph {
+        nodes: stored.nodes.clone(),
+        edges: stored.edges.clone(),
+    })
+    .map_err(json_err)?;
+    let guard = connection()?
+        .lock()
+        .map_err(|_| "lock poisoned".to_string())?;
+    // created_at is set on first insert and kept across updates (a rename or graph
+    // edit must not reset the creation time).
+    guard
+        .execute(
+            "INSERT INTO workflows (id, name, graph_json, created_at)
+             VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(id) DO UPDATE SET
+                 name = excluded.name,
+                 graph_json = excluded.graph_json",
+            params![stored.id, stored.name, graph_json, created_at],
+        )
+        .map_err(sql_err)?;
+    Ok(stored)
+}
+
+#[tauri::command]
+pub fn workflow_delete(id: String) -> Result<(), String> {
+    let guard = connection()?
+        .lock()
+        .map_err(|_| "lock poisoned".to_string())?;
+    guard
+        .execute("DELETE FROM workflows WHERE id = ?1", params![id])
+        .map_err(sql_err)?;
+    Ok(())
+}
+
+/// Fetch one saved request by id (used by the workflow executor to resolve a
+/// `request_ref`). Returns `None` when the id is unknown (dangling ref).
+pub(crate) fn get_request(id: &str) -> Result<Option<StoredRequest>, String> {
+    let guard = connection()?
+        .lock()
+        .map_err(|_| "lock poisoned".to_string())?;
+    let mut stmt = guard
+        .prepare(
+            "SELECT id, collection_id, name, method, url, headers_json, query_params_json, \
+             body_json, auth_json, options_json, sort_order, docs_md, graphql_json, \
+             assertions_json \
+             FROM requests WHERE id = ?1",
+        )
+        .map_err(sql_err)?;
+    let mut rows = stmt.query(params![id]).map_err(sql_err)?;
+    match rows.next().map_err(sql_err)? {
+        Some(row) => Ok(Some(row_to_request(row)?)),
+        None => Ok(None),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1432,7 +1553,7 @@ mod tests {
     }
 
     #[test]
-    fn migrate_is_idempotent_and_ends_at_version_2() {
+    fn migrate_is_idempotent_and_ends_at_current_version() {
         let _g = setup();
         let conn = connection().unwrap().lock().unwrap();
         // Re-running migrate must not error (the ALTER is guarded by `let _`).
@@ -1443,7 +1564,7 @@ mod tests {
                 r.get(0)
             })
             .unwrap();
-        assert_eq!(version, 2);
+        assert_eq!(version, 3);
         // The column must exist exactly once (a second ADD would have errored fatally).
         let count: i64 = conn
             .query_row(
@@ -1453,6 +1574,132 @@ mod tests {
             )
             .unwrap();
         assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn migrate_v2_to_v3_adds_workflows_and_preserves_existing_rows() {
+        let _g = setup();
+        let conn = connection().unwrap().lock().unwrap();
+        // Pin the shared in-memory DB back to v2 (no workflows table) and seed a
+        // pre-existing collection so we can prove the upgrade is non-destructive.
+        conn.execute_batch("DROP TABLE IF EXISTS workflows;")
+            .unwrap();
+        conn.execute("UPDATE schema_version SET version = 2", [])
+            .unwrap();
+        conn.execute(
+            "INSERT INTO collections (id, name, sort_order) VALUES ('c-keep', 'Keep me', 0)",
+            [],
+        )
+        .unwrap();
+
+        migrate(&conn).unwrap();
+
+        let version: i64 = conn
+            .query_row("SELECT version FROM schema_version LIMIT 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(version, 3, "migration bumped the schema version");
+
+        let table_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='workflows'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(table_count, 1, "workflows table now exists");
+
+        let kept: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM collections WHERE id = 'c-keep'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(kept, 1, "pre-existing rows untouched by the v3 migration");
+    }
+
+    // ---------- workflows ----------
+
+    fn sample_workflow(name: &str, request_id: &str) -> Workflow {
+        Workflow {
+            id: String::new(),
+            name: name.into(),
+            nodes: vec![
+                WorkflowNode::Request {
+                    id: "n1".into(),
+                    source: crate::models::RequestSource::RequestRef(request_id.into()),
+                    position: crate::models::NodePosition { x: 10.0, y: 20.0 },
+                },
+                WorkflowNode::Extract {
+                    id: "n2".into(),
+                    source: "$.id".into(),
+                    var_name: "token".into(),
+                    position: crate::models::NodePosition { x: 200.0, y: 20.0 },
+                },
+                WorkflowNode::Delay {
+                    id: "n3".into(),
+                    ms: 100,
+                    position: crate::models::NodePosition { x: 400.0, y: 20.0 },
+                },
+            ],
+            edges: vec![
+                WorkflowEdge {
+                    from: "n1".into(),
+                    to: "n2".into(),
+                    branch: None,
+                },
+                WorkflowEdge {
+                    from: "n2".into(),
+                    to: "n3".into(),
+                    branch: None,
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn workflow_crud_round_trips_graph_and_overwrites_in_place() {
+        let _g = setup();
+        assert!(workflow_list().unwrap().is_empty(), "no workflows yet");
+
+        let saved = workflow_upsert(sample_workflow("Login flow", "req-x")).unwrap();
+        assert!(!saved.id.is_empty(), "store minted an id");
+
+        let listed = workflow_list().unwrap();
+        assert_eq!(listed.len(), 1);
+        let got = &listed[0];
+        assert_eq!(got.name, "Login flow");
+        assert_eq!(got.nodes.len(), 3, "nodes round-trip intact");
+        assert_eq!(got.edges.len(), 2, "edges round-trip intact");
+        assert_eq!(got.nodes, saved.nodes, "node graph is byte-identical");
+
+        // Re-upsert with the SAME id updates in place (no duplicate row).
+        let mut renamed = saved.clone();
+        renamed.name = "Login flow v2".into();
+        renamed.nodes.pop();
+        workflow_upsert(renamed).unwrap();
+        let after = workflow_list().unwrap();
+        assert_eq!(
+            after.len(),
+            1,
+            "still exactly one workflow (updated in place)"
+        );
+        assert_eq!(after[0].name, "Login flow v2");
+        assert_eq!(after[0].nodes.len(), 2, "graph replaced on update");
+
+        workflow_delete(saved.id).unwrap();
+        assert!(workflow_list().unwrap().is_empty(), "deleted");
+    }
+
+    #[test]
+    fn get_request_returns_none_for_unknown_id() {
+        let _g = setup();
+        assert_eq!(get_request("does-not-exist").unwrap(), None);
+        let coll = upsert_collection(sample_collection("C")).unwrap();
+        let req = upsert_request(sample_request(&coll.id, Body::None, Auth::None)).unwrap();
+        assert_eq!(get_request(&req.id).unwrap().map(|r| r.id), Some(req.id));
     }
 
     // ---------- snapshots ----------

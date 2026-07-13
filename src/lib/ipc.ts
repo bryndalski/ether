@@ -13,6 +13,7 @@ import type {
   SnapshotRecord,
   StoredRequest,
 } from "./types";
+import type { Workflow } from "./workflow";
 
 // ---- engine ----
 
@@ -167,6 +168,35 @@ export function snapshotPut(record: SnapshotRecord): Promise<SnapshotRecord> {
 
 export function snapshotDelete(requestId: string): Promise<void> {
   return invoke("snapshot_delete", { requestId });
+}
+
+// ---- workflows (visual graph + executor) ----
+
+export function workflowList(): Promise<Workflow[]> {
+  return invoke("workflow_list");
+}
+
+export function workflowUpsert(workflow: Workflow): Promise<Workflow> {
+  return invoke("workflow_upsert", { workflow });
+}
+
+export function workflowDelete(id: string): Promise<void> {
+  return invoke("workflow_delete", { id });
+}
+
+/** Start a workflow run in Rust; returns its run_id. Per-node progress streams on
+ *  the "workflow-run" channel. Makes REAL network requests — always behind a
+ *  confirm on the FE. Keys match the Rust command params exactly. */
+export function workflowRun(
+  workflow: Workflow,
+  environmentId: string | null,
+): Promise<string> {
+  return invoke("workflow_run", { workflow, environmentId });
+}
+
+/** Stop a live run. Resolves `false` if the run already finished. */
+export function workflowStop(runId: string): Promise<boolean> {
+  return invoke("workflow_stop", { runId });
 }
 
 // ---- secrets (Keychain) ----

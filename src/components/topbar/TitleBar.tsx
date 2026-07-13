@@ -1,5 +1,6 @@
 import { CommandHint } from "./CommandHint";
 import { EnvPill } from "./EnvPill";
+import { ModeTabs } from "./ModeTabs";
 import { Wordmark } from "./Wordmark";
 
 /** OS drag titlebar (40px). titleBarStyle is Overlay, so the left inset leaves
@@ -19,6 +20,9 @@ export function TitleBar() {
       }}
     >
       <Wordmark />
+      <div className="lok-no-drag flex items-center gap-2">
+        <ModeTabs />
+      </div>
       <div className="lok-no-drag flex items-center gap-2">
         <EnvPill />
         <CommandHint />

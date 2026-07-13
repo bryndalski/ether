@@ -5,9 +5,13 @@ import { DEFAULT_LOCALE, type Locale } from "../i18n";
 
 export type ResponseDockPlacement = "bottom" | "right";
 
+/** The top-level app mode: the request workbench, or the visual workflow editor. */
+export type AppMode = "requests" | "workflows";
+
 interface UiState {
   theme: Theme;
   locale: Locale;
+  mode: AppMode;
   sidebarWidth: number;
   responsePlacement: ResponseDockPlacement;
   responseSize: number;
@@ -19,6 +23,7 @@ interface UiState {
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   setLocale: (locale: Locale) => void;
+  setMode: (mode: AppMode) => void;
   setSidebarWidth: (width: number) => void;
   setResponsePlacement: (placement: ResponseDockPlacement) => void;
   setResponseSize: (size: number) => void;
@@ -49,6 +54,7 @@ export const useUiStore = create<UiState>()(
     (set, get) => ({
       theme: "dark",
       locale: DEFAULT_LOCALE,
+      mode: "requests",
       sidebarWidth: 260,
       responsePlacement: "bottom",
       responseSize: 42,
@@ -61,6 +67,7 @@ export const useUiStore = create<UiState>()(
       toggleTheme: () =>
         set({ theme: get().theme === "dark" ? "light" : "dark" }),
       setLocale: (locale) => set({ locale }),
+      setMode: (mode) => set({ mode }),
       setSidebarWidth: (width) => set({ sidebarWidth: clampSidebar(width) }),
       setResponsePlacement: (responsePlacement) => set({ responsePlacement }),
       setResponseSize: (responseSize) => set({ responseSize }),
@@ -77,7 +84,11 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: "ether.ui",
-      partialize: (state) => ({ theme: state.theme, locale: state.locale }),
+      partialize: (state) => ({
+        theme: state.theme,
+        locale: state.locale,
+        mode: state.mode,
+      }),
     },
   ),
 );

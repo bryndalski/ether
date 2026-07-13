@@ -1,8 +1,11 @@
 import { useShellBootstrap } from "../hooks/useShellBootstrap";
 import { usePaletteHotkey } from "../hooks/usePaletteHotkey";
+import { useModeHotkeys } from "../hooks/useModeHotkeys";
+import { useUiStore } from "../state/useUiStore";
 import { TitleBar } from "./topbar/TitleBar";
 import { Sidebar } from "./sidebar/Sidebar";
 import { RequestWorkbench } from "./workbench/RequestWorkbench";
+import { WorkflowEditor } from "./workflow/WorkflowEditor";
 import { StatusBar } from "./statusbar/StatusBar";
 import { CommandPalette } from "./palette/CommandPalette";
 import { EnvironmentManager } from "./env/EnvironmentManager";
@@ -16,6 +19,8 @@ import { IconSprite } from "./common/IconSprite";
 export function AppShell() {
   useShellBootstrap();
   usePaletteHotkey();
+  useModeHotkeys();
+  const mode = useUiStore((state) => state.mode);
 
   return (
     <>
@@ -24,7 +29,7 @@ export function AppShell() {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
         <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-          <RequestWorkbench />
+          {mode === "workflows" ? <WorkflowEditor /> : <RequestWorkbench />}
         </main>
       </div>
       <StatusBar />

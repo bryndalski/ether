@@ -121,6 +121,7 @@ pub fn build_render_ctx(
     let mut ctx = RenderCtx {
         env: flat.clone(),
         secrets: HashMap::new(),
+        vars: HashMap::new(),
     };
 
     for name in secret_names_in_chain(envs, id) {
@@ -484,6 +485,7 @@ mod tests {
                 .iter()
                 .map(|(k, v)| (k.to_string(), v.to_string()))
                 .collect(),
+            vars: HashMap::new(),
         }
     }
 

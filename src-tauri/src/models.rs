@@ -346,3 +346,118 @@ pub struct SnapshotRecord {
     pub scrub_config: ScrubConfig,
     pub created_at: String,
 }
+
+// ---------- workflow graph (SQLite: `workflows` table, graph_json) ----------
+
+/// A saved workflow graph: an addressable set of nodes + directed edges. The
+/// whole graph serializes to `workflows.graph_json` as ONE blob (matches the
+/// `snapshots.baseline_json` convention — the graph is edited/saved atomically,
+/// never queried by sub-field, so a single JSON column is correct here).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Workflow {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub nodes: Vec<WorkflowNode>,
+    #[serde(default)]
+    pub edges: Vec<WorkflowEdge>,
+}
+
+/// Canvas coordinates for a node (React Flow's `position`). Kept on every node
+/// variant so the graph round-trips through the store without a side table.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub struct NodePosition {
+    pub x: f64,
+    pub y: f64,
+}
+
+/// One node in the graph. Internally tagged on `"kind"` (same convention as
+/// `Body`/`Auth`/`Assertion`) so the TS mirror stays a 1:1 discriminated union.
+/// Every variant carries `id` (graph-unique, distinct from any StoredRequest id)
+/// and `position`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum WorkflowNode {
+    /// Execute a request. Either references an existing StoredRequest by id, or
+    /// carries an inline one (so a workflow is self-contained / exportable).
+    Request {
+        id: String,
+        #[serde(flatten)]
+        source: RequestSource,
+        position: NodePosition,
+    },
+    /// Pull a JSONPath value out of the PREVIOUS request node's response and bind
+    /// it to a run-scoped variable named `var_name`. Referenced downstream as
+    /// `{{var.var_name}}`.
+    Extract {
+        id: String,
+        /// JSONPath into the last response body (same grammar as `resolveJsonPath`).
+        source: String,
+        var_name: String,
+        position: NodePosition,
+    },
+    /// Branch. Evaluates a small predicate against the last response; the run
+    /// then follows the outgoing edge whose `branch` matches the boolean result.
+    Condition {
+        id: String,
+        expr: ConditionExpr,
+        position: NodePosition,
+    },
+    /// Pause the run for `ms` milliseconds (bounded by the executor's wall clock).
+    Delay {
+        id: String,
+        ms: u64,
+        position: NodePosition,
+    },
+}
+
+impl WorkflowNode {
+    /// The graph-unique id, regardless of variant.
+    pub fn id(&self) -> &str {
+        match self {
+            WorkflowNode::Request { id, .. }
+            | WorkflowNode::Extract { id, .. }
+            | WorkflowNode::Condition { id, .. }
+            | WorkflowNode::Delay { id, .. } => id,
+        }
+    }
+}
+
+/// A request node's payload: a reference to a saved request, or an inline copy.
+/// Untagged so the JSON is `{ "request_ref": "id" }` XOR `{ "request": {...} }`.
+/// The inline request is boxed so this enum stays small (a `StoredRequest` is
+/// ~480 bytes vs a bare id — boxing avoids bloating every non-inline node).
+/// `Box` is serde-transparent, so the wire/JSON shape is unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum RequestSource {
+    RequestRef(String),          // id of an existing StoredRequest
+    Request(Box<StoredRequest>), // inline, self-contained
+}
+
+/// A tiny, NON-Turing-complete condition. Deliberately closed (same philosophy as
+/// interp.rs / Assertion) — never an eval()/expression engine. v1 covers the two
+/// cases the prompt calls out: `status == N` and a JSONPath exists/equals check.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ConditionExpr {
+    /// True when the last response status equals `expected`.
+    StatusEquals { expected: u16 },
+    /// True when the last response status is in [min, max].
+    StatusInRange { min: u16, max: u16 },
+    /// True when a JSONPath resolves to a present node (a present `null` counts).
+    JsonPathExists { path: String },
+    /// True when the JSONPath node string-matches `expected` (lenient coercion,
+    /// same rule as `valueMatchesExpected` in assertions.ts: "200"↔200, "true"↔true).
+    JsonPathEquals { path: String, expected: String },
+}
+
+/// A directed edge. `branch` is Some(true)/Some(false) ONLY on edges leaving a
+/// ConditionNode (the true/false arms); None for every ordinary sequential edge.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct WorkflowEdge {
+    pub from: String, // node id
+    pub to: String,   // node id
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub branch: Option<bool>,
+}

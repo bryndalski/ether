@@ -2,12 +2,14 @@ pub mod curlgen;
 pub mod engine;
 pub mod importers;
 pub mod interp;
+pub mod json_path;
 pub mod models;
 pub mod resolve;
 pub mod secrets;
 pub mod sigv4;
 pub mod store;
 pub mod subscriptions;
+pub mod workflow;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -41,6 +43,11 @@ pub fn run() {
             store::snapshot_get,
             store::snapshot_put,
             store::snapshot_delete,
+            store::workflow_list,
+            store::workflow_upsert,
+            store::workflow_delete,
+            workflow::workflow_run,
+            workflow::workflow_stop,
             secrets::secret_set,
             secrets::secret_exists,
             secrets::secret_delete,

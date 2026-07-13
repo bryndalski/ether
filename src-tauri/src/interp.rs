@@ -23,11 +23,15 @@ const URL_UNRESERVED: &AsciiSet = &NON_ALPHANUMERIC
     .remove(b'~');
 
 /// Rendering context: resolved variable maps. Secrets are injected by the
-/// caller just-in-time and must never be persisted with the result.
+/// caller just-in-time and must never be persisted with the result. `vars` holds
+/// run-scoped workflow variables (populated by the workflow executor from
+/// ExtractNode); it is empty for an ordinary one-shot send.
 #[derive(Debug, Default, Clone)]
 pub struct RenderCtx {
     pub env: HashMap<String, String>,
     pub secrets: HashMap<String, String>,
+    /// Run-scoped variables (`{{var.NAME}}`), threaded between workflow steps.
+    pub vars: HashMap<String, String>,
 }
 
 /// Where the rendered value lands — drives escaping rules.
@@ -136,6 +140,11 @@ fn resolve_token(
 
     if let Some(name) = token.strip_prefix("env.") {
         return lookup_var(name, "env", &ctx.env, active);
+    }
+
+    // Run-scoped workflow variables — one closed namespace, no expression engine.
+    if let Some(name) = token.strip_prefix("var.") {
+        return lookup_var(name, "var", &ctx.vars, active);
     }
 
     if let Some(name) = token.strip_prefix("secret.") {
@@ -338,6 +347,7 @@ mod tests {
                 .iter()
                 .map(|(k, v)| (k.to_string(), v.to_string()))
                 .collect(),
+            vars: HashMap::new(),
         }
     }
 
@@ -464,6 +474,26 @@ mod tests {
         let err = render("{{env.a}}", &ctx, RenderTarget::RawText).unwrap_err();
         assert!(err.contains("cyclic"), "got: {err}");
         assert!(err.contains("env.a") || err.contains("env.b"), "got: {err}");
+    }
+
+    #[test]
+    fn run_var_substitution() {
+        // A run-scoped {{var.NAME}} resolves from ctx.vars, distinct from env.
+        let mut ctx = ctx_with(&[("token", "env-value")], &[]);
+        ctx.vars
+            .insert("token".to_string(), "run-value".to_string());
+        let out = render("{{var.token}}", &ctx, RenderTarget::RawText).unwrap();
+        assert_eq!(out, "run-value");
+        // The identically-named env var is unaffected — the namespaces are separate.
+        let env_out = render("{{env.token}}", &ctx, RenderTarget::RawText).unwrap();
+        assert_eq!(env_out, "env-value");
+    }
+
+    #[test]
+    fn unknown_run_var_errors_with_name() {
+        let ctx = ctx_with(&[], &[]);
+        let err = render("{{var.missing}}", &ctx, RenderTarget::RawText).unwrap_err();
+        assert!(err.contains("missing"), "got: {err}");
     }
 
     #[test]

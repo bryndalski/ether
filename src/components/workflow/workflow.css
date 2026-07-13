@@ -1,0 +1,396 @@
+/* Visual Workflow Editor — design-system v2 styling. Tokens only (--lok-*):
+   elevation by light not border; heat accent = active/running; success/danger for
+   ok/fail (always paired with an icon + label, never color-only). 100dvh, no
+   window scroll — the canvas pans internally, panels scroll internally. Motion
+   collapses to opacity via the global prefers-reduced-motion gate in base.css. */
+
+.lok-wf-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  background-color: var(--lok-bg-app);
+}
+
+.lok-wf-editor__body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 300px;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ---- toolbar ---- */
+
+.lok-wf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--lok-space-3);
+  padding: var(--lok-space-2) var(--lok-space-4);
+  border-bottom: 1px solid var(--lok-border-subtle);
+  background-color: var(--lok-bg-app);
+}
+
+.lok-wf-toolbar__name {
+  flex: 0 1 260px;
+  padding: var(--lok-space-1) var(--lok-space-3);
+  border-radius: var(--lok-radius-md);
+  border: 1px solid var(--lok-border-subtle);
+  background-color: var(--lok-bg-raised);
+  color: var(--lok-text-primary);
+  font-weight: 600;
+}
+
+.lok-wf-toolbar__live {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--lok-status-danger);
+  border: 1px solid var(--lok-status-danger);
+  background-color: var(--lok-status-danger-bg);
+  padding: 2px var(--lok-space-2);
+  border-radius: var(--lok-radius-full);
+}
+
+.lok-wf-toolbar__runstate {
+  font-size: 0.8rem;
+  color: var(--lok-text-secondary);
+}
+.lok-wf-toolbar__runstate[data-state="running"] {
+  color: var(--lok-text-primary);
+}
+.lok-wf-toolbar__runstate[data-state="done"] {
+  color: var(--lok-status-success);
+}
+.lok-wf-toolbar__runstate[data-state="failed"] {
+  color: var(--lok-status-danger);
+}
+
+.lok-wf-toolbar__save,
+.lok-wf-toolbar__run,
+.lok-wf-toolbar__stop {
+  padding: var(--lok-space-1) var(--lok-space-4);
+  border-radius: var(--lok-radius-md);
+  border: 1px solid var(--lok-border-subtle);
+  background-color: var(--lok-bg-raised);
+  color: var(--lok-text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--lok-dur-fast) ease;
+}
+.lok-wf-toolbar__run {
+  border-color: var(--lok-status-success);
+  color: var(--lok-status-success);
+}
+.lok-wf-toolbar__stop {
+  border-color: var(--lok-status-danger);
+  color: var(--lok-status-danger);
+}
+
+/* ---- palette ---- */
+
+.lok-wf-palette {
+  border-right: 1px solid var(--lok-border-subtle);
+  padding: var(--lok-space-3);
+  overflow-y: auto;
+  min-height: 0;
+}
+.lok-wf-palette__title {
+  font-weight: 700;
+  color: var(--lok-text-primary);
+}
+.lok-wf-palette__hint {
+  font-size: 0.72rem;
+  color: var(--lok-text-tertiary);
+  margin-bottom: var(--lok-space-3);
+}
+.lok-wf-palette__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lok-wf-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border-radius: var(--lok-radius-md);
+  border: 1px solid var(--lok-border-subtle);
+  background-color: var(--lok-bg-raised);
+  cursor: grab;
+}
+.lok-wf-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--lok-shadow-focus);
+}
+.lok-wf-chip__name {
+  font-weight: 600;
+  color: var(--lok-text-primary);
+}
+.lok-wf-chip__desc {
+  font-size: 0.72rem;
+  color: var(--lok-text-tertiary);
+}
+
+/* ---- canvas ---- */
+
+.lok-wf-canvas {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.lok-wf-canvas__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--lok-text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---- node card ---- */
+
+.lok-wf-node {
+  min-width: 160px;
+  padding: var(--lok-space-2) var(--lok-space-3);
+  border-radius: var(--lok-radius-lg);
+  background-color: var(--lok-bg-raised);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  color: var(--lok-text-primary);
+  transition:
+    box-shadow var(--lok-dur-fast) ease,
+    transform var(--lok-dur-fast) ease;
+}
+.lok-wf-node:focus-visible {
+  outline: none;
+  box-shadow: var(--lok-shadow-focus);
+}
+.lok-wf-node[data-status="running"] {
+  box-shadow: var(--lok-shadow-heat);
+}
+.lok-wf-node[data-status="ok"] {
+  box-shadow: 0 0 0 1px var(--lok-status-success);
+}
+.lok-wf-node[data-status="fail"] {
+  box-shadow: 0 0 0 1px var(--lok-status-danger);
+}
+
+.lok-wf-node__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lok-space-2);
+  margin-bottom: 4px;
+}
+.lok-wf-node__badge {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: var(--lok-radius-full);
+  background-color: color-mix(in srgb, var(--lok-text-link) 16%, transparent);
+  color: var(--lok-text-link);
+}
+.lok-wf-node__badge[data-kind="request"] {
+  background-color: color-mix(in srgb, var(--lok-method-get) 18%, transparent);
+  color: var(--lok-method-get);
+}
+.lok-wf-node__badge[data-kind="delay"] {
+  background-color: color-mix(in srgb, var(--lok-text-tertiary) 18%, transparent);
+  color: var(--lok-text-secondary);
+}
+.lok-wf-node__title {
+  font-size: 0.82rem;
+  word-break: break-word;
+}
+.lok-wf-node__extracted {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--lok-status-success);
+}
+.lok-wf-node__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  color: var(--lok-text-tertiary);
+}
+.lok-wf-node__status[data-status="running"] {
+  color: var(--lok-text-primary);
+}
+.lok-wf-node__status[data-status="ok"] {
+  color: var(--lok-status-success);
+}
+.lok-wf-node__status[data-status="fail"] {
+  color: var(--lok-status-danger);
+}
+.lok-wf-node__handles {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--lok-space-2);
+  margin-top: 4px;
+}
+.lok-wf-node__handle-label {
+  font-size: 0.64rem;
+}
+.lok-wf-node__handle-label[data-branch="true"] {
+  color: var(--lok-status-success);
+}
+.lok-wf-node__handle-label[data-branch="false"] {
+  color: var(--lok-text-tertiary);
+}
+
+.lok-wf-edge-label {
+  position: absolute;
+  font-size: 0.64rem;
+  padding: 0 4px;
+  border-radius: var(--lok-radius-xs);
+  background-color: var(--lok-bg-raised);
+  pointer-events: all;
+}
+.lok-wf-edge-label[data-branch="true"] {
+  color: var(--lok-status-success);
+}
+.lok-wf-edge-label[data-branch="false"] {
+  color: var(--lok-text-tertiary);
+}
+
+/* ---- inspector ---- */
+
+.lok-wf-inspector {
+  border-left: 1px solid var(--lok-border-subtle);
+  padding: var(--lok-space-3);
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lok-space-3);
+}
+.lok-wf-inspector__empty {
+  color: var(--lok-text-tertiary);
+}
+.lok-wf-inspector__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.lok-wf-inspector__title {
+  font-weight: 700;
+  color: var(--lok-text-primary);
+}
+.lok-wf-inspector__delete {
+  font-size: 0.72rem;
+  color: var(--lok-status-danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.lok-wf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--lok-text-secondary);
+}
+.lok-wf-field input,
+.lok-wf-field select {
+  padding: var(--lok-space-1) var(--lok-space-2);
+  border-radius: var(--lok-radius-md);
+  border: 1px solid var(--lok-border-subtle);
+  background-color: var(--lok-bg-raised);
+  color: var(--lok-text-primary);
+}
+.lok-wf-field small {
+  color: var(--lok-text-tertiary);
+  font-size: 0.68rem;
+}
+
+/* ---- run confirm ---- */
+
+.lok-wf-confirm__backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+.lok-wf-confirm {
+  width: min(420px, 90vw);
+  padding: var(--lok-space-5);
+  border-radius: var(--lok-radius-xl);
+  background-color: var(--lok-bg-raised);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+.lok-wf-confirm__title {
+  font-weight: 700;
+  color: var(--lok-text-primary);
+  margin-bottom: var(--lok-space-2);
+}
+.lok-wf-confirm__body {
+  color: var(--lok-text-secondary);
+  margin-bottom: var(--lok-space-4);
+}
+.lok-wf-confirm__env {
+  color: var(--lok-env-accent);
+  margin-left: 4px;
+}
+.lok-wf-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--lok-space-2);
+}
+.lok-wf-confirm__cancel,
+.lok-wf-confirm__confirm {
+  padding: var(--lok-space-1) var(--lok-space-4);
+  border-radius: var(--lok-radius-md);
+  border: 1px solid var(--lok-border-subtle);
+  background-color: var(--lok-bg-app);
+  color: var(--lok-text-primary);
+  cursor: pointer;
+}
+.lok-wf-confirm__confirm {
+  border-color: var(--lok-status-danger);
+  color: var(--lok-status-danger);
+  font-weight: 700;
+}
+
+/* ---- mode tabs (titlebar segmented control) ---- */
+
+.lok-mode-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--lok-radius-full);
+  background-color: var(--lok-bg-raised);
+}
+.lok-mode-tab {
+  padding: 2px var(--lok-space-3);
+  border: none;
+  border-radius: var(--lok-radius-full);
+  background: transparent;
+  color: var(--lok-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lok-mode-tab[data-active="true"] {
+  color: var(--lok-text-primary);
+  background-image: var(--lok-gradient-heat-line);
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: 100% 2px;
+}
+.lok-mode-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--lok-shadow-focus);
+}
