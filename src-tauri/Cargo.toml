@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Ether — a fully local API client for macOS with curl under the hood"
 authors = ["Jakub Bryndal"]
 edition = "2021"
+# Two binaries live in this crate (the Tauri desktop app + the `lok` CLI), so
+# Cargo/Tauri needs to know which one `tauri build` bundles as the app.
+default-run = "lokowka"
 
 [lib]
 name = "lokowka_lib"
