@@ -15,6 +15,7 @@ import type {
 } from "./types";
 import type { Workflow } from "./workflow";
 import type { ScriptOutcome, ScriptedResponse } from "./scripts";
+import type { AiChatRequest, AiChatResult, AiHealth, AiModelInfo } from "./ai/types";
 
 // ---- engine ----
 
@@ -277,4 +278,24 @@ export function scanShellHistoryCurls(
   limit: number | null,
 ): Promise<string[]> {
   return invoke("scan_shell_history_curls", { limit });
+}
+
+// ---- local AI (Ollama on http://localhost:11434, loopback only) ----
+
+/** Liveness + installed-models probe (GET /api/tags). Never throws for a down
+ *  Ollama — maps a connection refusal to `{ running: false, models: [] }`. */
+export function aiHealth(): Promise<AiHealth> {
+  return invoke("ai_health");
+}
+
+/** The raw installed-model list (thin subset of `aiHealth` for the picker). */
+export function aiTags(): Promise<AiModelInfo[]> {
+  return invoke("ai_tags");
+}
+
+/** The workhorse: redact (authoritative, Rust) → POST /api/chat with `format`
+ *  (structured output) → the model's schema-constrained JSON. Keys match the
+ *  Rust param names exactly. */
+export function aiChat(request: AiChatRequest): Promise<AiChatResult> {
+  return invoke("ai_chat", { request });
 }

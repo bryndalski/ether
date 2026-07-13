@@ -36,4 +36,29 @@ describe("useUiStore", () => {
     useUiStore.getState().setSidebarWidth(300);
     expect(useUiStore.getState().sidebarWidth).toBe(300);
   });
+
+  it("local AI is OFF by default with no model", () => {
+    // A fresh store (no persisted opt-in) never enables AI.
+    useUiStore.setState({ aiEnabled: false, aiModel: null });
+    expect(useUiStore.getState().aiEnabled).toBe(false);
+    expect(useUiStore.getState().aiModel).toBeNull();
+  });
+
+  it("setAiEnabled/setAiModel are the opt-in + kill-switch", () => {
+    useUiStore.getState().setAiEnabled(true);
+    useUiStore.getState().setAiModel("llama3.1:8b");
+    expect(useUiStore.getState().aiEnabled).toBe(true);
+    expect(useUiStore.getState().aiModel).toBe("llama3.1:8b");
+    // kill-switch: flip off
+    useUiStore.getState().setAiEnabled(false);
+    expect(useUiStore.getState().aiEnabled).toBe(false);
+  });
+
+  it("persists aiEnabled/aiModel in the partialize allow-list", () => {
+    const persisted = JSON.parse(window.localStorage.getItem("ether.ui") ?? "{}");
+    // After the setters above ran, the persisted snapshot carries the AI keys.
+    expect(Object.keys(persisted.state ?? {})).toEqual(
+      expect.arrayContaining(["aiEnabled", "aiModel"]),
+    );
+  });
 });

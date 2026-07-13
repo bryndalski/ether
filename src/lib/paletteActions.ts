@@ -8,7 +8,7 @@ import type { Environment } from "./types";
 import type { Locale } from "../i18n";
 import type { TranslateFn } from "../i18n/useT";
 
-export type PaletteGroup = "Request" | "Environments" | "Tools" | "View";
+export type PaletteGroup = "Request" | "Environments" | "Tools" | "View" | "AI";
 
 export interface PaletteAction {
   id: string;
@@ -41,6 +41,64 @@ export interface PaletteContext {
   runBenchmark: () => void;
   toggleTheme: () => void;
   setLocale: (locale: Locale) => void;
+
+  // Local AI. The five ai-* actions are built ONLY when aiEnabled && aiModel is
+  // set — otherwise the entire "AI" group is absent (off-by-default kill-switch).
+  aiEnabled: boolean;
+  aiModel: string | null;
+  aiExplainError: () => void;
+  aiGenerateAssertions: () => void;
+  aiNlToRequest: () => void;
+  aiNlToGraphql: () => void;
+  aiDocumentRequest: () => void;
+}
+
+/** The five AI actions, built only when AI is opted-in AND a model is chosen.
+ *  Absent (not greyed) otherwise — so a user who never opts in never sees them. */
+function buildAiActions(ctx: PaletteContext): PaletteAction[] {
+  const { t } = ctx;
+  if (!ctx.aiEnabled || ctx.aiModel === null) return [];
+
+  return [
+    {
+      id: "ai-explain-error",
+      group: "AI",
+      label: t("ai.actionExplainError"),
+      keywords: ["ai", "explain", "error", "diagnose", "local"],
+      disabled: !ctx.activeRequestPresent,
+      run: ctx.aiExplainError,
+    },
+    {
+      id: "ai-generate-assertions",
+      group: "AI",
+      label: t("ai.actionGenerateAssertions"),
+      keywords: ["ai", "assert", "test", "local"],
+      disabled: !ctx.activeRequestPresent,
+      run: ctx.aiGenerateAssertions,
+    },
+    {
+      id: "ai-nl-to-request",
+      group: "AI",
+      label: t("ai.actionNlToRequest"),
+      keywords: ["ai", "request", "describe", "generate", "local"],
+      run: ctx.aiNlToRequest,
+    },
+    {
+      id: "ai-nl-to-graphql",
+      group: "AI",
+      label: t("ai.actionNlToGraphql"),
+      keywords: ["ai", "graphql", "query", "local"],
+      run: ctx.aiNlToGraphql,
+    },
+    {
+      id: "ai-document-request",
+      group: "AI",
+      label: t("ai.actionDocumentRequest"),
+      keywords: ["ai", "document", "docs", "local"],
+      disabled: !ctx.activeRequestPresent,
+      run: ctx.aiDocumentRequest,
+    },
+  ];
 }
 
 export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
@@ -146,6 +204,7 @@ export function buildPaletteActions(ctx: PaletteContext): PaletteAction[] {
       active: ctx.locale === "pl",
       run: () => ctx.setLocale("pl"),
     },
+    ...buildAiActions(ctx),
   ];
 }
 
@@ -154,6 +213,7 @@ export const PALETTE_GROUP_ORDER: PaletteGroup[] = [
   "Environments",
   "Tools",
   "View",
+  "AI",
 ];
 
 /** Group actions preserving PALETTE_GROUP_ORDER, dropping empty groups. */

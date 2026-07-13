@@ -37,6 +37,14 @@ interface UiState {
   openDevTools: () => void;
   closeDevTools: () => void;
   toggleDevTools: () => void;
+
+  // Local AI (Ollama). OFF by default — the kill-switch. When aiEnabled is
+  // false the entire AI palette group is ABSENT (never a greyed row) and no
+  // ai_* command is ever invoked. See docs/architecture/local-ai.md §1.5.
+  aiEnabled: boolean;
+  aiModel: string | null;
+  setAiEnabled: (on: boolean) => void;
+  setAiModel: (name: string | null) => void;
 }
 
 const SIDEBAR_MIN = 200;
@@ -62,6 +70,8 @@ export const useUiStore = create<UiState>()(
       envManagerOpen: false,
       importOpen: false,
       devToolsOpen: false,
+      aiEnabled: false,
+      aiModel: null,
 
       setTheme: (theme) => set({ theme }),
       toggleTheme: () =>
@@ -81,6 +91,12 @@ export const useUiStore = create<UiState>()(
       openDevTools: () => set({ devToolsOpen: true }),
       closeDevTools: () => set({ devToolsOpen: false }),
       toggleDevTools: () => set({ devToolsOpen: !get().devToolsOpen }),
+      // Flipping OFF is the instant, global, persistent kill-switch: the palette
+      // group vanishes next render and no in-flight/future ai_* invoke can start
+      // (the actions aren't even constructed). No teardown — the client is
+      // request/response, not a persistent connection.
+      setAiEnabled: (aiEnabled) => set({ aiEnabled }),
+      setAiModel: (aiModel) => set({ aiModel }),
     }),
     {
       name: "ether.ui",
@@ -88,6 +104,8 @@ export const useUiStore = create<UiState>()(
         theme: state.theme,
         locale: state.locale,
         mode: state.mode,
+        aiEnabled: state.aiEnabled,
+        aiModel: state.aiModel,
       }),
     },
   ),

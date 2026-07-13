@@ -1,3 +1,4 @@
+pub mod ai;
 pub mod assert;
 pub mod cli;
 pub mod curlgen;
@@ -67,6 +68,9 @@ pub fn run() {
             importers::scan_shell_history_curls,
             subscriptions::subscription_start,
             subscriptions::subscription_stop,
+            ai::ai_health,
+            ai::ai_tags,
+            ai::ai_chat,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

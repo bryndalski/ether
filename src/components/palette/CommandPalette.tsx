@@ -5,6 +5,7 @@ import { useHistoryStore } from "../../state/useHistoryStore";
 import { useWorkbenchActions } from "../../state/useWorkbenchActions";
 import { useCollectionsStore } from "../../state/useCollectionsStore";
 import { useNewRequest } from "../../hooks/useNewRequest";
+import { useAiAction } from "../../hooks/useAiAction";
 import {
   buildPaletteActions,
   groupPaletteActions,
@@ -26,6 +27,9 @@ export function CommandPalette() {
   const openEnvManager = useUiStore((state) => state.openEnvManager);
   const openImport = useUiStore((state) => state.openImport);
   const openHistory = useHistoryStore((state) => state.open);
+  const aiEnabled = useUiStore((state) => state.aiEnabled);
+  const aiModel = useUiStore((state) => state.aiModel);
+  const ai = useAiAction();
 
   const environments = useEnvStore((state) => state.environments);
   const activeEnvironmentId = useEnvStore((state) => state.activeEnvironmentId);
@@ -57,6 +61,13 @@ export function CommandPalette() {
     runBenchmark: () => bus.benchmark?.(),
     toggleTheme,
     setLocale,
+    aiEnabled,
+    aiModel,
+    aiExplainError: ai.aiExplainError,
+    aiGenerateAssertions: ai.aiGenerateAssertions,
+    aiNlToRequest: ai.aiNlToRequest,
+    aiNlToGraphql: ai.aiNlToGraphql,
+    aiDocumentRequest: ai.aiDocumentRequest,
   };
 
   const groups = groupPaletteActions(buildPaletteActions(ctx));

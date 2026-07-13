@@ -50,6 +50,13 @@ function makeCtx(overrides: Partial<PaletteContext> = {}): PaletteContext {
     runBenchmark: vi.fn(),
     toggleTheme: vi.fn(),
     setLocale: vi.fn(),
+    aiEnabled: false,
+    aiModel: null,
+    aiExplainError: vi.fn(),
+    aiGenerateAssertions: vi.fn(),
+    aiNlToRequest: vi.fn(),
+    aiNlToGraphql: vi.fn(),
+    aiDocumentRequest: vi.fn(),
     ...overrides,
   };
 }
@@ -125,5 +132,44 @@ describe("buildPaletteActions", () => {
       "Tools",
       "View",
     ]);
+  });
+
+  const aiIds = [
+    "ai-explain-error",
+    "ai-generate-assertions",
+    "ai-nl-to-request",
+    "ai-nl-to-graphql",
+    "ai-document-request",
+  ];
+
+  it("hides the entire AI group when aiEnabled is false (off by default)", () => {
+    const actions = buildPaletteActions(makeCtx());
+    expect(actions.filter((a) => a.group === "AI")).toHaveLength(0);
+  });
+
+  it("still hides AI when enabled but no model is chosen", () => {
+    const actions = buildPaletteActions(
+      makeCtx({ aiEnabled: true, aiModel: null }),
+    );
+    expect(actions.filter((a) => a.group === "AI")).toHaveLength(0);
+  });
+
+  it("shows exactly the five ai-* actions when enabled with a model", () => {
+    const actions = buildPaletteActions(
+      makeCtx({ aiEnabled: true, aiModel: "llama3.1:8b" }),
+    );
+    const found = actions.filter((a) => a.group === "AI").map((a) => a.id);
+    expect(found).toEqual(aiIds);
+  });
+
+  it("kill-switch: flipping aiEnabled back off removes the AI group again", () => {
+    const on = buildPaletteActions(
+      makeCtx({ aiEnabled: true, aiModel: "llama3.1:8b" }),
+    );
+    expect(on.filter((a) => a.group === "AI")).toHaveLength(5);
+    const off = buildPaletteActions(
+      makeCtx({ aiEnabled: false, aiModel: "llama3.1:8b" }),
+    );
+    expect(off.filter((a) => a.group === "AI")).toHaveLength(0);
   });
 });

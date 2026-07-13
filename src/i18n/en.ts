@@ -389,6 +389,40 @@ export const en = {
     languagePolish: "Language: Polski",
   },
 
+  ai: {
+    // Local AI (Ollama) — OFF by default, 100% local, secrets never sent. Keys
+    // are flat (one level) to match the Dict shape; the palette reads
+    // `ai.action.*` as dotted paths into these flattened keys.
+    settingsTitle: "Local AI (Ollama)",
+    enableLabel: "Enable local AI assistance",
+    enableHint: "Off by default. Uses a model on your Mac via Ollama — nothing leaves your machine.",
+    localBadge: "100% local · localhost:11434 · 0 outbound",
+    modelPicker: "Model",
+    recheck: "Recheck",
+    notRunningTitle: "Ollama isn't running",
+    notRunningBody: "Ether can use a local model via Ollama — nothing leaves your Mac. Run these commands in a terminal:",
+    noModelsTitle: "No models installed",
+    noModelsBody: "Ollama is running, but no model is installed yet. Pull one:",
+    cmdInstall: "Install Ollama",
+    cmdServe: "Start the server",
+    cmdPull: "Pull a model",
+    copyCommand: "Copy command",
+    diagnosisTitle: "AI Diagnosis",
+    generatedLocally: "Generated locally in {ms} ms",
+    suggestSmallFast: "Small + fast; fits comfortably.",
+    suggestBalanced: "Balanced quality for code/JSON tasks.",
+    suggestStrongCode: "Strong at structured/code output.",
+    actionExplainError: "AI: Explain this error",
+    actionGenerateAssertions: "AI: Generate assertions from response",
+    actionNlToRequest: "AI: New request from description",
+    actionNlToGraphql: "AI: Build GraphQL query",
+    actionDocumentRequest: "AI: Document this request",
+    toastUnparseable: "AI returned output that didn't match the expected shape.",
+    toastFailed: "AI request failed — is Ollama running?",
+    toastNoSchema: "Introspect the GraphQL schema first — the query is grounded in it.",
+    toastUnknownField: "AI produced a query using unknown fields — discarded.",
+  },
+
   toast: {
     copyFailed: "Could not copy",
     curlCopied: "cURL copied — secrets redacted",
