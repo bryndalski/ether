@@ -3,12 +3,12 @@
 # Gatekeeper friction: curl downloads carry no com.apple.quarantine attribute,
 # so the app opens immediately (no notarization, no xattr dance).
 #
-#   curl -fsSL https://raw.githubusercontent.com/bryndalski/lokowka/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/bryndalski/ether/main/install.sh | sh
 #
 # Options: --open  launch Ether after installing.
 set -eu
 
-REPO="bryndalski/lokowka"
+REPO="bryndalski/ether"
 APP_DIR="/Applications"
 APP_PATH="$APP_DIR/Ether.app"
 

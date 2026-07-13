@@ -38,7 +38,7 @@ See [docs/specs/2026-07-12-lokowka-design.md](docs/specs/2026-07-12-lokowka-desi
 One line, no Gatekeeper friction (curl downloads carry no quarantine flag):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/bryndalski/lokowka/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/bryndalski/ether/main/install.sh | sh
 ```
 
 The script fetches the latest release, verifies the code signature, and puts **Ether.app** in `/Applications`. Add `-s -- --open` to launch it right away.
@@ -46,7 +46,7 @@ The script fetches the latest release, verifies the code signature, and puts **E
 <details>
 <summary>Prefer the DMG?</summary>
 
-Grab it from [Releases](https://github.com/bryndalski/lokowka/releases), drag **Ether.app** to `/Applications`, then clear the quarantine flag once:
+Grab it from [Releases](https://github.com/bryndalski/ether/releases), drag **Ether.app** to `/Applications`, then clear the quarantine flag once:
 
 ```sh
 xattr -cr /Applications/Ether.app
