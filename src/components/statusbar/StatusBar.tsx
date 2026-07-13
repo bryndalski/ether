@@ -26,7 +26,7 @@ export function StatusBar() {
       </span>
       <HistoryTrigger />
       <DevToolsTrigger />
-      <span className="lok-mono ml-auto">v0.1.0</span>
+      <span className="lok-mono ml-auto">{`v${__APP_VERSION__}`}</span>
     </footer>
   );
 }
