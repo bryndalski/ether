@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Icon, type IconName } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 export interface MenuItem {
   label: string;
@@ -18,6 +19,7 @@ interface RowContextMenuProps {
  *  closes, destructive items carry the danger token. */
 export function RowContextMenu({ items, anchor, onClose }: RowContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   useEffect(() => {
     ref.current?.querySelector<HTMLButtonElement>("button")?.focus();
@@ -49,7 +51,7 @@ export function RowContextMenu({ items, anchor, onClose }: RowContextMenuProps) 
     <div
       ref={ref}
       role="menu"
-      aria-label="Akcje wiersza"
+      aria-label={t("sidebar.rowActionsMenu")}
       className="row-menu"
       style={{ left: anchor.x, top: anchor.y }}
       onKeyDown={onKeyDown}

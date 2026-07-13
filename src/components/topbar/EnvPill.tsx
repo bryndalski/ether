@@ -24,8 +24,13 @@ export function EnvPill() {
   const openEnvManager = useUiStore((state) => state.openEnvManager);
   const t = useT();
 
-  const kind = envKind(activeEnvironment);
+  const kind = activeEnvironment ? envKind(activeEnvironment) : "none";
   const label = activeEnvironment?.name ?? t("topbar.noEnvironment");
+  const dotHealth = !activeEnvironment
+    ? "none"
+    : kind === "prod"
+      ? "checking"
+      : "up";
 
   return (
     <div
@@ -47,7 +52,7 @@ export function EnvPill() {
           backgroundColor: "color-mix(in srgb, var(--lok-env-accent) 14%, transparent)",
         }}
       >
-        <HealthDot health={kind === "prod" ? "checking" : "up"} />
+        <HealthDot health={dotHealth} />
         <span className="max-w-[120px] truncate">{label}</span>
         <span aria-hidden style={{ color: "var(--lok-text-tertiary)" }}>
           ▾

@@ -221,6 +221,7 @@ export function RequestWorkbench() {
     return (
       <section className="editor" aria-label={t("workbench.editorAria")}>
         <EmptyState
+          glow
           headline={t("workbench.emptyHeadline")}
           hint={t("workbench.emptyHint")}
           actionLabel={t("palette.newRequest")}

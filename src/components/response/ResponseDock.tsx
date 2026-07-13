@@ -113,6 +113,7 @@ export function ResponseDock({ sendState, snapshot, devTools, testing }: Respons
       >
         <div className="lok-scroll lok-selectable" style={{ flex: 1 }}>
           <EmptyState
+            glow
             headline={
               phase === "in-flight"
                 ? t("response.sending")

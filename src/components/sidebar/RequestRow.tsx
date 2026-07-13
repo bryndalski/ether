@@ -126,7 +126,7 @@ export function RequestRow({
           <button
             type="button"
             className="tree-kebab"
-            aria-label={`Akcje dla ${request.name}`}
+            aria-label={t("sidebar.rowActions", { name: request.name })}
             onClick={(event) => {
               event.stopPropagation();
               const rect = event.currentTarget.getBoundingClientRect();

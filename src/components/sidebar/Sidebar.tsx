@@ -41,6 +41,7 @@ export function Sidebar() {
       <div className="lok-scroll flex-1" style={{ minHeight: 0 }}>
         {isEmpty ? (
           <EmptyState
+            compact
             headline={t("sidebar.emptyHeadline")}
             hint={
               loadFailed

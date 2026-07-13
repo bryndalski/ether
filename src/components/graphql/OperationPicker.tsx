@@ -1,5 +1,6 @@
 import type { OperationType } from "../../lib/graphqlSelection";
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface OperationPickerProps {
   opType: OperationType;
@@ -21,13 +22,14 @@ export function OperationPicker({
   available,
   onChange,
 }: OperationPickerProps) {
+  const t = useT();
   const all: OperationType[] = ["query", "mutation", "subscription"];
   return (
     <label className="op-select">
       <span className="op">{LABEL[opType]}</span>
       <Icon name="i-chev" size={13} />
       <select
-        aria-label="Typ operacji GraphQL"
+        aria-label={t("graphql.operationTypeAria")}
         value={opType}
         onChange={(event) => onChange(event.target.value as OperationType)}
         style={{

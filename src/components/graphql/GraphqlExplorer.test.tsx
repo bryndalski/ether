@@ -120,7 +120,7 @@ describe("GraphqlExplorer", () => {
     render(<Harness />);
     await screen.findByRole("tree");
 
-    const editorRegion = screen.getByLabelText("Edytor zapytania GraphQL");
+    const editorRegion = screen.getByLabelText("GraphQL query editor");
     const editor = editorRegion.querySelector("textarea") as HTMLTextAreaElement;
     fireEvent.change(editor, { target: { value: "query { user { id } }" } });
 
@@ -137,7 +137,7 @@ describe("GraphqlExplorer", () => {
   it("op-picker exposes an accessible operation select", async () => {
     render(<Harness />);
     await screen.findByRole("tree");
-    expect(screen.getByLabelText("Typ operacji GraphQL")).toBeInTheDocument();
+    expect(screen.getByLabelText("GraphQL operation type")).toBeInTheDocument();
   });
 
   it("Run and Refresh icon-only buttons expose accessible names", async () => {

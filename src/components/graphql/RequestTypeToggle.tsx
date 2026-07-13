@@ -1,4 +1,5 @@
 import { Icon } from "../common/Icon";
+import { useT } from "../../i18n/useT";
 
 interface RequestTypeToggleProps {
   isGraphql: boolean;
@@ -8,8 +9,9 @@ interface RequestTypeToggleProps {
 /** Segmented REST | GraphQL control. A real tablist; never color-only (each tab
  *  pairs a label with an icon). The discriminator remains draft.graphql. */
 export function RequestTypeToggle({ isGraphql, onSelect }: RequestTypeToggleProps) {
+  const t = useT();
   return (
-    <div className="reqtype-toggle" role="tablist" aria-label="Typ requestu">
+    <div className="reqtype-toggle" role="tablist" aria-label={t("graphql.requestTypeAria")}>
       <button
         type="button"
         role="tab"

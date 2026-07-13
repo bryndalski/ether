@@ -98,7 +98,7 @@ describe("CollectionTree render + load-request contract", () => {
     // Store-driven selection is the single source of truth.
     expect(useCollectionsStore.getState().activeRequestId).toBe("r1");
     // The draft re-seeds → the URL of the selected request appears in the editor.
-    const urlInput = screen.getByLabelText("URL requestu") as HTMLInputElement;
+    const urlInput = screen.getByLabelText("Request URL") as HTMLInputElement;
     expect(urlInput.value).toBe("https://api/users");
   });
 });

@@ -3,6 +3,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { linter } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
+import { useT } from "../../i18n/useT";
 
 interface VariablesPanelProps {
   value: string;
@@ -23,6 +24,7 @@ const editorTheme = EditorView.theme({
  *  errors but Run is still allowed (Rust/endpoint validates). `{{env.x}}` inside
  *  a string value is preserved for Rust interpolation. */
 export function VariablesPanel({ value, onChange }: VariablesPanelProps) {
+  const t = useT();
   const extensions = useMemo(
     () => [json(), linter(jsonParseLinter()), editorTheme],
     [],
@@ -32,7 +34,7 @@ export function VariablesPanel({ value, onChange }: VariablesPanelProps) {
     <div
       className="vars-body lok-scroll"
       role="tabpanel"
-      aria-label="Zmienne operacji"
+      aria-label={t("graphql.variablesAria")}
     >
       <CodeMirror
         value={value}

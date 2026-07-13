@@ -280,7 +280,7 @@
   --lok-bg-active: rgba(255, 255, 255, 0.07);
   --lok-bg-selected: rgba(255, 45, 122, 0.12); /* heat-tinted selection */
   --lok-bg-code: var(--lok-ink-50);      /* response/curl pane */
-  --lok-scrim: rgba(6, 6, 10, 0.66);     /* modal/palette backdrop */
+  --lok-scrim: rgba(6, 6, 10, 0.78);     /* modal/palette backdrop — deep enough to float overlays */
 
   /* Glass (HUD after long request, ⌘K palette) — blur + translucency */
   --lok-glass-bg: rgba(22, 22, 29, 0.72);
@@ -366,14 +366,16 @@
   --lok-bg-active: rgba(10, 10, 13, 0.07);
   --lok-bg-selected: rgba(255, 45, 122, 0.10);
   --lok-bg-code: #fafafc;
-  --lok-scrim: rgba(20, 20, 26, 0.42);
+  --lok-scrim: rgba(20, 20, 26, 0.55);
 
   --lok-glass-bg: rgba(255, 255, 255, 0.78);
   --lok-glass-border: rgba(10, 10, 13, 0.08);
 
   --lok-text-primary: #14141a;
   --lok-text-secondary: #3d3d4c;
-  --lok-text-tertiary: #6a6a7d;
+  /* Deepened from #6a6a7d (≈4.48:1 on the sidebar — sub-AA) to clear 4.5:1 for
+     small text on the light sidebar/status strip. */
+  --lok-text-tertiary: #595966;
   --lok-text-disabled: #9a9ab0;
   --lok-text-inverse: #ffffff;
   --lok-text-on-heat: #ffffff;

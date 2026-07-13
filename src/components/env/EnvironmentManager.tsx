@@ -6,6 +6,7 @@ import { Icon } from "../common/Icon";
 import { EnvList } from "./EnvList";
 import { EnvEditor } from "./EnvEditor";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { EmptyState } from "../common/EmptyState";
 import { useT } from "../../i18n/useT";
 import "./env.css";
 
@@ -61,7 +62,18 @@ export function EnvironmentManager() {
             onCreate={manager.createEnvironment}
             onRequestDelete={setDeleteId}
           />
-          {manager.selectedEnv ? (
+          {manager.environments.length === 0 ? (
+            <div className="env-editor" style={{ justifyContent: "center" }}>
+              <EmptyState
+                glow
+                headline={t("env.noEnvironments")}
+                hint={t("env.pickOrCreate")}
+                actionLabel={t("env.newEnvironment")}
+                onAction={() => void manager.createEnvironment(null)}
+                icon="🌐"
+              />
+            </div>
+          ) : manager.selectedEnv ? (
             <EnvEditor
               environment={manager.selectedEnv}
               environments={manager.environments}

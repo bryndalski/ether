@@ -123,7 +123,7 @@ describe("RequestWorkbench", () => {
     const send = screen.getByRole("button", { name: "Send request" });
     expect(send).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText("URL requestu"), {
+    fireEvent.change(screen.getByLabelText("Request URL"), {
       target: { value: "https://api/x" },
     });
     expect(
@@ -147,7 +147,7 @@ describe("RequestWorkbench", () => {
     mockInvoke.mockResolvedValue(okResponse);
     render(<RequestWorkbench />);
 
-    fireEvent.keyDown(screen.getByLabelText("URL requestu"), { key: "Enter" });
+    fireEvent.keyDown(screen.getByLabelText("Request URL"), { key: "Enter" });
 
     await waitFor(() =>
       expect(mockInvoke).toHaveBeenCalledWith(

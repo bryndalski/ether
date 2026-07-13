@@ -10,6 +10,7 @@ export function useShellBootstrap(): void {
   const loadCollections = useCollectionsStore((state) => state.load);
   const loadEnvironments = useEnvStore((state) => state.load);
   const theme = useUiStore((state) => state.theme);
+  const activeEnvironment = useEnvStore((state) => state.activeEnvironment());
   const activeKind = useEnvStore((state) => state.activeKind());
 
   useEffect(() => {
@@ -27,6 +28,11 @@ export function useShellBootstrap(): void {
   }, [theme]);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-env", activeKind);
-  }, [activeKind]);
+    // No active environment must read as neutral (not the green "local"
+    // fallback) — nothing is connected until an env is selected.
+    document.documentElement.setAttribute(
+      "data-env",
+      activeEnvironment ? activeKind : "none",
+    );
+  }, [activeEnvironment, activeKind]);
 }

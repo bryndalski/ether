@@ -16,11 +16,11 @@ export function StatusBar() {
         backgroundColor: "var(--lok-bg-sidebar)",
         borderTop: "1px solid var(--lok-border-subtle)",
         color: "var(--lok-text-tertiary)",
-        fontSize: "var(--lok-fs-2xs)",
+        fontSize: "var(--lok-fs-xs)",
       }}
     >
       <span className="flex items-center gap-1.5">
-        <HealthDot />
+        <HealthDot health={activeEnvironment ? "up" : "none"} />
         {activeEnvironment?.name ?? t("statusbar.noEnv")}
       </span>
       <span className="lok-mono">HTTP/2</span>

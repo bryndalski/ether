@@ -244,12 +244,25 @@ svg {
   color: transparent;
 }
 
-/* Radial glow layer — place behind a hero/logo/focused Send. */
+/* On the light theme the heat gradient's pale top stop (heat-300 on white)
+   fails contrast for large headlines; fall back to solid primary text (AA-safe)
+   while keeping the gradient on dark. */
+[data-theme="light"] .lok-heat-text {
+  background-image: none;
+  -webkit-text-fill-color: var(--lok-text-primary);
+  color: var(--lok-text-primary);
+}
+
+/* Radial glow layer — place behind a hero/logo/focused Send. A wide, soft
+   bloom (not a tight smudge); reserved for the ONE hero per screen. */
 .lok-heat-glow {
   background-image: var(--lok-gradient-heat-glow);
-  filter: blur(8px);
-  opacity: 0.55;
+  filter: blur(44px);
+  opacity: 0.3;
   pointer-events: none;
+}
+[data-theme="light"] .lok-heat-glow {
+  opacity: 0.16;
 }
 
 /* Hairline heat border (focused input / active env card). */
@@ -277,6 +290,7 @@ svg {
    The app sets [data-env] on the shell (or the env pill) to color the accent
    without inline styles. Components then read var(--lok-env-accent).
    ---------------------------------------------------------------------- */
+[data-env="none"] { --lok-env-accent: var(--lok-status-neutral); }
 [data-env="local"] { --lok-env-accent: var(--lok-env-local); }
 [data-env="dev"] { --lok-env-accent: var(--lok-env-dev); }
 [data-env="staging"] { --lok-env-accent: var(--lok-env-staging); }

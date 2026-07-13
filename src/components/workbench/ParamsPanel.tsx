@@ -1,5 +1,6 @@
 import type { KeyValue } from "../../lib/types";
 import { KeyValueTable } from "./KeyValueTable";
+import { useT } from "../../i18n/useT";
 
 interface ParamsPanelProps {
   params: KeyValue[];
@@ -9,8 +10,9 @@ interface ParamsPanelProps {
 /** Query params grid. Params↔URL sync lives in useRequestDraft; this only
  *  passes rows through to the shared KeyValueTable. */
 export function ParamsPanel({ params, onChange }: ParamsPanelProps) {
+  const t = useT();
   return (
-    <div className="pane" role="tabpanel" aria-label="Parametry">
+    <div className="pane" role="tabpanel" aria-label={t("workbench.paramsPane")}>
       <div className="pane-inner">
         <KeyValueTable
           rows={params}

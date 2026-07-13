@@ -3,6 +3,7 @@ import { TreeGroup } from "./TreeGroup";
 import { RequestRow } from "./RequestRow";
 import type { SidebarTreeApi } from "../../hooks/useSidebarTree";
 import { useSidebarDnD } from "../../hooks/useSidebarDnD";
+import { useT } from "../../i18n/useT";
 
 interface CollectionTreeProps {
   view: SidebarTreeApi;
@@ -14,10 +15,11 @@ interface CollectionTreeProps {
 export function CollectionTree({ view, activeRequestId }: CollectionTreeProps) {
   const selectRequest = useCollectionsStore((state) => state.selectRequest);
   const dnd = useSidebarDnD();
+  const t = useT();
   const { roots, orphanRequests } = view.tree;
 
   return (
-    <div role="tree" aria-label="Kolekcje" className="flex flex-col py-1">
+    <div role="tree" aria-label={t("sidebar.collectionsTree")} className="flex flex-col py-1">
       {roots.map((node) => (
         <TreeGroup
           key={node.collection.id}

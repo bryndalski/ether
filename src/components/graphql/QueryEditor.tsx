@@ -3,6 +3,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { EditorView } from "@codemirror/view";
 import { graphql } from "cm6-graphql";
 import type { GraphQLSchema } from "graphql";
+import { useT } from "../../i18n/useT";
 
 interface QueryEditorProps {
   query: string;
@@ -30,13 +31,14 @@ const editorTheme = EditorView.theme({
  *  and hover/type-info; without one it degrades to syntax-only parsing. `{{...}}`
  *  templates are opaque string content, so linting is unaffected. */
 export function QueryEditor({ query, schema, onChange }: QueryEditorProps) {
+  const t = useT();
   const extensions = useMemo(
     () => [graphql(schema ?? undefined), editorTheme],
     [schema],
   );
 
   return (
-    <div className="query-pane lok-scroll" aria-label="Edytor zapytania GraphQL">
+    <div className="query-pane lok-scroll" aria-label={t("graphql.queryEditorAria")}>
       <CodeMirror
         value={query}
         theme="dark"
