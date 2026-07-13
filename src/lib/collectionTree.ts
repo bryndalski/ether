@@ -15,6 +15,39 @@ export interface CollectionTreeResult {
   orphanRequests: StoredRequest[];
 }
 
+/** Faceted filters applied ON TOP of the free-text query. `methods` empty = any
+ *  method; `type` "all" = REST and GraphQL. A request must satisfy every active
+ *  facet AND the text query to survive. */
+export interface SidebarFilters {
+  methods: string[];
+  type: "all" | "rest" | "graphql";
+}
+
+export const EMPTY_SIDEBAR_FILTERS: SidebarFilters = {
+  methods: [],
+  type: "all",
+};
+
+export function filtersActive(filters: SidebarFilters): boolean {
+  return filters.methods.length > 0 || filters.type !== "all";
+}
+
+function requestPassesFacets(
+  request: StoredRequest,
+  filters: SidebarFilters,
+): boolean {
+  if (
+    filters.methods.length > 0 &&
+    !filters.methods.includes(request.method.toUpperCase())
+  ) {
+    return false;
+  }
+  const isGraphql = request.graphql != null;
+  if (filters.type === "rest" && isGraphql) return false;
+  if (filters.type === "graphql" && !isGraphql) return false;
+  return true;
+}
+
 function bySortThenName<T extends { sort_order: number; name: string }>(
   a: T,
   b: T,
@@ -82,23 +115,38 @@ function requestMatches(request: StoredRequest, needle: string): boolean {
 }
 
 /** Keep only nodes whose subtree matches the query (request name / method /
- *  url substring, case-insensitive). Matching branches are returned intact so
- *  the caller auto-expands them; an empty query passes the tree through. */
+ *  url substring, case-insensitive) AND the active method/type facets. Matching
+ *  branches are returned intact so the caller auto-expands them; an empty query
+ *  with no active facet passes the tree through. A collection-NAME text match no
+ *  longer keeps a folder that has zero passing requests once facets are active,
+ *  so the facets actually narrow results. */
 export function filterTree(
   tree: CollectionTreeResult,
   query: string,
+  filters: SidebarFilters = EMPTY_SIDEBAR_FILTERS,
 ): CollectionTreeResult {
   const needle = query.trim().toLowerCase();
-  if (needle === "") return tree;
+  const hasFacets = filtersActive(filters);
+  if (needle === "" && !hasFacets) return tree;
+
+  function requestPasses(request: StoredRequest): boolean {
+    return (
+      requestPassesFacets(request, filters) &&
+      (needle === "" || requestMatches(request, needle))
+    );
+  }
 
   function filterNode(node: TreeNode): TreeNode | null {
     const children = node.children
       .map(filterNode)
       .filter((child): child is TreeNode => child !== null);
-    const requests = node.requests.filter((request) =>
-      requestMatches(request, needle),
-    );
-    const nameMatches = node.collection.name.toLowerCase().includes(needle);
+    const requests = node.requests.filter(requestPasses);
+    // A folder name match only keeps an (otherwise empty) folder when no facet
+    // is active — facets are about requests, so a name-only match shouldn't
+    // resurface a folder whose requests were all filtered out.
+    const nameMatches =
+      !hasFacets && needle !== "" &&
+      node.collection.name.toLowerCase().includes(needle);
     if (children.length === 0 && requests.length === 0 && !nameMatches) {
       return null;
     }
@@ -109,9 +157,7 @@ export function filterTree(
     roots: tree.roots
       .map(filterNode)
       .filter((node): node is TreeNode => node !== null),
-    orphanRequests: tree.orphanRequests.filter((request) =>
-      requestMatches(request, needle),
-    ),
+    orphanRequests: tree.orphanRequests.filter(requestPasses),
   };
 }
 

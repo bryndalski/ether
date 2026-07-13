@@ -5,6 +5,7 @@ import { useSidebarTree } from "../../hooks/useSidebarTree";
 import { useT } from "../../i18n/useT";
 import { EmptyState } from "../common/EmptyState";
 import { SidebarHeader } from "./SidebarHeader";
+import { SidebarFilterBar } from "./SidebarFilterBar";
 import { CollectionTree } from "./CollectionTree";
 import "./sidebar.css";
 
@@ -37,6 +38,7 @@ export function Sidebar() {
       }}
     >
       <SidebarHeader query={view.query} onQueryChange={view.setQuery} />
+      {!isEmpty && <SidebarFilterBar view={view} />}
 
       <div className="lok-scroll flex-1" style={{ minHeight: 0 }}>
         {isEmpty ? (

@@ -8,6 +8,7 @@ import { EnvEditor } from "./EnvEditor";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyState } from "../common/EmptyState";
 import { useT } from "../../i18n/useT";
+import "../common/kv-grid.css";
 import "./env.css";
 
 /** Modal panel to manage environments (base + sub), their public variables, and

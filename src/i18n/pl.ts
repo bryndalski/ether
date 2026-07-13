@@ -40,6 +40,13 @@ export const pl: Dict = {
     defaultCollectionName: "Nowa kolekcja",
     defaultRequestName: "Nowy request",
     copySuffix: "{name} (kopia)",
+    filtersAria: "Filtruj requesty",
+    typeFilterAria: "Filtr typu requestu",
+    typeAll: "Wszystkie",
+    typeRest: "REST",
+    typeGraphql: "GraphQL",
+    resultCount: "{count} wyników",
+    clearFilters: "Wyczyść filtry",
   },
 
   topbar: {
@@ -217,6 +224,14 @@ export const pl: Dict = {
     emptyHeadline: "Brak historii",
     snapshotRibbon: "Historia · {when}",
     scopeAria: "Zakres historii",
+    scopeAll: "Wszystkie",
+    scopeThisRequest: "Ten request",
+    filtersAria: "Filtruj historię",
+    filterUrl: "Filtruj po URL…",
+    filterUrlAria: "Filtruj historię po URL",
+    clearFilters: "Wyczyść filtry",
+    noMatchHeadline: "Brak pasujących wpisów",
+    noMatchHint: "Żaden wpis historii nie pasuje do aktualnych filtrów.",
   },
 
   diff: {

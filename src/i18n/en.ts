@@ -41,6 +41,13 @@ export const en = {
     defaultCollectionName: "New collection",
     defaultRequestName: "New request",
     copySuffix: "{name} (copy)",
+    filtersAria: "Filter requests",
+    typeFilterAria: "Request type filter",
+    typeAll: "All",
+    typeRest: "REST",
+    typeGraphql: "GraphQL",
+    resultCount: "{count} results",
+    clearFilters: "Clear filters",
   },
 
   topbar: {
@@ -216,6 +223,14 @@ export const en = {
     emptyHeadline: "No history",
     snapshotRibbon: "History · {when}",
     scopeAria: "History scope",
+    scopeAll: "All",
+    scopeThisRequest: "This request",
+    filtersAria: "Filter history",
+    filterUrl: "Filter by URL…",
+    filterUrlAria: "Filter history by URL",
+    clearFilters: "Clear filters",
+    noMatchHeadline: "No matching entries",
+    noMatchHint: "No history entry matches the current filters.",
   },
 
   diff: {
