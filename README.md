@@ -33,6 +33,16 @@ Postman ∪ Insomnia, minus the cloud: no account, no sync, no telemetry. Your c
 
 See [docs/specs/2026-07-12-lokowka-design.md](docs/specs/2026-07-12-lokowka-design.md) for the full design and [docs/research/](docs/research/) for the market research behind it.
 
+## Install
+
+Grab the DMG from [Releases](https://github.com/bryndalski/lokowka/releases), drag **Ether.app** to `/Applications`, then clear the quarantine flag:
+
+```sh
+xattr -cr /Applications/Ether.app
+```
+
+macOS shows *"Ether is damaged and can't be opened"* for any downloaded app that isn't notarized by Apple — Ether is ad-hoc signed (no Apple Developer account, by design: no cloud, no accounts). The `xattr` step is required once per download; right-click → Open does **not** work for ad-hoc-signed apps. Building from source (below) needs no such step.
+
 ## Development
 
 Prerequisites: Rust (stable), Node 22+, Xcode CLT.
