@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Ether — DMG installer background</title>
+<style>
+  /*
+   * Ether DMG installer backdrop — 660 x 420 @1x.
+   * macOS overlays the real .app icon on the LEFT slot (~x=165,y=210)
+   * and the Applications alias on the RIGHT slot (~x=495,y=210).
+   * This artwork is the BACKDROP ONLY: floor + heat glow + vignette,
+   * wordmark + tagline, the drag arc, and two faint slot underlights.
+   * Palette + type mirror the app design system (--lok-* heat ramp).
+   */
+  :root {
+    --ink-0:   #0B0E14;   /* OLED floor (per brief) */
+    --ink-deep:#05070b;   /* deepest vignette pool  */
+    --heat-500:#ff2d7a;   /* magenta — brand start  */
+    --heat-700:#ff5236;   /* red-orange — mid       */
+    --heat-900:#ffa60a;   /* amber — hottest        */
+    --heat-300:#ff93b4;   /* soft pink              */
+    --text:    #f5f7fa;
+    --text-dim:#9aa0b0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--ink-0); }
+  .stage {
+    position: relative;
+    width: 660px;
+    height: 420px;
+    overflow: hidden;
+    background: var(--ink-0);
+    font-family: -apple-system, "SF Pro Display", "SF Pro Text", system-ui, "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .stage svg { position: absolute; inset: 0; display: block; }
+
+  /* Wordmark + tagline live in the DOM for crisp system-font rendering */
+  .brand {
+    position: absolute;
+    top: 46px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 3;
+  }
+  .wordmark {
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    background: linear-gradient(100deg, #ffffff 0%, #ffe7ef 34%, var(--heat-300) 62%, var(--heat-900) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 18px rgba(255, 45, 122, 0.28));
+  }
+  .tagline {
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .tagline .accent { color: var(--heat-300); }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <svg width="660" height="420" viewBox="0 0 660 420" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Deep floor with a faint cool tilt so it never reads as flat black -->
+        <linearGradient id="floor" x1="0" y1="0" x2="0" y2="420" gradientUnits="userSpaceOnUse">
+          <stop offset="0"    stop-color="#10141d"/>
+          <stop offset="0.5"  stop-color="#0B0E14"/>
+          <stop offset="1"    stop-color="#070a10"/>
+        </linearGradient>
+
+        <!-- Heat bloom anchored behind the wordmark, upper-right lean (Send corner) -->
+        <radialGradient id="heatBloom" cx="0.62" cy="0.20" r="0.72" gradientUnits="objectBoundingBox">
+          <stop offset="0"    stop-color="#ff2d7a" stop-opacity="0.26"/>
+          <stop offset="0.34" stop-color="#ff5236" stop-opacity="0.13"/>
+          <stop offset="0.66" stop-color="#ffa60a" stop-opacity="0.05"/>
+          <stop offset="1"    stop-color="#ffa60a" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- Second, smaller warm pool low-center to lift the drag arc -->
+        <radialGradient id="arcBloom" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+          <stop offset="0"   stop-color="#ff5236" stop-opacity="0.10"/>
+          <stop offset="1"   stop-color="#ff5236" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- Vignette: darken edges, keep center open -->
+        <radialGradient id="vignette" cx="0.5" cy="0.46" r="0.75" gradientUnits="objectBoundingBox">
+          <stop offset="0"    stop-color="#000000" stop-opacity="0"/>
+          <stop offset="0.62" stop-color="#000000" stop-opacity="0"/>
+          <stop offset="1"    stop-color="#05070b" stop-opacity="0.62"/>
+        </radialGradient>
+
+        <!-- The heat ramp along the drag arc: cool magenta (left) -> hot amber (right) -->
+        <linearGradient id="arcHeat" x1="165" y1="210" x2="495" y2="210" gradientUnits="userSpaceOnUse">
+          <stop offset="0"    stop-color="#ff2d7a" stop-opacity="0"/>
+          <stop offset="0.14" stop-color="#ff2d7a" stop-opacity="0.9"/>
+          <stop offset="0.5"  stop-color="#ff5236"/>
+          <stop offset="0.86" stop-color="#ffa60a" stop-opacity="0.95"/>
+          <stop offset="1"    stop-color="#ffa60a" stop-opacity="0"/>
+        </linearGradient>
+
+        <!-- Slot ring gradients (left = magenta, right = amber) -->
+        <radialGradient id="slotLeft" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+          <stop offset="0"    stop-color="#ff2d7a" stop-opacity="0.16"/>
+          <stop offset="0.7"  stop-color="#ff2d7a" stop-opacity="0.04"/>
+          <stop offset="1"    stop-color="#ff2d7a" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="slotRight" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+          <stop offset="0"    stop-color="#ffa60a" stop-opacity="0.14"/>
+          <stop offset="0.7"  stop-color="#ffa60a" stop-opacity="0.035"/>
+          <stop offset="1"    stop-color="#ffa60a" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- Arrowhead paint -->
+        <linearGradient id="headHeat" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#ff7a1f"/>
+          <stop offset="1" stop-color="#ffa60a"/>
+        </linearGradient>
+
+        <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="0.6"/>
+        </filter>
+        <filter id="arcGlow" x="-40%" y="-60%" width="180%" height="220%">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feMerge>
+            <feMergeNode in="b"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- FLOOR -->
+      <rect x="0" y="0" width="660" height="420" fill="url(#floor)"/>
+      <rect x="0" y="0" width="660" height="420" fill="url(#heatBloom)"/>
+      <rect x="130" y="150" width="400" height="220" fill="url(#arcBloom)"/>
+
+      <!-- near-invisible precision grid, same motif as the app icon -->
+      <g stroke="#ffffff" stroke-opacity="0.022" stroke-width="1">
+        <path d="M110 0V420 M220 0V420 M330 0V420 M440 0V420 M550 0V420
+                 M0 105H660 M0 210H660 M0 315H660"/>
+      </g>
+
+      <!-- SLOT UNDERLIGHTS (where macOS paints the app + Applications icons) -->
+      <!-- Left slot: app -->
+      <circle cx="165" cy="210" r="90" fill="url(#slotLeft)"/>
+      <circle cx="165" cy="210" r="62" fill="none" stroke="#ff2d7a" stroke-opacity="0.12" stroke-width="1"/>
+      <!-- Right slot: Applications -->
+      <circle cx="495" cy="210" r="90" fill="url(#slotRight)"/>
+      <circle cx="495" cy="210" r="62" fill="none" stroke="#ffa60a" stroke-opacity="0.11" stroke-width="1"/>
+
+      <!-- DRAG ARC: gentle upward luk from left slot edge to right slot edge -->
+      <g filter="url(#arcGlow)">
+        <path d="M 238 210 Q 330 150 422 210"
+              fill="none" stroke="url(#arcHeat)" stroke-width="3.2"
+              stroke-linecap="round" stroke-dasharray="0.5 7"/>
+        <!-- solid subtle base line under the dashes for continuity -->
+        <path d="M 238 210 Q 330 150 422 210"
+              fill="none" stroke="url(#arcHeat)" stroke-width="1.4"
+              stroke-linecap="round" opacity="0.5"/>
+      </g>
+      <!-- arrowhead at the right slot, pointing toward Applications -->
+      <g filter="url(#soft)">
+        <path d="M 415 202 L 431 210 L 415 218 Z" fill="url(#headHeat)"/>
+      </g>
+
+      <!-- tiny "drag" hint dot leaving the left slot -->
+      <circle cx="238" cy="210" r="2.6" fill="#ff2d7a"/>
+
+      <!-- VIGNETTE on top of everything except text -->
+      <rect x="0" y="0" width="660" height="420" fill="url(#vignette)"/>
+
+      <!-- hairline inner frame for that premium installer feel -->
+      <rect x="0.5" y="0.5" width="659" height="419" fill="none"
+            stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/>
+    </svg>
+
+    <!-- Wordmark + tagline (DOM text for crisp rendering) -->
+    <div class="brand">
+      <div class="wordmark">Ether</div>
+      <div class="tagline">requests into the void &nbsp;<span class="accent">·</span>&nbsp; 100% local</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -40,7 +40,22 @@
       "icons/icon.ico"
     ],
     "macOS": {
-      "minimumSystemVersion": "12.0"
+      "minimumSystemVersion": "12.0",
+      "dmg": {
+        "background": "dmg/background.png",
+        "windowSize": {
+          "width": 660,
+          "height": 420
+        },
+        "appPosition": {
+          "x": 165,
+          "y": 210
+        },
+        "applicationFolderPosition": {
+          "x": 495,
+          "y": 210
+        }
+      }
     }
   }
 }
