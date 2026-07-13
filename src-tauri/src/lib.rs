@@ -7,6 +7,7 @@ pub mod resolve;
 pub mod secrets;
 pub mod sigv4;
 pub mod store;
+pub mod subscriptions;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -50,6 +51,8 @@ pub fn run() {
             importers::import_har,
             importers::import_http_file,
             importers::scan_shell_history_curls,
+            subscriptions::subscription_start,
+            subscriptions::subscription_stop,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

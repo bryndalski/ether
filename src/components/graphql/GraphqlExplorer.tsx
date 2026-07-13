@@ -1,15 +1,17 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 import type { RequestDraft, DraftAction } from "../../hooks/useRequestDraft";
 import type { SendState } from "../../hooks/useSendRequest";
 import { useGraphqlSchema } from "../../hooks/useGraphqlSchema";
 import { useGraphqlBuilder } from "../../hooks/useGraphqlBuilder";
 import { useDocsNav } from "../../hooks/useDocsNav";
+import { useSubscription } from "../../hooks/useSubscription";
 import {
   availableOperations,
   rootTypeFor,
 } from "../../lib/graphqlSchemaTree";
 import { relativeTimeLabel } from "../../lib/relativeTime";
+import type { StoredRequest } from "../../lib/types";
 import { ExplorerToolbar } from "./ExplorerToolbar";
 import { FieldTree } from "./FieldTree";
 import { QueryEditor } from "./QueryEditor";
@@ -17,6 +19,8 @@ import { OperationVarsPanel } from "./OperationVarsPanel";
 import { DocsExplorer } from "./DocsExplorer";
 import { ExplorerStatusBar } from "./ExplorerStatusBar";
 import { SdlFallbackPanel } from "./SdlFallbackPanel";
+import { SubscribeButton } from "./SubscribeButton";
+import { SubscriptionStream } from "./SubscriptionStream";
 import { EmptyState } from "../common/EmptyState";
 
 interface GraphqlExplorerProps {
@@ -25,6 +29,9 @@ interface GraphqlExplorerProps {
   sendState: SendState;
   onRun: () => void;
   onCancel: () => void;
+  // The active environment id so a subscription resolves {{env}}/{{secret}} in
+  // Rust exactly like a one-shot send does.
+  environmentId?: string | null;
   // Shared workbench controls, so the single explorer toolbar carries them and
   // no duplicate RequestBar is rendered in GraphQL mode.
   requestTypeToggle?: ReactNode;
@@ -42,6 +49,7 @@ export function GraphqlExplorer({
   sendState,
   onRun,
   onCancel,
+  environmentId = null,
   requestTypeToggle,
   onSave,
   onCopyCurl,
@@ -49,6 +57,7 @@ export function GraphqlExplorer({
 }: GraphqlExplorerProps) {
   const schemaApi = useGraphqlSchema(draft);
   const builder = useGraphqlBuilder(draft, schemaApi.schema, dispatch);
+  const stream = useSubscription();
 
   const availableOps = useMemo(
     () => (schemaApi.schema ? availableOperations(schemaApi.schema) : ["query" as const]),
@@ -59,6 +68,25 @@ export function GraphqlExplorer({
     [schemaApi.schema, builder.opType],
   );
   const docsNav = useDocsNav(rootType?.name ?? null);
+
+  const isSubscription = builder.opType === "subscription";
+
+  // Build the StoredRequest for the WS subscription from the LIVE builder state
+  // (query/variables/op-type), preserving {{env}}/{{secret}} tokens for Rust.
+  const buildSubscriptionRequest = useCallback((): StoredRequest => {
+    return {
+      ...draft,
+      graphql: {
+        operation_type: "subscription",
+        query: builder.query,
+        variables_json: builder.variablesJson,
+      },
+    };
+  }, [draft, builder.query, builder.variablesJson]);
+
+  const onSubscribe = useCallback(() => {
+    void stream.subscribe(buildSubscriptionRequest(), environmentId);
+  }, [stream, buildSubscriptionRequest, environmentId]);
 
   const runDisabled =
     draft.url.trim() === "" || builder.query.trim() === "";
@@ -77,6 +105,16 @@ export function GraphqlExplorer({
         runDisabled={runDisabled}
         onRun={onRun}
         onCancel={onCancel}
+        subscribeButton={
+          isSubscription ? (
+            <SubscribeButton
+              connState={stream.connState}
+              disabled={runDisabled}
+              onSubscribe={onSubscribe}
+              onUnsubscribe={stream.unsubscribe}
+            />
+          ) : undefined
+        }
         requestTypeToggle={requestTypeToggle}
         onSave={onSave}
         onCopyCurl={onCopyCurl}
@@ -155,6 +193,8 @@ export function GraphqlExplorer({
           </div>
         )}
       </div>
+
+      {isSubscription && <SubscriptionStream stream={stream} />}
 
       <ExplorerStatusBar
         schemaState={schemaApi.state}

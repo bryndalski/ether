@@ -35,6 +35,19 @@ pub async fn resolve_and_send(
     engine::execute_request(spec).await
 }
 
+/// Resolve a stored request into an executable [`RequestSpec`] without sending
+/// it. Shared by the HTTP send path and the WebSocket subscription transport so
+/// both interpolate `{{env}}`/`{{secret}}` + fold auth through one code path.
+pub fn build_resolved_spec(
+    request: &StoredRequest,
+    environment_id: Option<&str>,
+) -> Result<RequestSpec, String> {
+    let environments = store::list_environments()?;
+    let flat = flatten_env(&environments, environment_id);
+    let ctx = build_render_ctx(&environments, environment_id, &flat, false)?;
+    resolve_spec(request, &ctx, false)
+}
+
 /// Build a redacted curl command for the request without touching the Keychain:
 /// every `{{secret.NAME}}` renders to a placeholder so nothing sensitive leaks
 /// into a shareable command line.

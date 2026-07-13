@@ -20,6 +20,10 @@ interface ExplorerToolbarProps {
   runDisabled: boolean;
   onRun: () => void;
   onCancel: () => void;
+  // When the operation is a subscription the toolbar shows this
+  // Subscribe/Unsubscribe control instead of RunButton (query/mutation path is
+  // untouched). Exactly one of {RunButton, subscribeButton} renders.
+  subscribeButton?: ReactNode;
   // Shared workbench controls, injected in GraphQL mode so there is exactly
   // one toolbar (no duplicate RequestBar). See blueprint §4.b Option A.
   requestTypeToggle?: ReactNode;
@@ -43,6 +47,7 @@ export function ExplorerToolbar({
   runDisabled,
   onRun,
   onCancel,
+  subscribeButton,
   requestTypeToggle,
   onSave,
   onCopyCurl,
@@ -78,12 +83,14 @@ export function ExplorerToolbar({
           <Icon name="i-copy" size={15} />
         </button>
       )}
-      <RunButton
-        sendState={sendState}
-        disabled={runDisabled}
-        onRun={onRun}
-        onCancel={onCancel}
-      />
+      {subscribeButton ?? (
+        <RunButton
+          sendState={sendState}
+          disabled={runDisabled}
+          onRun={onRun}
+          onCancel={onCancel}
+        />
+      )}
     </div>
   );
 }

@@ -44,6 +44,28 @@ export function resolvePreviewCurl(
   return invoke("resolve_preview_curl", { request, environmentId });
 }
 
+// ---- GraphQL subscriptions (long-lived WebSocket, graphql-transport-ws) ----
+
+/** Open a subscription in Rust and return its id. Events stream on "gql-sub";
+ *  `connectionPayload` is an optional custom connection_init payload (may hold
+ *  {{...}}, resolved in Rust). Keys match the Rust command params exactly. */
+export function subscriptionStart(
+  request: StoredRequest,
+  environmentId: string | null,
+  connectionPayload?: unknown,
+): Promise<string> {
+  return invoke("subscription_start", {
+    request,
+    environmentId,
+    connectionPayload: connectionPayload ?? null,
+  });
+}
+
+/** Stop a live subscription. Resolves `false` if the id already finished. */
+export function subscriptionStop(id: string): Promise<boolean> {
+  return invoke("subscription_stop", { id });
+}
+
 // ---- interpolation ----
 
 export function previewTemplate(

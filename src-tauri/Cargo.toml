@@ -31,3 +31,18 @@ rand = "0.8"
 percent-encoding = "2"
 dirs = "5"
 shell-words = "1"
+# WebSocket transport for GraphQL subscriptions (graphql-transport-ws protocol).
+# `rustls-tls-native-roots` reuses the system trust store without linking
+# OpenSSL — consistent with the engine's certificate verification behaviour.
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-native-roots"] }
+futures-util = "0.3"
+# tokio itself ships transitively via tauri, but only with `sync`/`rt`; the
+# subscription task needs a graceful stop channel (`sync`) and an ack timeout
+# (`time`). We spawn through `tauri::async_runtime`, not a second runtime.
+tokio = { version = "1", features = ["sync", "time", "macros"] }
+
+[dev-dependencies]
+# The subscription tests spin a real loopback WS server: `net` to bind/accept,
+# `macros`+`rt-multi-thread` for `#[tokio::test]`.
+tokio = { version = "1", features = ["net", "macros", "rt-multi-thread", "sync", "time", "io-util"] }
+futures-util = "0.3"

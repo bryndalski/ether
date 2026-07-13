@@ -255,6 +255,7 @@ export function RequestWorkbench() {
           sendState={sendState}
           onRun={onSend}
           onCancel={cancel}
+          environmentId={activeEnvironmentId}
           requestTypeToggle={
             <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
           }
