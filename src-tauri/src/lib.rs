@@ -7,6 +7,7 @@ pub mod files;
 pub mod importers;
 pub mod interp;
 pub mod json_path;
+pub mod mcp;
 pub mod models;
 pub mod report;
 pub mod resolve;

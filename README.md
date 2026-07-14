@@ -29,6 +29,7 @@ Postman ∪ Insomnia, minus the cloud: no account, no sync, no telemetry. Your c
 - **Analysis**: response diff (structural + timing), mini-benchmark with p50/p95/p99 histograms, JWT decoder with live expiry countdown, TLS chain viewer
 - **macOS native**: ⌘K command palette, global hotkey, `ether://` deep links, menu bar, Touch ID for secrets
 - **CLI `lok`**: headless runner with JUnit/JSON/HTML reporters — same libcurl core as the GUI
+- **MCP server `ether-mcp`**: drive Ether from AI agents (Claude Code, etc.) — list collections/requests/environments and RUN requests through the same engine, secrets never leave Rust
 - **Optional local AI** (OFF by default): Ollama on localhost, ⌘K commands that materialize artifacts, secrets always redacted from prompts
 
 See [docs/specs/2026-07-12-lokowka-design.md](docs/specs/2026-07-12-lokowka-design.md) for the full design and [docs/research/](docs/research/) for the market research behind it.
@@ -54,6 +55,17 @@ xattr -cr /Applications/Ether.app
 
 macOS blocks any browser-downloaded app that isn't notarized by Apple — Ether is ad-hoc signed (no Apple Developer account, by design: no cloud, no accounts). Right-click → Open does **not** work for ad-hoc-signed apps. Building from source needs no such step.
 </details>
+
+## MCP (AI agents)
+
+`ether-mcp` is an MCP stdio server over your local Ether data — an agent can browse collections and execute saved requests through the real libcurl engine (with `{{env}}`/`{{secret}}` resolution happening inside Rust, so secret values never reach the model):
+
+```sh
+curl -fsSL -o ~/.local/bin/ether-mcp https://github.com/bryndalski/ether/releases/latest/download/ether-mcp-aarch64 && chmod +x ~/.local/bin/ether-mcp
+claude mcp add ether -- ~/.local/bin/ether-mcp
+```
+
+Tools: `list_collections`, `list_requests`, `get_request`, `list_environments`, `run_request`. Response bodies are capped at 100 kB per call. Point it at a non-default DB with `--db path/to/ether.db`.
 
 ## Development
 
