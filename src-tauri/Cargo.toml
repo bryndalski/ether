@@ -1,6 +1,6 @@
 [package]
 name = "lokowka"
-version = "0.3.0"
+version = "0.4.0"
 description = "Ether — a fully local API client for macOS with curl under the hood"
 authors = ["Jakub Bryndal"]
 edition = "2021"
