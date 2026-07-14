@@ -207,6 +207,7 @@ export const pl: Dict = {
     title: "Odpowiedź",
     noHeaders: "Brak nagłówków w odpowiedzi.",
     copyResponse: "Kopiuj odpowiedź",
+    saveResponse: "Zapisz odpowiedź do pliku",
     sending: "Wysyłam request…",
     pressSend: "Naciśnij Send i zobacz waterfall",
     emptyHint: "Odpowiedź, nagłówki i oś czasu pojawią się tutaj.",

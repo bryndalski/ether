@@ -299,3 +299,15 @@ export function aiTags(): Promise<AiModelInfo[]> {
 export function aiChat(request: AiChatRequest): Promise<AiChatResult> {
   return invoke("ai_chat", { request });
 }
+
+// ---- file export ----
+
+/** Write a response body to a user-picked path; base64 bodies are decoded back
+ *  to raw bytes in Rust so binaries save as binaries. */
+export function saveBodyToFile(
+  path: string,
+  contents: string,
+  isBase64: boolean,
+): Promise<void> {
+  return invoke("save_body_to_file", { path, contents, isBase64 });
+}

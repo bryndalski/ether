@@ -57,6 +57,7 @@ clap = { version = "4", features = ["derive"] }
 # construction (see docs/architecture/quickjs-scripts.md). `loader`/`dyn-load`/
 # `futures` are DELIBERATELY off so `import`/`require`/timers cannot resolve.
 rquickjs = { version = "0.9", features = ["classes", "properties", "array-buffer"] }
+tauri-plugin-dialog = "2.7.1"
 
 [dev-dependencies]
 # The subscription tests spin a real loopback WS server: `net` to bind/accept,

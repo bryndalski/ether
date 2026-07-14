@@ -3,6 +3,7 @@ pub mod assert;
 pub mod cli;
 pub mod curlgen;
 pub mod engine;
+pub mod files;
 pub mod importers;
 pub mod interp;
 pub mod json_path;
@@ -20,6 +21,7 @@ pub mod workflow;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             store::init(app.handle()).map_err(std::io::Error::other)?;
             Ok(())
@@ -71,6 +73,7 @@ pub fn run() {
             ai::ai_health,
             ai::ai_tags,
             ai::ai_chat,
+            files::save_body_to_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

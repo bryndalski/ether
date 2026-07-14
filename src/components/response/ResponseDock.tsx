@@ -14,6 +14,7 @@ import type {
 import { summarize, evalAssertions } from "../../lib/assertions";
 import { relativeTimeLabel } from "../../lib/relativeTime";
 import { detectJwtCandidates } from "../../lib/jwt";
+import { saveBodyToFile } from "../../lib/ipc";
 import { EmptyState } from "../common/EmptyState";
 import { Icon } from "../common/Icon";
 import { StatusBadge } from "./StatusBadge";
@@ -71,6 +72,19 @@ interface ResponseDockProps {
 
 function contentType(headers: { name: string; value: string }[]): string | undefined {
   return headers.find((h) => h.name.toLowerCase() === "content-type")?.value;
+}
+
+/** Save-dialog default name keyed off the response's content type. */
+function suggestedFilename(mime: string | undefined): string {
+  const kind = (mime ?? "").split(";")[0].trim().toLowerCase();
+  if (kind.includes("json")) return "response.json";
+  if (kind.includes("html")) return "response.html";
+  if (kind.includes("xml")) return "response.xml";
+  if (kind.startsWith("text/csv")) return "response.csv";
+  if (kind.startsWith("text/")) return "response.txt";
+  if (kind.startsWith("image/")) return `response.${kind.split("/")[1] || "bin"}`;
+  if (kind === "application/pdf") return "response.pdf";
+  return "response.bin";
 }
 
 /** Response dock (Zone 3). Empty until the first Send; then status + meta + tabs
@@ -278,6 +292,17 @@ function renderResponse(
   function copyBody() {
     void navigator.clipboard?.writeText(response.body ?? "");
   }
+  function saveBody() {
+    void (async () => {
+      const { save } = await import("@tauri-apps/plugin-dialog");
+      const path = await save({
+        defaultPath: suggestedFilename(headerContentType),
+      });
+      if (path) {
+        await saveBodyToFile(path, response.body ?? "", response.body_is_base64);
+      }
+    })();
+  }
 
   const jwtCandidates = detectJwtCandidates(response);
   const showCert = response.tls != null;
@@ -332,6 +357,7 @@ function renderResponse(
         onSelect={setTab}
         headerCount={response.headers.length}
         onCopy={copyBody}
+        onSaveFile={saveBody}
         showBench={showBench}
         showCert={showCert}
         jwtCount={jwtCandidates.length}

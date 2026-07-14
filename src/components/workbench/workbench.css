@@ -15,12 +15,42 @@
   background: var(--lok-bg-surface);
 }
 .toolbar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--lok-space-2);
   height: var(--lok-toolbar-h);
   padding: 0 var(--lok-space-4);
   border-bottom: 1px solid var(--lok-border-subtle);
+}
+/* In-flight: a heat comet sweeps along the toolbar's bottom edge until the
+   response lands. Reduced motion swaps the sweep for a steady heat hairline. */
+.toolbar[data-inflight="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background-image: var(--lok-gradient-heat-line);
+  background-size: 35% 100%;
+  background-repeat: no-repeat;
+  border-radius: 2px;
+  animation: lok-inflight-sweep 1.1s ease-in-out infinite;
+}
+@keyframes lok-inflight-sweep {
+  0% {
+    background-position: -40% 0;
+  }
+  100% {
+    background-position: 140% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toolbar[data-inflight="true"]::after {
+    animation: none;
+    background-size: 100% 100%;
+  }
 }
 .method-select {
   display: flex;

@@ -145,6 +145,11 @@ export function IconSprite() {
           <path d="M7 11v4a2 2 0 0 0 2 2h4" />
           <rect x="13" y="13" width="8" height="8" rx="2" />
         </symbol>
+        <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <path d="M7 10l5 5 5-5" />
+          <path d="M12 15V3" />
+        </symbol>
       </defs>
     </svg>
   );

@@ -20,6 +20,8 @@ interface ResponseTabsProps {
   onSelect: (tab: ResponseTabKey) => void;
   headerCount: number;
   onCopy: () => void;
+  /** Save-to-file for the body — hidden when the platform path is unavailable. */
+  onSaveFile?: () => void;
   showBench: boolean;
   showCert: boolean;
   jwtCount: number;
@@ -35,6 +37,7 @@ export function ResponseTabs({
   onSelect,
   headerCount,
   onCopy,
+  onSaveFile,
   showBench,
   showCert,
   jwtCount,
@@ -77,13 +80,25 @@ export function ResponseTabs({
       })}
       <button
         type="button"
-        className="tab"
+        className="tab lok-tip"
         aria-label={t("response.copyResponse")}
+        data-tip={t("response.copyResponse")}
         style={{ marginLeft: "auto" }}
         onClick={onCopy}
       >
         <Icon name="i-copy" size={13} />
       </button>
+      {onSaveFile && (
+        <button
+          type="button"
+          className="tab lok-tip"
+          aria-label={t("response.saveResponse")}
+          data-tip={t("response.saveResponse")}
+          onClick={onSaveFile}
+        >
+          <Icon name="i-download" size={13} />
+        </button>
+      )}
     </div>
   );
 }

@@ -39,7 +39,7 @@ export function RequestBar({
   const inFlight =
     sendState.phase === "in-flight" || sendState.phase === "interpolating";
   return (
-    <div className="toolbar">
+    <div className="toolbar" data-inflight={inFlight}>
       {requestTypeToggle}
       <UrlInput url={draft.url} onChange={onUrlChange} onEnter={onSend} />
       <button

@@ -98,12 +98,16 @@ export function ExplorerToolbar({
       : []),
   ];
 
+  const inFlight =
+    sendState.phase === "in-flight" || sendState.phase === "interpolating";
+
   return (
     <div
       className="toolbar"
       role="toolbar"
       aria-label={t("graphql.toolbar")}
       ref={toolbarRef}
+      data-inflight={inFlight}
     >
       {requestTypeToggle}
       <UrlInput

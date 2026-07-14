@@ -206,6 +206,7 @@ export const en = {
     title: "Response",
     noHeaders: "No headers in the response.",
     copyResponse: "Copy response",
+    saveResponse: "Save response to file",
     sending: "Sending request…",
     pressSend: "Press Send and watch the waterfall",
     emptyHint: "Response, headers and timeline will appear here.",

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import type { CompletionSource } from "@codemirror/autocomplete";
-import { EditorView } from "@codemirror/view";
+import { EditorView, tooltips } from "@codemirror/view";
 import { singleLine } from "../../lib/completion/singleLine";
 import { variableAutocomplete } from "../../lib/completion/variableExtension";
 import { urlPartHighlight } from "../../lib/completion/urlHighlight";
@@ -65,6 +65,9 @@ export function SingleLineCodeInput({
       makeTheme(fontSize),
       singleLine({ onEnter, wrap }),
       variableAutocomplete({ getCandidates, extraSources }),
+      // One-line fields clip their own overflow, which would guillotine the
+      // autocomplete popup — render CM tooltips into <body> at fixed position.
+      tooltips({ position: "fixed", parent: document.body }),
       ...(highlightUrl ? [urlPartHighlight] : []),
       // Flat rows scroll to the tail while typing a long value; on blur, snap
       // back to the start so the protocol/host stays readable at rest.
@@ -82,8 +85,10 @@ export function SingleLineCodeInput({
     [fontSize, onEnter, getCandidates, extraSources, highlightUrl, wrap],
   );
 
+  // NOTE: no native `title` here — the OS tooltip materializes mid-typing and
+  // fights the autocomplete popup for the same spot under the field.
   return (
-    <div className={className} aria-label={ariaLabel} title={value || undefined}>
+    <div className={className} aria-label={ariaLabel}>
       <CodeMirror
         value={value}
         theme="none"
