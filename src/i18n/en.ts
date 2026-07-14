@@ -174,6 +174,7 @@ export const en = {
     requestTypeAria: "Request type",
     queryEditorAria: "GraphQL query editor",
     queryPlaceholder: "# Write a query — or pick fields on the left…",
+    searchFields: "Search fields…",
     variablesAria: "Operation variables",
     sdlSchemaAria: "SDL schema",
     operationTypeAria: "GraphQL operation type",

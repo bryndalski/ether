@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { GraphQLField, GraphQLObjectType } from "graphql";
 import { FieldTreeNode } from "./FieldTreeNode";
 import { OperationSections } from "./OperationSections";
@@ -42,6 +43,7 @@ export function FieldTree({
 }: FieldTreeProps) {
   const t = useT();
   const expansion = useFieldTreeExpansion();
+  const [filter, setFilter] = useState("");
 
   function renderNodes(
     fields: GraphQLField<unknown, unknown>[],
@@ -88,7 +90,16 @@ export function FieldTree({
     });
   }
 
-  const rootFields = objectFields(rootType);
+  const allRootFields = objectFields(rootType);
+  const needle = filter.trim().toLowerCase();
+  const rootFields =
+    needle === ""
+      ? allRootFields
+      : allRootFields.filter(
+          (field) =>
+            field.name.toLowerCase().includes(needle) ||
+            field.type.toString().toLowerCase().includes(needle),
+        );
 
   return (
     <div className="gql-col tree-col">
@@ -98,6 +109,21 @@ export function FieldTree({
         counts={rootFieldCounts}
         onChange={onOpType}
       />
+      <div className="gql-tree-search">
+        <Icon name="i-search" size={13} />
+        <input
+          type="search"
+          value={filter}
+          placeholder={t("graphql.searchFields")}
+          aria-label={t("graphql.searchFields")}
+          onChange={(event) => setFilter(event.target.value)}
+        />
+        {needle !== "" && (
+          <span className="lok-tnums" style={{ fontSize: "var(--lok-fs-2xs)" }}>
+            {rootFields.length}/{allRootFields.length}
+          </span>
+        )}
+      </div>
       <div className="col-body lok-scroll" role="tree" aria-label={t("graphql.schemaFields")}>
         <div className="f field-type" aria-hidden="true">
           {rootType.name}

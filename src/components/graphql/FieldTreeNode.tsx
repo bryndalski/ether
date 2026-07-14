@@ -34,7 +34,6 @@ export function FieldTreeNode({
   const t = useT();
   const expandable = isExpandable(field);
   const withArgs = fieldHasArgs(field);
-  const indentClass = depth === 1 ? "indent" : depth >= 2 ? "indent2" : "";
   const typeName = field.type.toString().replace(/[[\]!]/g, "");
 
   return (
@@ -43,7 +42,10 @@ export function FieldTreeNode({
       aria-selected={selected}
       aria-level={depth + 1}
       aria-expanded={expandable ? expanded : undefined}
-      className={`f ${indentClass}${selected ? " on" : ""}`}
+      className={`f${selected ? " on" : ""}`}
+      // Unbounded nesting: indent per level (the old indent/indent2 classes
+      // flattened everything past depth 2, which read as "nested unsupported").
+      style={{ paddingLeft: 8 + (depth - 1) * 16 }}
       onKeyDown={(event) => {
         if (event.key === "ArrowRight" && expandable && !expanded) {
           event.preventDefault();

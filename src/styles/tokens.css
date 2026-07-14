@@ -179,7 +179,7 @@
   --lok-response-h: 42%;      /* response dock when placed at the bottom */
   --lok-titlebar-h: 40px;     /* Tauri custom titlebar / traffic-light row */
   --lok-toolbar-h: 52px;      /* request method+url+send row */
-  --lok-tabbar-h: 38px;       /* params/headers/body/auth tabs */
+  --lok-tabbar-h: 42px;       /* ALL tab strips: params/headers/…, response tabs */
   --lok-statusbar-h: 26px;    /* bottom env/health status strip */
 
   /* ----------------------------------------------------------------------

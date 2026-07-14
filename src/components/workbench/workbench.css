@@ -400,7 +400,12 @@
 }
 .resp-tabs {
   display: flex;
+  align-items: center;
   gap: var(--lok-space-1);
+  /* Same bar height as the request tabs — one tab scale everywhere (design
+     guide): the response strip used to shrink-wrap into a cramped sliver. */
+  height: var(--lok-tabbar-h);
+  flex: 0 0 auto;
   padding: 0 var(--lok-space-4);
   border-bottom: 1px solid var(--lok-border-subtle);
   background: var(--lok-bg-surface);

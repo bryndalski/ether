@@ -20,10 +20,15 @@ import type {
   OperationDefinitionNode,
   SelectionSetNode,
 } from "graphql";
+import type { GraphQLInputType } from "graphql";
 import {
   getNamedType,
   isCompositeType,
+  isEnumType,
+  isInputObjectType,
+  isListType,
   isNonNullType,
+  isScalarType,
   Kind,
   OperationTypeNode,
   parse,
@@ -296,6 +301,65 @@ function skeletonFieldNode(field: GraphQLField<unknown, unknown>): FieldNode {
           }
         : undefined,
   };
+}
+
+/** A plausible starter VALUE for an input type, so the Variables panel can be
+ *  pre-seeded the moment a field with required args is picked. Scalars get
+ *  their zero value, enums their first member, input objects recurse over
+ *  their own REQUIRED fields (depth-capped against cyclic inputs). */
+function suggestedValueForType(type: GraphQLInputType, depth: number): unknown {
+  if (isNonNullType(type)) return suggestedValueForType(type.ofType, depth);
+  if (isListType(type))
+    return depth > 3 ? [] : [suggestedValueForType(type.ofType, depth + 1)];
+  const named = getNamedType(type);
+  if (isEnumType(named)) return named.getValues()[0]?.name ?? "";
+  if (isInputObjectType(named)) {
+    if (depth > 3) return {};
+    const out: Record<string, unknown> = {};
+    for (const field of Object.values(named.getFields())) {
+      if (isNonNullType(field.type)) {
+        out[field.name] = suggestedValueForType(field.type, depth + 1);
+      }
+    }
+    return out;
+  }
+  if (isScalarType(named)) {
+    switch (named.name) {
+      case "Int":
+      case "Float":
+        return 0;
+      case "Boolean":
+        return false;
+      default:
+        return ""; // String, ID, and custom scalars
+    }
+  }
+  return null;
+}
+
+/** Starter variables for a root field's REQUIRED args — mirrors exactly the
+ *  `$vars` that applyFieldSkeletonToQuery splices into the operation header,
+ *  so picking a field in the tree fills the Variables panel to match. */
+export function suggestedVariablesForField(
+  schema: GraphQLSchema,
+  opType: OperationType,
+  fieldName: string,
+): Record<string, unknown> {
+  const rootType =
+    opType === "mutation"
+      ? schema.getMutationType()
+      : opType === "subscription"
+        ? schema.getSubscriptionType()
+        : schema.getQueryType();
+  const field = rootType?.getFields()[fieldName];
+  if (!field) return {};
+  const out: Record<string, unknown> = {};
+  for (const arg of field.args) {
+    if (isNonNullType(arg.type)) {
+      out[arg.name] = suggestedValueForType(arg.type, 0);
+    }
+  }
+  return out;
 }
 
 /** The `($a: T!, $b: T)` operation variable definitions for a field's required

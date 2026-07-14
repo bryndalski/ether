@@ -175,6 +175,7 @@ export const pl: Dict = {
     requestTypeAria: "Typ requestu",
     queryEditorAria: "Edytor zapytania GraphQL",
     queryPlaceholder: "# Napisz zapytanie — albo zaznacz pola po lewej…",
+    searchFields: "Szukaj pól…",
     variablesAria: "Zmienne operacji",
     sdlSchemaAria: "Schemat SDL",
     operationTypeAria: "Typ operacji GraphQL",

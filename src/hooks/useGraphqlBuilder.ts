@@ -13,6 +13,7 @@ import {
   deriveSelection,
   pathKey,
   sameOperation,
+  suggestedVariablesForField,
   type FieldPath,
   type OperationType,
 } from "../lib/graphqlSelection";
@@ -84,9 +85,31 @@ export function useGraphqlBuilder(
           ? applyFieldSkeletonToQuery(query, opType, schema, fieldName)
           : applySelectionToQuery(query, opType, [fieldName], on);
       if (sameOperation(nextQuery, query)) return;
-      dispatch({ kind: "setGraphql", graphql: { query: nextQuery } });
+      const graphql: Partial<NonNullable<RequestDraft["graphql"]>> = {
+        query: nextQuery,
+      };
+      // Seed the Variables panel with starter values for the $vars the
+      // skeleton just introduced — never overwriting anything already typed.
+      if (on && schema) {
+        const suggested = suggestedVariablesForField(schema, opType, fieldName);
+        if (Object.keys(suggested).length > 0) {
+          try {
+            const parsed: unknown = JSON.parse(variablesJson || "{}");
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              graphql.variables_json = JSON.stringify(
+                { ...suggested, ...(parsed as Record<string, unknown>) },
+                null,
+                2,
+              );
+            }
+          } catch {
+            // Mid-edit invalid JSON: leave the user's buffer untouched.
+          }
+        }
+      }
+      dispatch({ kind: "setGraphql", graphql });
     },
-    [dispatch, query, opType, schema],
+    [dispatch, query, opType, schema, variablesJson],
   );
 
   const setOpType = useCallback(
