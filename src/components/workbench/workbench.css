@@ -95,11 +95,14 @@
 .url-field:hover {
   border-color: var(--lok-border-strong);
 }
+/* The URL field is focused for most of an editing session — the full-strength
+   heat ring read as a permanent alarm around the widest control on screen.
+   Keep the heat hue, drop the volume: tinted border + a whisper of a ring. */
 .url-field:focus,
 .url-field:focus-within {
   outline: none;
-  border-color: var(--lok-border-focus);
-  box-shadow: 0 0 0 3px var(--lok-focus-ring);
+  border-color: color-mix(in srgb, var(--lok-heat-500) 55%, var(--lok-border-strong));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lok-heat-500) 15%, transparent);
 }
 /* The inner CodeMirror fills the field on one flat line; its own scroller takes
    the horizontal overflow so the row height stays fixed. */
@@ -525,6 +528,14 @@
 .method.options {
   color: var(--lok-method-options);
   background: color-mix(in srgb, var(--lok-method-options) 14%, transparent);
+}
+/* GraphQL operation entry in the unified kind picker — GraphQL violet. */
+.method.gql {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--lok-syn-gql);
+  background: color-mix(in srgb, var(--lok-syn-gql) 14%, transparent);
 }
 
 /* tabs */

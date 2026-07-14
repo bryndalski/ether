@@ -30,31 +30,6 @@
   flex: 1 1 auto;
 }
 
-.op-select {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  flex-shrink: 0;
-  padding: 0 var(--lok-space-3);
-  border-radius: var(--lok-radius-sm);
-  background: var(--lok-bg-raised);
-  border: 1px solid var(--lok-border-default);
-  cursor: pointer;
-  font-size: var(--lok-fs-sm);
-  color: var(--lok-text-primary);
-  font-family: var(--lok-font-mono);
-  font-weight: var(--lok-fw-semibold);
-}
-.op-select .op {
-  color: var(--lok-syn-gql);
-}
-.op-select:focus-visible {
-  outline: 2px solid var(--lok-heat-500);
-  outline-offset: 1px;
-}
-
 .btn.refresh {
   display: flex;
   align-items: center;
@@ -481,34 +456,6 @@
   color: var(--lok-status-danger);
   font-family: var(--lok-font-mono);
   font-size: var(--lok-fs-2xs);
-}
-
-/* Request-type segmented toggle (REST | GraphQL) in the request bar */
-.reqtype-toggle {
-  display: inline-flex;
-  border: 1px solid var(--lok-border-default);
-  border-radius: var(--lok-radius-sm);
-  overflow: hidden;
-}
-.reqtype-toggle button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 30px;
-  padding: 0 var(--lok-space-3);
-  background: var(--lok-bg-raised);
-  border: none;
-  color: var(--lok-text-tertiary);
-  font-size: var(--lok-fs-xs);
-  cursor: pointer;
-}
-.reqtype-toggle button[aria-selected="true"] {
-  background: var(--lok-bg-active);
-  color: var(--lok-text-primary);
-}
-.reqtype-toggle button:focus-visible {
-  outline: 2px solid var(--lok-heat-500);
-  outline-offset: -2px;
 }
 
 /* GraphQL badge on a request row in the sidebar */

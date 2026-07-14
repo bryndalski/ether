@@ -1,9 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
-import type { OperationType } from "../../lib/graphqlSelection";
 import type { SchemaState } from "../../hooks/useGraphqlSchema";
 import type { SendState } from "../../hooks/useSendRequest";
 import { useToolbarOverflow } from "../../hooks/useToolbarOverflow";
-import { OperationPicker } from "./OperationPicker";
 import { UrlInput } from "../workbench/UrlInput";
 import { RefreshSchemaButton } from "./RefreshSchemaButton";
 import { RunButton } from "./RunButton";
@@ -12,9 +10,6 @@ import { RowContextMenu, type MenuItem } from "../sidebar/RowContextMenu";
 import { useT } from "../../i18n/useT";
 
 interface ExplorerToolbarProps {
-  opType: OperationType;
-  availableOps: OperationType[];
-  onOpType: (opType: OperationType) => void;
   url: string;
   onUrl: (url: string) => void;
   schemaState: SchemaState;
@@ -49,9 +44,6 @@ const COLLAPSE_BELOW_PX = 900;
  *  widths; the primary action always renders full-width. The REST RequestBar is
  *  not rendered in GraphQL mode, so this is the only toolbar/URL/Run. */
 export function ExplorerToolbar({
-  opType,
-  availableOps,
-  onOpType,
   url,
   onUrl,
   schemaState,
@@ -114,7 +106,6 @@ export function ExplorerToolbar({
       ref={toolbarRef}
     >
       {requestTypeToggle}
-      <OperationPicker opType={opType} available={availableOps} onChange={onOpType} />
       <UrlInput
         url={url}
         onChange={onUrl}

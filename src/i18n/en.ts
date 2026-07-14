@@ -99,6 +99,7 @@ export const en = {
     copyAsCurlAria: "Copy as cURL",
     urlAria: "Request URL",
     methodAria: "HTTP method",
+    requestKindAria: "Request type — HTTP method or GraphQL operation",
     authPane: "Authorization",
     paramsPane: "Parameters",
     authTypeAria: "Authorization type",

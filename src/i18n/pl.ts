@@ -98,6 +98,7 @@ export const pl: Dict = {
     copyAsCurlAria: "Kopiuj jako cURL",
     urlAria: "URL requestu",
     methodAria: "Metoda HTTP",
+    requestKindAria: "Typ requestu — metoda HTTP lub operacja GraphQL",
     authPane: "Autoryzacja",
     paramsPane: "Parametry",
     authTypeAria: "Typ autoryzacji",

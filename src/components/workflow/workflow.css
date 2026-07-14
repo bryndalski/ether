@@ -342,31 +342,66 @@
   font-weight: 700;
 }
 
-/* ---- mode tabs (titlebar segmented control) ---- */
+/* ---- mode tabs (titlebar segmented control) ----
+   Equal-width grid with a sliding raised thumb (::before) driven by the
+   container's data-mode; each tab pairs an icon with its label. The thumb —
+   not a heat underline — carries the active state, so the control reads as a
+   real macOS-style switch. */
 
 .lok-mode-tabs {
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 3px;
   border-radius: var(--lok-radius-full);
   background-color: var(--lok-bg-raised);
+  border: 1px solid var(--lok-border-subtle);
+}
+.lok-mode-tabs::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: var(--lok-radius-full);
+  background: var(--lok-bg-overlay);
+  border: 1px solid var(--lok-border-default);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+  transition: transform var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.lok-mode-tabs[data-mode="workflows"]::before {
+  transform: translateX(100%);
 }
 .lok-mode-tab {
-  padding: 2px var(--lok-space-3);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 3px var(--lok-space-4);
   border: none;
   border-radius: var(--lok-radius-full);
   background: transparent;
-  color: var(--lok-text-secondary);
+  color: var(--lok-text-tertiary);
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
+  transition: color var(--lok-dur-fast) var(--lok-ease-standard);
+}
+.lok-mode-tab svg {
+  opacity: 0.75;
+}
+.lok-mode-tab:hover {
+  color: var(--lok-text-secondary);
 }
 .lok-mode-tab[data-active="true"] {
   color: var(--lok-text-primary);
-  background-image: var(--lok-gradient-heat-line);
-  background-repeat: no-repeat;
-  background-position: bottom;
-  background-size: 100% 2px;
+}
+.lok-mode-tab[data-active="true"] svg {
+  opacity: 1;
+  color: var(--lok-heat-500);
 }
 .lok-mode-tab:focus-visible {
   outline: none;

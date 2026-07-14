@@ -29,7 +29,10 @@
   color: var(--lok-text-secondary);
 }
 
-.cm-tooltip-autocomplete > ul > li[aria-selected] {
+/* Extra .cm-tooltip in the selector: CodeMirror injects its base theme (the
+   default BLUE selected row) at runtime AFTER this stylesheet — same
+   specificity would lose, so ours must be more specific to win. */
+.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
   background: var(--lok-bg-selected);
   color: var(--lok-text-primary);
 }
@@ -96,12 +99,14 @@
   color: var(--lok-status-success);
 }
 
-/* `{{...}}` token pill — heat-tinted mono, in the editor and in the idle span. */
+/* `{{...}}` token pill — a calm violet chip (variables read as instruments,
+   not alarms; heat stays reserved for Send). */
 .cm-lok-token {
-  color: var(--lok-brand);
-  background: var(--lok-brand-subtle);
-  border-radius: var(--lok-radius-xs);
-  padding: 0 2px;
+  color: var(--lok-syn-gql);
+  background: color-mix(in srgb, var(--lok-syn-gql) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lok-syn-gql) 30%, transparent);
+  border-radius: var(--lok-radius-full);
+  padding: 0 5px;
 }
 
 /* URL bar part highlighting — ALL neutral ink (heat is spent once per screen on

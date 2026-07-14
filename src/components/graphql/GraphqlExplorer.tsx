@@ -116,9 +116,6 @@ export function GraphqlExplorer({
   return (
     <div className="gql-explorer">
       <ExplorerToolbar
-        opType={builder.opType}
-        availableOps={availableOps}
-        onOpType={builder.setOpType}
         url={draft.url}
         onUrl={(url) => dispatch({ kind: "setUrl", url })}
         schemaState={schemaApi.state}

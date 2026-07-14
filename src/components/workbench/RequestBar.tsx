@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import type { SendState } from "../../hooks/useSendRequest";
 import type { RequestDraft } from "../../hooks/useRequestDraft";
-import { MethodSelect } from "./MethodSelect";
 import { UrlInput } from "./UrlInput";
 import { SendButton } from "./SendButton";
 import { BenchmarkButton } from "../devtools/BenchmarkButton";
@@ -10,7 +9,6 @@ import { useT } from "../../i18n/useT";
 
 interface RequestBarProps {
   draft: RequestDraft;
-  onMethodChange: (method: string) => void;
   onUrlChange: (url: string) => void;
   sendState: SendState;
   onSend: () => void;
@@ -19,14 +17,14 @@ interface RequestBarProps {
   onBenchmark: () => void;
   onCopyCurl: () => void;
   dirty: boolean;
+  /** The unified request-kind picker (HTTP verb / GraphQL op) — owns what used
+   *  to be the REST|GraphQL toggle + method dropdown pair. */
   requestTypeToggle?: ReactNode;
 }
 
-/** The toolbar row (--lok-toolbar-h): request-type toggle + method select + URL + Save + Send.
- *  For GraphQL the method select is hidden (GraphQL is always POST). */
+/** The toolbar row (--lok-toolbar-h): kind picker + URL + Save + Send. */
 export function RequestBar({
   draft,
-  onMethodChange,
   onUrlChange,
   sendState,
   onSend,
@@ -38,15 +36,11 @@ export function RequestBar({
   requestTypeToggle,
 }: RequestBarProps) {
   const t = useT();
-  const isGraphql = draft.graphql != null;
   const inFlight =
     sendState.phase === "in-flight" || sendState.phase === "interpolating";
   return (
     <div className="toolbar">
       {requestTypeToggle}
-      {!isGraphql && (
-        <MethodSelect method={draft.method} onChange={onMethodChange} />
-      )}
       <UrlInput url={draft.url} onChange={onUrlChange} onEnter={onSend} />
       <button
         type="button"

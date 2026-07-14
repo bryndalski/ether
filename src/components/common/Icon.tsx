@@ -34,7 +34,8 @@ export type IconName =
   | "i-key"
   | "i-clock"
   | "i-alert"
-  | "i-globe";
+  | "i-globe"
+  | "i-flow";
 
 interface IconProps {
   name: IconName;

@@ -134,10 +134,14 @@ describe("GraphqlExplorer", () => {
     ).toBe(false);
   });
 
-  it("op-picker exposes an accessible operation select", async () => {
+  it("operation switching is exposed via the accessible op sections", async () => {
+    // The toolbar's op-picker merged into the workbench-level request-kind
+    // select; inside the explorer the op switch lives in the tree's sections.
     render(<Harness />);
     await screen.findByRole("tree");
-    expect(screen.getByLabelText("GraphQL operation type")).toBeInTheDocument();
+    expect(
+      screen.getByRole("tablist", { name: "Operation sections" }),
+    ).toBeInTheDocument();
   });
 
   it("Run and Refresh icon-only buttons expose accessible names", async () => {

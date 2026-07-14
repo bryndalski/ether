@@ -19,7 +19,11 @@ import { hasRedactedSecrets } from "../../lib/replay";
 import type { ScrubConfig, StoredRequest } from "../../lib/types";
 import { TestsPanel } from "./tests/TestsPanel";
 import { ScriptsPanel } from "./scripts/ScriptsPanel";
-import { RequestTypeToggle } from "../graphql/RequestTypeToggle";
+import {
+  RequestKindSelect,
+  type GqlOp,
+  type RequestKindPick,
+} from "./RequestKindSelect";
 import { EmptyState } from "../common/EmptyState";
 import { Icon } from "../common/Icon";
 import { ResponseDock } from "../response/ResponseDock";
@@ -210,10 +214,14 @@ export function RequestWorkbench() {
     resetBus,
   ]);
 
-  const onRequestType = useCallback(
-    (graphql: boolean) => {
-      if (graphql) dispatch({ kind: "setGraphql", graphql: {} });
-      else dispatch({ kind: "clearGraphql" });
+  const onKindPick = useCallback(
+    (pick: RequestKindPick) => {
+      if (pick.graphql) {
+        dispatch({ kind: "setGraphql", graphql: { operation_type: pick.op } });
+      } else {
+        dispatch({ kind: "clearGraphql" });
+        dispatch({ kind: "setMethod", method: pick.method });
+      }
     },
     [dispatch],
   );
@@ -261,7 +269,11 @@ export function RequestWorkbench() {
           onCancel={cancel}
           environmentId={activeEnvironmentId}
           requestTypeToggle={
-            <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
+            <RequestKindSelect
+              method={draft.method}
+              graphqlOp={(draft.graphql?.operation_type ?? "query") as GqlOp}
+              onPick={onKindPick}
+            />
           }
           onSave={onSave}
           onCopyCurl={onCopyCurl}
@@ -271,7 +283,6 @@ export function RequestWorkbench() {
         <>
           <RequestBar
             draft={draft}
-            onMethodChange={(method) => dispatch({ kind: "setMethod", method })}
             onUrlChange={(url) => dispatch({ kind: "setUrl", url })}
             sendState={sendState}
             onSend={onSend}
@@ -281,7 +292,11 @@ export function RequestWorkbench() {
             onCopyCurl={onCopyCurl}
             dirty={dirty}
             requestTypeToggle={
-              <RequestTypeToggle isGraphql={isGraphql} onSelect={onRequestType} />
+              <RequestKindSelect
+                method={draft.method}
+                graphqlOp={null}
+                onPick={onKindPick}
+              />
             }
           />
           {sendBlocked && holes.length > 0 && (
